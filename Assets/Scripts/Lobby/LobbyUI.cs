@@ -59,9 +59,8 @@ namespace RangerCity.Lobby
         private TMP_InputField _addressInput;
         private TMP_InputField _portInput;
         private TMP_InputField _nameInput;
-        private int _selectedColorIndex = 0;
-        private Image[] _colorSwatches;
-        private GameObject _colorIndicator;
+
+
 
         private void Start()
         {
@@ -516,7 +515,36 @@ namespace RangerCity.Lobby
                 _emojiPanel.SetActive(false);
         }
 
-        // ── Connection Panel UI ──
+        // ══════════════════════════════════════════════════════
+        //  CONNECTION & CHARACTER CUSTOMIZATION PANEL (Premium)
+        // ══════════════════════════════════════════════════════
+
+        // Customization state
+        private int _selectedHairStyle = 0;
+        private int _selectedHairColor = 0;
+        private int _selectedOutfitStyle = 0;
+        private int _selectedBodyColor = 0;
+        private int _selectedPantsStyle = 0;
+        private int _selectedPantsColor = 0;
+
+        // Preview
+        private GameObject _previewCharacter;
+        private float _previewRotation = 0f;
+
+        // Tab UI
+        private int _activeTab = 0; // 0=hair, 1=outfit, 2=pants
+        private GameObject _tabHairContent;
+        private GameObject _tabOutfitContent;
+        private GameObject _tabPantsContent;
+        private Image[] _tabButtons;
+
+        // Swatch highlight refs
+        private GameObject _hairStyleIndicator;
+        private GameObject _hairColorIndicator;
+        private GameObject _outfitStyleIndicator;
+        private GameObject _bodyColorIndicator;
+        private GameObject _pantsStyleIndicator;
+        private GameObject _pantsColorIndicator;
 
         private void CreateConnectionUI()
         {
@@ -524,270 +552,407 @@ namespace RangerCity.Lobby
             if (canvas == null) canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null) return;
 
-            // Load saved preferences
-            _selectedColorIndex = PlayerPrefs.GetInt("PlayerColorIndex", 0);
+            // Load saved prefs
+            _selectedBodyColor = PlayerPrefs.GetInt("PlayerColorIndex", 0);
+            _selectedHairStyle = PlayerPrefs.GetInt("PlayerHairStyle", 0);
+            _selectedHairColor = PlayerPrefs.GetInt("PlayerHairColor", 0);
+            _selectedOutfitStyle = PlayerPrefs.GetInt("PlayerOutfitStyle", 0);
+            _selectedPantsStyle = PlayerPrefs.GetInt("PlayerPantsStyle", 0);
+            _selectedPantsColor = PlayerPrefs.GetInt("PlayerPantsColor", 0);
             string savedName = PlayerPrefs.GetString("PlayerName", "");
 
-            // Connection Panel (full-screen overlay)
+            // ── Full-screen overlay ──
             _connectionPanel = new GameObject("ConnectionPanel");
             _connectionPanel.transform.SetParent(canvas.transform, false);
-
             var panelRt = _connectionPanel.AddComponent<RectTransform>();
-            panelRt.anchorMin = Vector2.zero;
-            panelRt.anchorMax = Vector2.one;
+            panelRt.anchorMin = Vector2.zero; panelRt.anchorMax = Vector2.one;
             panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
-
             var panelImg = _connectionPanel.AddComponent<Image>();
-            panelImg.color = new Color(0.08f, 0.08f, 0.14f, 0.97f);
+            panelImg.color = new Color(0.04f, 0.04f, 0.08f, 0.96f);
 
-            // Card Container (bigger to fit customization)
-            var card = new GameObject("Card");
-            card.transform.SetParent(_connectionPanel.transform, false);
-            var cardRt = card.AddComponent<RectTransform>();
-            cardRt.sizeDelta = new Vector2(480, 580);
-            var cardImg = card.AddComponent<Image>();
-            cardImg.color = new Color(0.16f, 0.16f, 0.22f, 1f);
+            // ── Main Card (glassmorphism) ──
+            var card = CreatePanel(_connectionPanel.transform, "MainCard", Vector2.zero, new Vector2(780, 520));
+            var cardImg = card.GetComponent<Image>();
+            cardImg.color = new Color(0.12f, 0.13f, 0.18f, 0.95f);
 
-            float y = 250f; // Start from top
+            // Subtle card border (outer glow simulation)
+            var cardBorder = CreatePanel(card.transform, "CardBorder", Vector2.zero, new Vector2(784, 524));
+            cardBorder.transform.SetAsFirstSibling();
+            cardBorder.GetComponent<Image>().color = new Color(0.3f, 0.5f, 0.85f, 0.25f);
 
-            // ── Title ──
-            var titleObj = CreateUIText(card.transform, "RANGER CITY LOBBY", 26, new Vector2(0, y), new Vector2(420, 40));
-            titleObj.GetComponent<TextMeshProUGUI>().color = new Color(0.4f, 0.85f, 1f);
-            y -= 50f;
+            // ── Title bar ──
+            var titleBar = CreatePanel(card.transform, "TitleBar", new Vector2(0, 235), new Vector2(740, 45));
+            titleBar.GetComponent<Image>().color = new Color(0.08f, 0.09f, 0.14f, 0.9f);
+            var titleTxt = MakeText(titleBar.transform, "TitleText", "✨ RANGER CITY — TÙY CHỈNH NHÂN VẬT", 20,
+                Vector2.zero, new Vector2(700, 40), TextAlignmentOptions.Center, new Color(0.5f, 0.85f, 1f));
 
-            // ── Tên nhân vật ──
-            CreateUIText(card.transform, "Tên nhân vật:", 15, new Vector2(-120, y), new Vector2(200, 24), TextAlignmentOptions.Left, new Color(0.75f, 0.75f, 0.85f));
-            y -= 30f;
+            // ═══════════════════════════════════
+            //  LEFT COLUMN — Character Preview
+            // ═══════════════════════════════════
 
-            var nameObj = new GameObject("NameInput");
-            nameObj.transform.SetParent(card.transform, false);
-            var nameRt = nameObj.AddComponent<RectTransform>();
-            nameRt.anchoredPosition = new Vector2(0, y);
-            nameRt.sizeDelta = new Vector2(380, 40);
-            var nameImg = nameObj.AddComponent<Image>();
-            nameImg.color = new Color(0.1f, 0.1f, 0.15f, 1f);
+            var leftCol = CreatePanel(card.transform, "LeftCol", new Vector2(-210, -15), new Vector2(300, 410));
+            leftCol.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.12f, 0.8f);
 
-            var nameTextArea = new GameObject("Text");
-            nameTextArea.transform.SetParent(nameObj.transform, false);
-            var nrt = nameTextArea.AddComponent<RectTransform>();
-            nrt.anchorMin = Vector2.zero;
-            nrt.anchorMax = Vector2.one;
-            nrt.offsetMin = new Vector2(10, 0);
-            nrt.offsetMax = new Vector2(-10, 0);
-            var nameTxt = nameTextArea.AddComponent<TextMeshProUGUI>();
-            nameTxt.fontSize = 18;
-            nameTxt.color = Color.white;
+            MakeText(leftCol.transform, "PreviewLabel", "XEM TRƯỚC", 12,
+                new Vector2(0, 185), new Vector2(260, 24), TextAlignmentOptions.Center, new Color(0.5f, 0.55f, 0.7f));
 
-            // Placeholder
-            var placeholderObj = new GameObject("Placeholder");
-            placeholderObj.transform.SetParent(nameObj.transform, false);
-            var phRt = placeholderObj.AddComponent<RectTransform>();
-            phRt.anchorMin = Vector2.zero;
-            phRt.anchorMax = Vector2.one;
-            phRt.offsetMin = new Vector2(10, 0);
-            phRt.offsetMax = new Vector2(-10, 0);
-            var phTxt = placeholderObj.AddComponent<TextMeshProUGUI>();
-            phTxt.text = "Nhập tên của bạn...";
-            phTxt.fontSize = 18;
-            phTxt.fontStyle = FontStyles.Italic;
-            phTxt.color = new Color(0.5f, 0.5f, 0.55f);
+            // Create preview character (3D object rendered by scene camera)
+            CreatePreviewCharacter(leftCol.transform);
 
-            _nameInput = nameObj.AddComponent<TMP_InputField>();
-            _nameInput.textComponent = nameTxt;
-            _nameInput.placeholder = phTxt;
-            _nameInput.text = savedName;
-            _nameInput.characterLimit = 16;
+            // Name input under preview
+            MakeText(leftCol.transform, "NameLabel", "TÊN NHÂN VẬT", 12,
+                new Vector2(0, -120), new Vector2(260, 20), TextAlignmentOptions.Center, new Color(0.5f, 0.55f, 0.7f));
 
-            y -= 45f;
+            var nameInputObj = CreateInputFieldV2(leftCol.transform, savedName, "Nhập tên...",
+                new Vector2(0, -148), new Vector2(250, 38));
+            _nameInput = nameInputObj;
 
-            // ── Chọn màu nhân vật ──
-            CreateUIText(card.transform, "Chọn màu nhân vật:", 15, new Vector2(-100, y), new Vector2(240, 24), TextAlignmentOptions.Left, new Color(0.75f, 0.75f, 0.85f));
-            y -= 35f;
+            // Device ID
+            string deviceId = SystemInfo.deviceUniqueIdentifier;
+            string shortId = deviceId.Length > 10 ? deviceId.Substring(0, 10) + "..." : deviceId;
+            MakeText(leftCol.transform, "DeviceId", $"ID: {shortId}", 10,
+                new Vector2(0, -178), new Vector2(260, 18), TextAlignmentOptions.Center, new Color(0.4f, 0.4f, 0.5f));
 
-            // Color swatch grid
-            var colorGrid = new GameObject("ColorGrid");
-            colorGrid.transform.SetParent(card.transform, false);
-            var gridRt = colorGrid.AddComponent<RectTransform>();
-            gridRt.anchoredPosition = new Vector2(0, y);
-            gridRt.sizeDelta = new Vector2(380, 45);
+            // ═══════════════════════════════════
+            //  RIGHT COLUMN — Customization Tabs
+            // ═══════════════════════════════════
 
-            _colorSwatches = new Image[NetworkPlayer.ColorPalette.Length];
-            float swatchSize = 36f;
-            float spacing = 2f;
-            float totalWidth = NetworkPlayer.ColorPalette.Length * (swatchSize + spacing) - spacing;
-            float startX = -totalWidth / 2f + swatchSize / 2f;
+            var rightCol = CreatePanel(card.transform, "RightCol", new Vector2(170, 20), new Vector2(340, 340));
+            rightCol.GetComponent<Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.6f);
 
-            for (int i = 0; i < NetworkPlayer.ColorPalette.Length; i++)
+            // Tab buttons row
+            var tabRow = CreatePanel(rightCol.transform, "TabRow", new Vector2(0, 152), new Vector2(320, 36));
+            tabRow.GetComponent<Image>().color = Color.clear;
+            _tabButtons = new Image[3];
+            string[] tabLabels = { "💇 Tóc", "👕 Áo", "👖 Quần" };
+            for (int i = 0; i < 3; i++)
+            {
+                int tabIdx = i;
+                var tabBtn = CreatePanel(tabRow.transform, $"Tab_{i}",
+                    new Vector2(-107 + i * 107, 0), new Vector2(100, 32));
+                _tabButtons[i] = tabBtn.GetComponent<Image>();
+                _tabButtons[i].color = i == 0 ? new Color(0.25f, 0.45f, 0.8f, 0.9f) : new Color(0.18f, 0.18f, 0.24f, 0.8f);
+                var btn = tabBtn.AddComponent<Button>();
+                btn.onClick.AddListener(() => SwitchTab(tabIdx));
+                MakeText(tabBtn.transform, "Label", tabLabels[i], 14,
+                    Vector2.zero, new Vector2(96, 28), TextAlignmentOptions.Center, Color.white);
+            }
+
+            // Tab contents
+            _tabHairContent = CreatePanel(rightCol.transform, "HairContent", new Vector2(0, 10), new Vector2(320, 270));
+            _tabHairContent.GetComponent<Image>().color = Color.clear;
+            BuildHairTab(_tabHairContent.transform);
+
+            _tabOutfitContent = CreatePanel(rightCol.transform, "OutfitContent", new Vector2(0, 10), new Vector2(320, 270));
+            _tabOutfitContent.GetComponent<Image>().color = Color.clear;
+            BuildOutfitTab(_tabOutfitContent.transform);
+            _tabOutfitContent.SetActive(false);
+
+            _tabPantsContent = CreatePanel(rightCol.transform, "PantsContent", new Vector2(0, 10), new Vector2(320, 270));
+            _tabPantsContent.GetComponent<Image>().color = Color.clear;
+            BuildPantsTab(_tabPantsContent.transform);
+            _tabPantsContent.SetActive(false);
+
+            // ═══════════════════════════════════
+            //  BOTTOM — Connection Buttons
+            // ═══════════════════════════════════
+
+            var bottomBar = CreatePanel(card.transform, "BottomBar", new Vector2(170, -180), new Vector2(340, 90));
+            bottomBar.GetComponent<Image>().color = Color.clear;
+
+            // Host button
+            CreateGradientButton(bottomBar.transform, "HostBtn", "▶ HOST SERVER",
+                new Color(0.15f, 0.55f, 0.3f), new Color(0.2f, 0.7f, 0.4f),
+                new Vector2(0, 25), new Vector2(310, 42), OnHostServerClicked);
+
+            // IP + Port + Join row
+            var joinRow = CreatePanel(bottomBar.transform, "JoinRow", new Vector2(0, -25), new Vector2(310, 36));
+            joinRow.GetComponent<Image>().color = Color.clear;
+
+            _addressInput = CreateInputFieldV2(joinRow.transform, "wool-delivery.gl.at.ply.gg", "",
+                new Vector2(-55, 0), new Vector2(170, 32));
+
+            _portInput = CreateInputFieldV2(joinRow.transform, "30645", "",
+                new Vector2(100, 0), new Vector2(60, 32));
+
+            CreateGradientButton(joinRow.transform, "JoinBtn", "JOIN",
+                new Color(0.2f, 0.4f, 0.75f), new Color(0.3f, 0.55f, 0.9f),
+                new Vector2(148, 0), new Vector2(56, 32), OnJoinServerClicked);
+        }
+
+        // ── Tab Builders ──
+
+        private void BuildHairTab(Transform parent)
+        {
+            MakeText(parent, "StyleLabel", "KIỂU TÓC", 12,
+                new Vector2(0, 115), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+
+            // Style grid (2 rows x 3 cols)
+            float y = 80f;
+            for (int i = 0; i < NetworkPlayer.HairStyleNames.Length; i++)
             {
                 int idx = i;
-                var swatch = new GameObject($"Color_{i}");
-                swatch.transform.SetParent(colorGrid.transform, false);
-                var swRt = swatch.AddComponent<RectTransform>();
-                swRt.anchoredPosition = new Vector2(startX + i * (swatchSize + spacing), 0);
-                swRt.sizeDelta = new Vector2(swatchSize, swatchSize);
+                int row = i / 3; int col = i % 3;
+                float x = -100f + col * 100f;
+                float yPos = y - row * 65f;
 
-                var swImg = swatch.AddComponent<Image>();
-                swImg.color = NetworkPlayer.ColorPalette[i];
-                _colorSwatches[i] = swImg;
-
-                var swBtn = swatch.AddComponent<Button>();
-                swBtn.onClick.AddListener(() => SelectColor(idx));
+                var slot = CreateStyleSlot(parent, $"Hair_{i}", NetworkPlayer.HairStyleIcons[i],
+                    NetworkPlayer.HairStyleNames[i], new Vector2(x, yPos), new Vector2(90, 58),
+                    i == _selectedHairStyle);
+                slot.GetComponent<Button>().onClick.AddListener(() => { _selectedHairStyle = idx; RefreshHairStyleHighlight(); UpdatePreview(); });
             }
 
-            // Selection indicator border
-            _colorIndicator = new GameObject("Indicator");
-            _colorIndicator.transform.SetParent(colorGrid.transform, false);
-            var indRt = _colorIndicator.AddComponent<RectTransform>();
-            indRt.sizeDelta = new Vector2(swatchSize + 6, swatchSize + 6);
-            var indImg = _colorIndicator.AddComponent<Image>();
-            indImg.color = Color.clear;
-            var outline = _colorIndicator.AddComponent<Outline>();
-            outline.effectColor = Color.white;
-            outline.effectDistance = new Vector2(3, -3);
-
-            // Position indicator on default color
-            UpdateColorIndicator();
-
-            y -= 50f;
-
-            // ── Device ID ──
-            string deviceId = SystemInfo.deviceUniqueIdentifier;
-            string shortId = deviceId.Length > 12 ? deviceId.Substring(0, 12) + "..." : deviceId;
-            CreateUIText(card.transform, $"ID Thiết bị: {shortId}", 12, new Vector2(0, y), new Vector2(380, 20), TextAlignmentOptions.Center, new Color(0.5f, 0.5f, 0.6f));
-
-            y -= 40f;
-
-            // ── Separator ──
-            var sep = new GameObject("Separator");
-            sep.transform.SetParent(card.transform, false);
-            var sepRt = sep.AddComponent<RectTransform>();
-            sepRt.anchoredPosition = new Vector2(0, y);
-            sepRt.sizeDelta = new Vector2(380, 1);
-            var sepImg = sep.AddComponent<Image>();
-            sepImg.color = new Color(0.3f, 0.3f, 0.4f);
-
-            y -= 30f;
-
-            // ── Host Button ──
-            CreateActionButton(card.transform, "▶ Host Server (Cho máy chủ)", new Color(0.18f, 0.62f, 0.34f), new Vector2(0, y), OnHostServerClicked);
-
-            y -= 60f;
-
-            // ── IP / Port Inputs ──
-            CreateUIText(card.transform, "IP / Domain:", 13, new Vector2(-80, y + 18), new Vector2(160, 20), TextAlignmentOptions.Left, new Color(0.65f, 0.65f, 0.75f));
-            CreateUIText(card.transform, "Port:", 13, new Vector2(125, y + 18), new Vector2(80, 20), TextAlignmentOptions.Left, new Color(0.65f, 0.65f, 0.75f));
-
-            // Address
-            _addressInput = CreateInputField(card.transform, "wool-delivery.gl.at.ply.gg", new Vector2(-55, y), new Vector2(230, 36));
-
-            // Port
-            _portInput = CreateInputField(card.transform, "30645", new Vector2(140, y), new Vector2(80, 36));
-
-            y -= 50f;
-
-            // ── Join Button ──
-            CreateActionButton(card.transform, "🌐 Join Lobby (Cho người chơi)", new Color(0.2f, 0.48f, 0.82f), new Vector2(0, y), OnJoinServerClicked);
+            // Color row
+            y -= 155f;
+            MakeText(parent, "HColorLabel", "MÀU TÓC", 12,
+                new Vector2(0, y + 20), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            BuildColorRow(parent, NetworkPlayer.HairColorPalette, _selectedHairColor, y - 10f,
+                (idx) => { _selectedHairColor = idx; UpdatePreview(); }, "HairCol");
         }
 
-        // ── Helper: Create text element ──
-        private GameObject CreateUIText(Transform parent, string text, float fontSize, Vector2 pos, Vector2 size,
-            TextAlignmentOptions align = TextAlignmentOptions.Center, Color? color = null)
+        private void BuildOutfitTab(Transform parent)
         {
-            var obj = new GameObject("Text_" + text.Substring(0, Mathf.Min(10, text.Length)));
-            obj.transform.SetParent(parent, false);
-            var rt = obj.AddComponent<RectTransform>();
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-            var tmp = obj.AddComponent<TextMeshProUGUI>();
-            tmp.text = text;
-            tmp.fontSize = fontSize;
-            tmp.alignment = align;
-            tmp.color = color ?? Color.white;
-            return obj;
-        }
+            MakeText(parent, "StyleLabel", "KIỂU ÁO", 12,
+                new Vector2(0, 115), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
 
-        // ── Helper: Create input field ──
-        private TMP_InputField CreateInputField(Transform parent, string defaultText, Vector2 pos, Vector2 size)
-        {
-            var obj = new GameObject("Input");
-            obj.transform.SetParent(parent, false);
-            var rt = obj.AddComponent<RectTransform>();
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-            var img = obj.AddComponent<Image>();
-            img.color = new Color(0.08f, 0.08f, 0.12f, 1f);
-
-            var textObj = new GameObject("Text");
-            textObj.transform.SetParent(obj.transform, false);
-            var trt = textObj.AddComponent<RectTransform>();
-            trt.anchorMin = Vector2.zero;
-            trt.anchorMax = Vector2.one;
-            trt.offsetMin = new Vector2(8, 0);
-            trt.offsetMax = new Vector2(-8, 0);
-            var txt = textObj.AddComponent<TextMeshProUGUI>();
-            txt.fontSize = 14;
-            txt.color = Color.white;
-
-            var input = obj.AddComponent<TMP_InputField>();
-            input.textComponent = txt;
-            input.text = defaultText;
-            return input;
-        }
-
-        // ── Helper: Create action button ──
-        private void CreateActionButton(Transform parent, string text, Color bgColor, Vector2 pos, UnityEngine.Events.UnityAction action)
-        {
-            var btnObj = new GameObject("Btn_" + text.Substring(0, Mathf.Min(8, text.Length)));
-            btnObj.transform.SetParent(parent, false);
-            var rt = btnObj.AddComponent<RectTransform>();
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(340, 48);
-            var img = btnObj.AddComponent<Image>();
-            img.color = bgColor;
-
-            var btn = btnObj.AddComponent<Button>();
-            btn.onClick.AddListener(action);
-
-            // Hover effects
-            var colors = btn.colors;
-            colors.highlightedColor = bgColor * 1.2f;
-            colors.pressedColor = bgColor * 0.8f;
-            btn.colors = colors;
-
-            var textObj = new GameObject("Text");
-            textObj.transform.SetParent(btnObj.transform, false);
-            var trt = textObj.AddComponent<RectTransform>();
-            trt.anchorMin = Vector2.zero;
-            trt.anchorMax = Vector2.one;
-            trt.offsetMin = trt.offsetMax = Vector2.zero;
-            var tmp = textObj.AddComponent<TextMeshProUGUI>();
-            tmp.text = text;
-            tmp.fontSize = 18;
-            tmp.alignment = TextAlignmentOptions.Center;
-            tmp.color = Color.white;
-        }
-
-        private void SelectColor(int index)
-        {
-            _selectedColorIndex = index;
-            UpdateColorIndicator();
-        }
-
-        private void UpdateColorIndicator()
-        {
-            if (_colorIndicator == null || _colorSwatches == null) return;
-            if (_selectedColorIndex >= 0 && _selectedColorIndex < _colorSwatches.Length)
+            float y = 80f;
+            for (int i = 0; i < NetworkPlayer.OutfitStyleNames.Length; i++)
             {
-                _colorIndicator.transform.position = _colorSwatches[_selectedColorIndex].transform.position;
+                int idx = i;
+                int row = i / 3; int col = i % 3;
+                float x = -100f + col * 100f;
+                float yPos = y - row * 65f;
+
+                var slot = CreateStyleSlot(parent, $"Outfit_{i}", NetworkPlayer.OutfitStyleIcons[i],
+                    NetworkPlayer.OutfitStyleNames[i], new Vector2(x, yPos), new Vector2(90, 58),
+                    i == _selectedOutfitStyle);
+                slot.GetComponent<Button>().onClick.AddListener(() => { _selectedOutfitStyle = idx; RefreshOutfitStyleHighlight(); UpdatePreview(); });
+            }
+
+            float cy = -30f;
+            MakeText(parent, "OColorLabel", "MÀU ÁO", 12,
+                new Vector2(0, cy + 20), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            BuildColorRow(parent, NetworkPlayer.BodyColorPalette, _selectedBodyColor, cy - 10f,
+                (idx) => { _selectedBodyColor = idx; UpdatePreview(); }, "BodyCol");
+        }
+
+        private void BuildPantsTab(Transform parent)
+        {
+            MakeText(parent, "StyleLabel", "KIỂU QUẦN", 12,
+                new Vector2(0, 115), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+
+            float y = 80f;
+            for (int i = 0; i < NetworkPlayer.PantsStyleNames.Length; i++)
+            {
+                int idx = i;
+                int col = i;
+                float x = -112f + col * 75f;
+
+                var slot = CreateStyleSlot(parent, $"Pants_{i}", NetworkPlayer.PantsStyleIcons[i],
+                    NetworkPlayer.PantsStyleNames[i], new Vector2(x, y), new Vector2(68, 58),
+                    i == _selectedPantsStyle);
+                slot.GetComponent<Button>().onClick.AddListener(() => { _selectedPantsStyle = idx; RefreshPantsStyleHighlight(); UpdatePreview(); });
+            }
+
+            float cy = 0f;
+            MakeText(parent, "PColorLabel", "MÀU QUẦN", 12,
+                new Vector2(0, cy + 20), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            BuildColorRow(parent, NetworkPlayer.PantsColorPalette, _selectedPantsColor, cy - 10f,
+                (idx) => { _selectedPantsColor = idx; UpdatePreview(); }, "PantsCol");
+        }
+
+        // ── Color Row Builder ──
+
+        private void BuildColorRow(Transform parent, Color[] palette, int selected, float yPos,
+            System.Action<int> onSelect, string prefix)
+        {
+            float swatchSize = 28f;
+            float spacing = 4f;
+            float totalWidth = palette.Length * (swatchSize + spacing) - spacing;
+            float startX = -totalWidth / 2f + swatchSize / 2f;
+
+            for (int i = 0; i < palette.Length; i++)
+            {
+                int idx = i;
+                var swatch = CreatePanel(parent, $"{prefix}_{i}",
+                    new Vector2(startX + i * (swatchSize + spacing), yPos), new Vector2(swatchSize, swatchSize));
+                swatch.GetComponent<Image>().color = palette[i];
+                var btn = swatch.AddComponent<Button>();
+                btn.onClick.AddListener(() => onSelect(idx));
+
+                // Selection ring
+                if (i == selected)
+                {
+                    var ring = CreatePanel(swatch.transform, "Ring", Vector2.zero, new Vector2(swatchSize + 4, swatchSize + 4));
+                    ring.transform.SetAsFirstSibling();
+                    ring.GetComponent<Image>().color = Color.clear;
+                    var outline = ring.AddComponent<Outline>();
+                    outline.effectColor = Color.white;
+                    outline.effectDistance = new Vector2(2, -2);
+                }
             }
         }
+
+        // ── Style Slot (icon + label) ──
+
+        private GameObject CreateStyleSlot(Transform parent, string name, string icon, string label,
+            Vector2 pos, Vector2 size, bool selected)
+        {
+            var slot = CreatePanel(parent, name, pos, size);
+            var slotImg = slot.GetComponent<Image>();
+            slotImg.color = selected ? new Color(0.25f, 0.45f, 0.8f, 0.6f) : new Color(0.15f, 0.15f, 0.2f, 0.7f);
+            slot.AddComponent<Button>();
+
+            MakeText(slot.transform, "Icon", icon, 22,
+                new Vector2(0, 8), new Vector2(size.x - 4, 30), TextAlignmentOptions.Center, Color.white);
+            MakeText(slot.transform, "Label", label, 10,
+                new Vector2(0, -18), new Vector2(size.x - 4, 18), TextAlignmentOptions.Center, new Color(0.7f, 0.7f, 0.8f));
+
+            return slot;
+        }
+
+        // ── Preview Character ──
+
+        private void CreatePreviewCharacter(Transform parent)
+        {
+            // The preview character is a 3D GameObject displayed through the scene camera.
+            // We place it far away from the main game area.
+            _previewCharacter = new GameObject("PreviewChar");
+            _previewCharacter.transform.position = new Vector3(100, 0, 100); // Far away
+
+            // Build mini character
+            var setup = FindAnyObjectByType<LobbySetup>();
+            if (setup != null)
+            {
+                // Use reflection to call CreateCharacterTopDown
+                var method = typeof(LobbySetup).GetMethod("CreateCharacterTopDown",
+                    System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (method != null)
+                {
+                    var charObj = method.Invoke(setup, new object[] { "PreviewModel",
+                        NetworkPlayer.BodyColorPalette[Mathf.Clamp(_selectedBodyColor, 0, NetworkPlayer.BodyColorPalette.Length - 1)],
+                        new Color(1f, 0.88f, 0.7f) }) as GameObject;
+                    if (charObj != null)
+                    {
+                        charObj.transform.SetParent(_previewCharacter.transform, false);
+                        charObj.transform.localScale = Vector3.one * 0.45f;
+                        // Remove animator to prevent idle animation in preview
+                        var anim = charObj.GetComponent<CharacterAnimator>();
+                        if (anim != null) Destroy(anim);
+                    }
+                }
+            }
+
+            UpdatePreview();
+
+            // Rotate preview in LateUpdate via coroutine
+            StartCoroutine(RotatePreview());
+        }
+
+        private System.Collections.IEnumerator RotatePreview()
+        {
+            while (_previewCharacter != null && _connectionPanel != null && _connectionPanel.activeSelf)
+            {
+                _previewRotation += 30f * Time.deltaTime;
+                _previewCharacter.transform.rotation = Quaternion.Euler(0, _previewRotation, 0);
+                yield return null;
+            }
+        }
+
+        private void UpdatePreview()
+        {
+            if (_previewCharacter == null) return;
+
+            var model = _previewCharacter.transform.childCount > 0 ? _previewCharacter.transform.GetChild(0).gameObject : null;
+            if (model == null) return;
+
+            Color bodyColor = NetworkPlayer.BodyColorPalette[Mathf.Clamp(_selectedBodyColor, 0, NetworkPlayer.BodyColorPalette.Length - 1)];
+            Color hairColor = NetworkPlayer.HairColorPalette[Mathf.Clamp(_selectedHairColor, 0, NetworkPlayer.HairColorPalette.Length - 1)];
+            Color pantsColor = NetworkPlayer.PantsColorPalette[Mathf.Clamp(_selectedPantsColor, 0, NetworkPlayer.PantsColorPalette.Length - 1)];
+
+            LobbySetup.ApplyCustomization(model, _selectedHairStyle, hairColor, _selectedOutfitStyle, bodyColor, _selectedPantsStyle, pantsColor);
+        }
+
+        // ── Tab Switching ──
+
+        private void SwitchTab(int tabIndex)
+        {
+            _activeTab = tabIndex;
+            if (_tabHairContent != null) _tabHairContent.SetActive(tabIndex == 0);
+            if (_tabOutfitContent != null) _tabOutfitContent.SetActive(tabIndex == 1);
+            if (_tabPantsContent != null) _tabPantsContent.SetActive(tabIndex == 2);
+
+            for (int i = 0; i < _tabButtons.Length; i++)
+            {
+                if (_tabButtons[i] != null)
+                    _tabButtons[i].color = i == tabIndex
+                        ? new Color(0.25f, 0.45f, 0.8f, 0.9f)
+                        : new Color(0.18f, 0.18f, 0.24f, 0.8f);
+            }
+        }
+
+        // ── Highlight Refreshers ──
+
+        private void RefreshHairStyleHighlight()
+        {
+            if (_tabHairContent == null) return;
+            for (int i = 0; i < NetworkPlayer.HairStyleNames.Length; i++)
+            {
+                var slot = _tabHairContent.transform.Find($"Hair_{i}");
+                if (slot != null)
+                {
+                    var img = slot.GetComponent<Image>();
+                    if (img != null)
+                        img.color = i == _selectedHairStyle
+                            ? new Color(0.25f, 0.45f, 0.8f, 0.6f) : new Color(0.15f, 0.15f, 0.2f, 0.7f);
+                }
+            }
+        }
+
+        private void RefreshOutfitStyleHighlight()
+        {
+            if (_tabOutfitContent == null) return;
+            for (int i = 0; i < NetworkPlayer.OutfitStyleNames.Length; i++)
+            {
+                var slot = _tabOutfitContent.transform.Find($"Outfit_{i}");
+                if (slot != null)
+                {
+                    var img = slot.GetComponent<Image>();
+                    if (img != null)
+                        img.color = i == _selectedOutfitStyle
+                            ? new Color(0.25f, 0.45f, 0.8f, 0.6f) : new Color(0.15f, 0.15f, 0.2f, 0.7f);
+                }
+            }
+        }
+
+        private void RefreshPantsStyleHighlight()
+        {
+            if (_tabPantsContent == null) return;
+            for (int i = 0; i < NetworkPlayer.PantsStyleNames.Length; i++)
+            {
+                var slot = _tabPantsContent.transform.Find($"Pants_{i}");
+                if (slot != null)
+                {
+                    var img = slot.GetComponent<Image>();
+                    if (img != null)
+                        img.color = i == _selectedPantsStyle
+                            ? new Color(0.25f, 0.45f, 0.8f, 0.6f) : new Color(0.15f, 0.15f, 0.2f, 0.7f);
+                }
+            }
+        }
+
+        // ── Save & Connect ──
 
         private void SavePlayerPrefs()
         {
-            // Lưu tên và màu vào PlayerPrefs để NetworkPlayer đọc khi connect
             if (_nameInput != null)
                 PlayerPrefs.SetString("PlayerName", _nameInput.text);
-            PlayerPrefs.SetInt("PlayerColorIndex", _selectedColorIndex);
+            PlayerPrefs.SetInt("PlayerColorIndex", _selectedBodyColor);
+            PlayerPrefs.SetInt("PlayerHairStyle", _selectedHairStyle);
+            PlayerPrefs.SetInt("PlayerHairColor", _selectedHairColor);
+            PlayerPrefs.SetInt("PlayerOutfitStyle", _selectedOutfitStyle);
+            PlayerPrefs.SetInt("PlayerPantsStyle", _selectedPantsStyle);
+            PlayerPrefs.SetInt("PlayerPantsColor", _selectedPantsColor);
             PlayerPrefs.Save();
         }
 
@@ -798,7 +963,7 @@ namespace RangerCity.Lobby
             if (setup != null)
             {
                 setup.StartAsHost();
-                if (_connectionPanel != null) _connectionPanel.SetActive(false);
+                CloseConnectionPanel();
             }
         }
 
@@ -808,21 +973,134 @@ namespace RangerCity.Lobby
             var setup = FindAnyObjectByType<NetworkSetup>();
             if (setup != null)
             {
-                string address = _addressInput.text;
-                string portStr = _portInput.text;
+                string address = _addressInput != null ? _addressInput.text : "localhost";
+                string portStr = _portInput != null ? _portInput.text : "7777";
 
                 if (ushort.TryParse(portStr, out ushort port))
                 {
                     var transport = Mirror.NetworkManager.singleton.transport as kcp2k.KcpTransport;
-                    if (transport != null)
-                    {
-                        transport.port = port;
-                    }
+                    if (transport != null) transport.port = port;
                 }
 
                 setup.StartAsClient(address);
-                if (_connectionPanel != null) _connectionPanel.SetActive(false);
+                CloseConnectionPanel();
             }
+        }
+
+        private void CloseConnectionPanel()
+        {
+            if (_connectionPanel != null) _connectionPanel.SetActive(false);
+            if (_previewCharacter != null) Destroy(_previewCharacter);
+        }
+
+        // ══════════════════════════════
+        //  UI BUILDER HELPERS (Premium)
+        // ══════════════════════════════
+
+        private GameObject CreatePanel(Transform parent, string name, Vector2 pos, Vector2 size)
+        {
+            var obj = new GameObject(name);
+            obj.transform.SetParent(parent, false);
+            var rt = obj.AddComponent<RectTransform>();
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = size;
+            obj.AddComponent<Image>();
+            return obj;
+        }
+
+        private GameObject MakeText(Transform parent, string name, string text, float fontSize,
+            Vector2 pos, Vector2 size, TextAlignmentOptions align, Color color)
+        {
+            var obj = new GameObject(name);
+            obj.transform.SetParent(parent, false);
+            var rt = obj.AddComponent<RectTransform>();
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = size;
+            var tmp = obj.AddComponent<TextMeshProUGUI>();
+            tmp.text = text;
+            tmp.fontSize = fontSize;
+            tmp.alignment = align;
+            tmp.color = color;
+            tmp.enableWordWrapping = false;
+            tmp.overflowMode = TextOverflowModes.Ellipsis;
+            return obj;
+        }
+
+        private TMP_InputField CreateInputFieldV2(Transform parent, string defaultText, string placeholder,
+            Vector2 pos, Vector2 size)
+        {
+            var obj = new GameObject("Input");
+            obj.transform.SetParent(parent, false);
+            var rt = obj.AddComponent<RectTransform>();
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = size;
+            var img = obj.AddComponent<Image>();
+            img.color = new Color(0.06f, 0.06f, 0.1f, 1f);
+
+            // Text area
+            var textObj = new GameObject("Text");
+            textObj.transform.SetParent(obj.transform, false);
+            var trt = textObj.AddComponent<RectTransform>();
+            trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
+            trt.offsetMin = new Vector2(10, 2); trt.offsetMax = new Vector2(-10, -2);
+            var txt = textObj.AddComponent<TextMeshProUGUI>();
+            txt.fontSize = 14;
+            txt.color = Color.white;
+            txt.enableWordWrapping = false;
+
+            // Placeholder
+            if (!string.IsNullOrEmpty(placeholder))
+            {
+                var phObj = new GameObject("Placeholder");
+                phObj.transform.SetParent(obj.transform, false);
+                var phRt = phObj.AddComponent<RectTransform>();
+                phRt.anchorMin = Vector2.zero; phRt.anchorMax = Vector2.one;
+                phRt.offsetMin = new Vector2(10, 2); phRt.offsetMax = new Vector2(-10, -2);
+                var phTxt = phObj.AddComponent<TextMeshProUGUI>();
+                phTxt.text = placeholder;
+                phTxt.fontSize = 14;
+                phTxt.fontStyle = FontStyles.Italic;
+                phTxt.color = new Color(0.4f, 0.4f, 0.5f);
+
+                var input = obj.AddComponent<TMP_InputField>();
+                input.textComponent = txt;
+                input.placeholder = phTxt;
+                input.text = defaultText;
+                input.characterLimit = 20;
+                return input;
+            }
+            else
+            {
+                var input = obj.AddComponent<TMP_InputField>();
+                input.textComponent = txt;
+                input.text = defaultText;
+                input.characterLimit = 40;
+                return input;
+            }
+        }
+
+        private void CreateGradientButton(Transform parent, string name, string label,
+            Color colorA, Color colorB, Vector2 pos, Vector2 size, UnityEngine.Events.UnityAction action)
+        {
+            var btnObj = new GameObject(name);
+            btnObj.transform.SetParent(parent, false);
+            var rt = btnObj.AddComponent<RectTransform>();
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = size;
+            var img = btnObj.AddComponent<Image>();
+            img.color = Color.Lerp(colorA, colorB, 0.5f);
+
+            var btn = btnObj.AddComponent<Button>();
+            btn.onClick.AddListener(action);
+
+            var colors = btn.colors;
+            colors.highlightedColor = colorB;
+            colors.pressedColor = colorA * 0.8f;
+            colors.normalColor = Color.white;
+            btn.colors = colors;
+
+            MakeText(btnObj.transform, "Label", label, 15,
+                Vector2.zero, size, TextAlignmentOptions.Center, Color.white);
         }
     }
 }
