@@ -720,6 +720,30 @@ namespace RangerCity.Lobby
 
         private Sprite CreateFistSprite()
         {
+            string customPath = System.IO.Path.Combine(Application.dataPath, "Textures/fist.png");
+            if (System.IO.File.Exists(customPath))
+            {
+                try
+                {
+                    byte[] data = System.IO.File.ReadAllBytes(customPath);
+                    Texture2D customTex = new Texture2D(2, 2);
+                    if (customTex.LoadImage(data))
+                    {
+                        customTex.filterMode = FilterMode.Bilinear;
+                        return Sprite.Create(
+                            customTex,
+                            new Rect(0, 0, customTex.width, customTex.height),
+                            new Vector2(0.5f, 0.5f),
+                            customTex.width
+                        );
+                    }
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"Failed to load custom fist image: {ex.Message}");
+                }
+            }
+
             const int w = 32;
             const int h = 32;
 
