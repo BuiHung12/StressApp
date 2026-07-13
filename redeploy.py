@@ -18,11 +18,11 @@ def main():
     for f in os.listdir(LOCAL_DIR):
         if f.endswith('.cs'):
             sftp.put(os.path.join(LOCAL_DIR, f), f"{REMOTE_DIR}/{f}")
-            print(f"  ✅ {f}")
+            print(f"  [OK] {f}")
             count += 1
 
     sftp.close()
-    print(f"\n{count} scripts uploaded! Stop Play → Click Unity → Play again.")
+    print(f"\n{count} scripts uploaded! Stop Play -> Click Unity -> Play again.")
     client.close()
 
 if __name__ == "__main__":

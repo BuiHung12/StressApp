@@ -30,7 +30,7 @@ namespace RangerCity.Lobby
 
             // Wooden pier
             var pier = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            pier.name = "WoodenPier_Collider";
+            pier.name = "WoodenPier";
             pier.transform.SetParent(zone.transform, false);
             pier.transform.localPosition = new Vector3(0, 0.06f, -4f);
             pier.transform.localScale = new Vector3(2f, 0.1f, 5f);
@@ -78,7 +78,7 @@ namespace RangerCity.Lobby
             title.AddComponent<BillboardText>();
 
             // ── Return Portal ──
-            ZoneFactory.CreatePortal("FishingReturnPortal", new Vector3(66f, 0.05f, 0), -90f,
+            ZoneFactory.CreatePortal("FishingReturnPortal", new Vector3(54f, 0.05f, 0), -90f,
                 new Color(0.3f, 0.35f, 0.4f),
                 new Color(0.2f, 0.5f, 0.95f, 0.7f),
                 "Ve Sanh Cho");

@@ -1068,7 +1068,7 @@ namespace RangerCity.Lobby
             title.AddComponent<BillboardText>();
 
             // Return Portal to Lobby
-            CreatePortal("GardenReturnPortal", new Vector3(0, 0.05f, 66f), 180f,
+            CreatePortal("GardenReturnPortal", new Vector3(0, 0.05f, 54f), 180f,
                 new Color(0.3f, 0.35f, 0.4f),
                 new Color(0.15f, 0.85f, 0.3f, 0.7f),
                 "🔙 Về Sảnh Chờ");
@@ -1210,7 +1210,7 @@ namespace RangerCity.Lobby
             title.AddComponent<BillboardText>();
 
             // Return Portal
-            CreatePortal("PrisonReturnPortal", new Vector3(0, 0.05f, -66f), 0f,
+            CreatePortal("PrisonReturnPortal", new Vector3(0, 0.05f, -54f), 0f,
                 new Color(0.25f, 0.25f, 0.3f),
                 new Color(0.85f, 0.15f, 0.15f, 0.7f),
                 "🔙 Về Sảnh Chờ");
@@ -1236,7 +1236,7 @@ namespace RangerCity.Lobby
 
             // Wooden Pier extending into pond (from south edge)
             var pier = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            pier.name = "WoodenPier_Collider"; // player stands on this
+            pier.name = "WoodenPier"; // player stands on this
             pier.transform.SetParent(zone.transform, false);
             pier.transform.localPosition = new Vector3(0, 0.06f, -4f);
             pier.transform.localScale = new Vector3(2f, 0.1f, 5f);
@@ -1283,7 +1283,7 @@ namespace RangerCity.Lobby
             title.AddComponent<BillboardText>();
 
             // Return Portal
-            CreatePortal("FishingReturnPortal", new Vector3(66f, 0.05f, 0), -90f,
+            CreatePortal("FishingReturnPortal", new Vector3(54f, 0.05f, 0), -90f,
                 new Color(0.3f, 0.35f, 0.4f),
                 new Color(0.2f, 0.5f, 0.95f, 0.7f),
                 "🔙 Về Sảnh Chờ");
@@ -1382,7 +1382,7 @@ namespace RangerCity.Lobby
             title.AddComponent<BillboardText>();
 
             // Return Portal
-            CreatePortal("StudyReturnPortal", new Vector3(-66f, 0.05f, 0), 90f,
+            CreatePortal("StudyReturnPortal", new Vector3(-54f, 0.05f, 0), 90f,
                 new Color(0.4f, 0.32f, 0.22f),
                 new Color(0.95f, 0.75f, 0.15f, 0.7f),
                 "🔙 Về Sảnh Chờ");

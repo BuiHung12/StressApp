@@ -50,8 +50,6 @@ namespace RangerCity.Lobby
         // Jail state
         private bool _isJailed;
         private float _jailTimer;
-        private MonoBehaviour _jailVisitorTarget;
-        private Vector3 _jailVisitorOrigPos;
 
         // Ranger Coins Economy
         private int _rangerCoins = 50;
@@ -255,10 +253,6 @@ namespace RangerCity.Lobby
                 FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
                 OnPunchHit?.Invoke();
                 
-                // Store victim info for prison visit
-                _jailVisitorTarget = closestTarget;
-                _jailVisitorOrigPos = closestTarget.transform.position;
-
                 // Send to jail after fight cloud ends
                 Invoke(nameof(GoToJail), 1.6f);
             }
@@ -268,25 +262,12 @@ namespace RangerCity.Lobby
 
         private void GoToJail()
         {
-            float jailDuration = 3f;
-            // Teleport Attacker (Player) inside the jail cell (Z = -62)
-            transform.position = new Vector3(0, 0, -62f);
+            float jailDuration = 15f;
+            // Teleport Attacker (Player) inside the jail cell 3 (X = 2, Z = -62)
+            transform.position = new Vector3(2f, 0.05f, -62f);
             _isJailed = true;
             _jailTimer = jailDuration;
             _isClickMoving = false;
-
-            // Teleport Victim (Bot/NPC) to the visiting area (Z = -56) facing South (Z-)
-            if (_jailVisitorTarget != null)
-            {
-                _jailVisitorTarget.transform.position = new Vector3(0, 0, -56f);
-                _jailVisitorTarget.transform.rotation = Quaternion.LookRotation(new Vector3(0, 0, -1f));
-
-                // Disable behavior controllers so they stand still
-                var fp = _jailVisitorTarget.GetComponent<FakePlayerController>();
-                if (fp != null) fp.enabled = false;
-                var npc = _jailVisitorTarget.GetComponent<NPCController>();
-                if (npc != null) npc.enabled = false;
-            }
 
             OnJailStart?.Invoke(jailDuration);
         }
@@ -298,20 +279,10 @@ namespace RangerCity.Lobby
             _isJailed = false;
 
             // Teleport Attacker (Player) back to Lobby near Prison Portal
-            transform.position = new Vector3(0, 0, -9.5f);
-
-            // Teleport Victim (Bot/NPC) back to their original position and re-enable movement
-            if (_jailVisitorTarget != null)
-            {
-                _jailVisitorTarget.transform.position = _jailVisitorOrigPos;
-
-                var fp = _jailVisitorTarget.GetComponent<FakePlayerController>();
-                if (fp != null) fp.enabled = true;
-                var npc = _jailVisitorTarget.GetComponent<NPCController>();
-                if (npc != null) npc.enabled = true;
-
-                _jailVisitorTarget = null;
-            }
+            var lobbyPortal = GameObject.Find("PrisonPortal");
+            Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(0, 0, 1.2f) : new Vector3(0, 0.05f, -9.5f);
+            dest.y = 0.05f;
+            transform.position = dest;
 
             _teleportCooldownTimer = 1.0f; // Prevent re-triggering portal immediately
             OnJailEnd?.Invoke();
@@ -392,35 +363,47 @@ namespace RangerCity.Lobby
             // Kiểm tra khoảng cách để dịch chuyển
             if (gardenPortal != null && Vector3.Distance(currentPos, gardenPortal.transform.position) < portalRadius)
             {
-                Teleport(new Vector3(0, 0.05f, 54f));
+                Teleport(new Vector3(0, 0.05f, 56f));
             }
             else if (prisonPortal != null && Vector3.Distance(currentPos, prisonPortal.transform.position) < portalRadius)
             {
-                Teleport(new Vector3(0, 0.05f, -54f));
+                Teleport(new Vector3(0, 0.05f, -56f));
             }
             else if (fishingPortal != null && Vector3.Distance(currentPos, fishingPortal.transform.position) < portalRadius)
             {
-                Teleport(new Vector3(54f, 0.05f, 0));
+                Teleport(new Vector3(56f, 0.05f, 0));
             }
             else if (studyPortal != null && Vector3.Distance(currentPos, studyPortal.transform.position) < portalRadius)
             {
-                Teleport(new Vector3(-54f, 0.05f, 0));
+                Teleport(new Vector3(-56f, 0.05f, 0));
             }
             else if (gardenRet != null && Vector3.Distance(currentPos, gardenRet.transform.position) < portalRadius)
             {
-                Teleport(new Vector3(0, 0.05f, 9.5f));
+                var lobbyPortal = GameObject.Find("GardenPortal");
+                Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(0, 0, -1.2f) : new Vector3(0, 0.05f, 9.5f);
+                dest.y = 0.05f;
+                Teleport(dest);
             }
             else if (prisonRet != null && Vector3.Distance(currentPos, prisonRet.transform.position) < portalRadius)
             {
-                Teleport(new Vector3(0, 0.05f, -9.5f));
+                var lobbyPortal = GameObject.Find("PrisonPortal");
+                Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(0, 0, 1.2f) : new Vector3(0, 0.05f, -9.5f);
+                dest.y = 0.05f;
+                Teleport(dest);
             }
             else if (fishingRet != null && Vector3.Distance(currentPos, fishingRet.transform.position) < portalRadius)
             {
-                Teleport(new Vector3(9.5f, 0.05f, 0));
+                var lobbyPortal = GameObject.Find("FishingPortal");
+                Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(-1.2f, 0, 0) : new Vector3(9.5f, 0.05f, 0);
+                dest.y = 0.05f;
+                Teleport(dest);
             }
             else if (studyRet != null && Vector3.Distance(currentPos, studyRet.transform.position) < portalRadius)
             {
-                Teleport(new Vector3(-9.5f, 0.05f, 0));
+                var lobbyPortal = GameObject.Find("StudyPortal");
+                Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(1.2f, 0, 0) : new Vector3(-9.5f, 0.05f, 0);
+                dest.y = 0.05f;
+                Teleport(dest);
             }
         }
 

@@ -79,7 +79,7 @@ namespace RangerCity.Lobby
             if (isJailed)
             {
                 // Shift focus to the midpoint between the cell and visiting desk (approx Z=-59.5f)
-                focusPos = new Vector3(0f, 0f, -59.5f);
+                focusPos = new Vector3(_target.position.x, 0f, -59.5f);
             }
 
             // Smooth follow focus point

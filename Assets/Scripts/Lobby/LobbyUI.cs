@@ -289,28 +289,31 @@ namespace RangerCity.Lobby
                 _jailPanel.transform.SetParent(canvas.transform, false);
 
                 var rt = _jailPanel.AddComponent<RectTransform>();
-                rt.anchorMin = new Vector2(0.2f, 0.35f);
-                rt.anchorMax = new Vector2(0.8f, 0.65f);
-                rt.offsetMin = rt.offsetMax = Vector2.zero;
+                rt.anchorMin = new Vector2(0f, 1f);
+                rt.anchorMax = new Vector2(0f, 1f);
+                rt.pivot = new Vector2(0f, 1f);
+                rt.anchoredPosition = new Vector2(30f, -30f);
+                rt.sizeDelta = new Vector2(90f, 90f);
 
                 var bg = _jailPanel.AddComponent<Image>();
-                bg.color = new Color(0.15f, 0.05f, 0.05f, 0.92f);
+                bg.color = new Color(0.1f, 0.1f, 0.1f, 0.65f); // Soft dark transparent backing
 
-                // Jail text
+                // Jail countdown text
                 var textObj = new GameObject("JailText");
                 textObj.transform.SetParent(_jailPanel.transform, false);
                 var trt = textObj.AddComponent<RectTransform>();
-                trt.anchorMin = new Vector2(0.05f, 0.1f);
-                trt.anchorMax = new Vector2(0.95f, 0.9f);
+                trt.anchorMin = Vector2.zero;
+                trt.anchorMax = Vector2.one;
                 trt.offsetMin = trt.offsetMax = Vector2.zero;
 
                 _jailText = textObj.AddComponent<TextMeshProUGUI>();
-                _jailText.fontSize = 22;
+                _jailText.fontSize = 42;
                 _jailText.alignment = TextAlignmentOptions.Center;
-                _jailText.color = Color.white;
+                _jailText.color = new Color(0.9f, 0.2f, 0.2f); // Red countdown
+                _jailText.fontStyle = FontStyles.Bold;
             }
 
-            _jailText.text = $"[Nhà Tù] Bạn đã bị bắt vào tù!\nNạn nhân đang vào thăm bạn...\nChờ {duration:0} giây...";
+            _jailText.text = $"{duration:0}";
             _jailPanel.SetActive(true);
             HideInteractionPrompt();
 
@@ -325,7 +328,7 @@ namespace RangerCity.Lobby
             {
                 remaining -= Time.deltaTime;
                 if (_jailText != null)
-                    _jailText.text = $"[Nhà Tù] Bạn đã bị bắt vào tù!\nNạn nhân đang vào thăm bạn...\nChờ {Mathf.Ceil(remaining):0} giây...";
+                    _jailText.text = $"{Mathf.Ceil(remaining):0}";
                 yield return null;
             }
         }

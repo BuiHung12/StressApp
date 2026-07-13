@@ -129,7 +129,7 @@ namespace RangerCity.Lobby
             title.AddComponent<BillboardText>();
 
             // ── Return Portal ──
-            ZoneFactory.CreatePortal("GardenReturnPortal", new Vector3(0, 0.05f, 66f), 180f,
+            ZoneFactory.CreatePortal("GardenReturnPortal", new Vector3(0, 0.05f, 54f), 180f,
                 new Color(0.3f, 0.35f, 0.4f),
                 new Color(0.15f, 0.85f, 0.3f, 0.7f),
                 "Ve Sanh Cho");
