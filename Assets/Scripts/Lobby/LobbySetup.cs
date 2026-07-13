@@ -543,29 +543,79 @@ namespace RangerCity.Lobby
             walls.GetComponent<Renderer>().material = CreateMat(wallColor);
             // Keep collider!
 
-            // Roof (slightly larger)
-            var roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            roof.name = "Roof";
-            roof.transform.SetParent(building.transform, false);
-            roof.transform.localPosition = new Vector3(0, size.y + 0.2f, 0);
-            roof.transform.localScale = new Vector3(size.x + 0.4f, 0.4f, size.z + 0.4f);
-            roof.GetComponent<Renderer>().material = CreateMat(roofColor);
-            Destroy(roof.GetComponent<Collider>());
+            // Peaked roof (/ \ shape using two slanted panels)
+            float roofThickness = 0.15f;
+            float roofWidth = size.x * 0.6f;
+            float roofLen = size.z + 0.4f;
 
-            // Door
+            var roofLeft = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            roofLeft.name = "RoofLeft";
+            roofLeft.transform.SetParent(building.transform, false);
+            roofLeft.transform.localPosition = new Vector3(-size.x * 0.26f, size.y + 0.35f, 0);
+            roofLeft.transform.localScale = new Vector3(roofWidth, roofThickness, roofLen);
+            roofLeft.transform.localRotation = Quaternion.Euler(0, 0, -22f); // angle up
+            roofLeft.GetComponent<Renderer>().material = CreateMat(roofColor);
+            Destroy(roofLeft.GetComponent<Collider>());
+
+            var roofRight = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            roofRight.name = "RoofRight";
+            roofRight.transform.SetParent(building.transform, false);
+            roofRight.transform.localPosition = new Vector3(size.x * 0.26f, size.y + 0.35f, 0);
+            roofRight.transform.localScale = new Vector3(roofWidth, roofThickness, roofLen);
+            roofRight.transform.localRotation = Quaternion.Euler(0, 0, 22f); // angle up
+            roofRight.GetComponent<Renderer>().material = CreateMat(roofColor);
+            Destroy(roofRight.GetComponent<Collider>());
+
+            // Timber-framed corner columns for classic cottage detail
+            Color woodDark = new Color(0.35f, 0.22f, 0.14f);
+            Vector3[] cornerOffsets = {
+                new(-size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f),
+                new(size.x * 0.5f, size.y * 0.5f, -size.z * 0.5f),
+                new(-size.x * 0.5f, size.y * 0.5f, size.z * 0.5f),
+                new(size.x * 0.5f, size.y * 0.5f, size.z * 0.5f)
+            };
+            for (int i = 0; i < cornerOffsets.Length; i++)
+            {
+                var pillar = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                pillar.name = $"CornerPillar_{i}";
+                pillar.transform.SetParent(building.transform, false);
+                pillar.transform.localPosition = cornerOffsets[i];
+                pillar.transform.localScale = new Vector3(0.16f, size.y, 0.16f);
+                pillar.GetComponent<Renderer>().material = CreateMat(woodDark);
+                Destroy(pillar.GetComponent<Collider>());
+            }
+
+            // Door (facing SOUTH, negative Z - facing the camera!)
             var door = GameObject.CreatePrimitive(PrimitiveType.Cube);
             door.name = "Door";
             door.transform.SetParent(building.transform, false);
-            door.transform.localPosition = new Vector3(0, 0.5f, size.z * 0.5f + 0.01f);
+            door.transform.localPosition = new Vector3(0, 0.5f, -size.z * 0.5f - 0.01f);
             door.transform.localScale = new Vector3(0.6f, 1f, 0.02f);
-            door.GetComponent<Renderer>().material = CreateMat(new Color(0.42f, 0.28f, 0.18f));
+            door.GetComponent<Renderer>().material = CreateMat(woodDark);
             Destroy(door.GetComponent<Collider>());
 
-            // Striped Canvas Awning in the front (extends forward)
+            // Front Window (facing SOUTH)
+            var winFrame = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            winFrame.name = "WindowFrame";
+            winFrame.transform.SetParent(building.transform, false);
+            winFrame.transform.localPosition = new Vector3(size.x * 0.25f, 1.2f, -size.z * 0.5f - 0.01f);
+            winFrame.transform.localScale = new Vector3(0.5f, 0.5f, 0.03f);
+            winFrame.GetComponent<Renderer>().material = CreateMat(woodDark);
+            Destroy(winFrame.GetComponent<Collider>());
+
+            var winGlass = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            winGlass.name = "WindowGlass";
+            winGlass.transform.SetParent(winFrame.transform, false);
+            winGlass.transform.localPosition = new Vector3(0, 0, -0.2f);
+            winGlass.transform.localScale = new Vector3(0.8f, 0.8f, 1.2f);
+            winGlass.GetComponent<Renderer>().material = CreateMat(new Color(0.6f, 0.85f, 0.95f));
+            Destroy(winGlass.GetComponent<Collider>());
+
+            // Striped Canvas Awning in the front (tilted forward toward negative Z)
             var awning = new GameObject("Awning");
             awning.transform.SetParent(building.transform, false);
-            awning.transform.localPosition = new Vector3(0, size.y - 0.2f, size.z * 0.5f + 0.4f);
-            awning.transform.localRotation = Quaternion.Euler(15f, 0, 0); // tilted forward
+            awning.transform.localPosition = new Vector3(0, size.y - 0.2f, -size.z * 0.5f - 0.4f);
+            awning.transform.localRotation = Quaternion.Euler(-15f, 0, 0); // tilted forward towards south
 
             // Draw stripes: 5 thin stripes horizontally next to each other
             float stripeWidth = (size.x + 0.2f) / 5f;
@@ -585,7 +635,7 @@ namespace RangerCity.Lobby
             var chimney = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             chimney.name = "Chimney";
             chimney.transform.SetParent(building.transform, false);
-            chimney.transform.localPosition = new Vector3(size.x * 0.35f, size.y + 0.6f, -size.z * 0.2f);
+            chimney.transform.localPosition = new Vector3(size.x * 0.35f, size.y + 0.8f, -size.z * 0.2f);
             chimney.transform.localScale = new Vector3(0.15f, 0.4f, 0.15f);
             chimney.GetComponent<Renderer>().material = CreateMat(new Color(0.3f, 0.3f, 0.3f));
             Destroy(chimney.GetComponent<Collider>());
@@ -596,26 +646,51 @@ namespace RangerCity.Lobby
                 var smoke = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 smoke.name = $"Smoke_{i}";
                 smoke.transform.SetParent(building.transform, false);
-                smoke.transform.localPosition = new Vector3(size.x * 0.35f + i * 0.05f, size.y + 1.1f + i * 0.15f, -size.z * 0.2f);
+                smoke.transform.localPosition = new Vector3(size.x * 0.35f + i * 0.05f, size.y + 1.3f + i * 0.15f, -size.z * 0.2f);
                 smoke.transform.localScale = Vector3.one * (0.15f + i * 0.08f);
                 smoke.GetComponent<Renderer>().material = CreateMat(new Color(0.85f, 0.85f, 0.85f, 0.6f)); // semi-transparent gray
                 Destroy(smoke.GetComponent<Collider>());
             }
 
-            // Shop counter table (a wooden table in front)
+            // Shop counter table (a wooden table in front, facing south)
             var counter = GameObject.CreatePrimitive(PrimitiveType.Cube);
             counter.name = "Counter_Collider";
             counter.transform.SetParent(building.transform, false);
-            counter.transform.localPosition = new Vector3(-size.x * 0.25f, 0.35f, size.z * 0.5f + 0.8f);
+            counter.transform.localPosition = new Vector3(-size.x * 0.25f, 0.35f, -size.z * 0.5f - 0.8f);
             counter.transform.localScale = new Vector3(1.2f, 0.7f, 0.4f);
             counter.GetComponent<Renderer>().material = CreateMat(new Color(0.55f, 0.36f, 0.24f));
             // Keep counter collider so players can't clip into the display table!
+
+            // Add apples/oranges crates if it is Milo's shop (Market)
+            if (name.Contains("Milo"))
+            {
+                // Red apples box
+                var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                box.name = "ApplesBox";
+                box.transform.SetParent(building.transform, false);
+                box.transform.localPosition = new Vector3(-size.x * 0.25f, 0.75f, -size.z * 0.5f - 0.8f);
+                box.transform.localScale = new Vector3(0.5f, 0.15f, 0.3f);
+                box.GetComponent<Renderer>().material = CreateMat(new Color(0.4f, 0.25f, 0.15f));
+                Destroy(box.GetComponent<Collider>());
+
+                // Apple spheres inside
+                for (int j = 0; j < 4; j++)
+                {
+                    var apple = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    apple.name = "Apple";
+                    apple.transform.SetParent(box.transform, false);
+                    apple.transform.localPosition = new Vector3(-0.3f + j * 0.2f, 0.5f, Random.Range(-0.2f, 0.2f));
+                    apple.transform.localScale = Vector3.one * 0.4f;
+                    apple.GetComponent<Renderer>().material = CreateMat(Color.red);
+                    Destroy(apple.GetComponent<Collider>());
+                }
+            }
 
             // Crate/Barrel
             var barrel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             barrel.name = "Barrel_Collider";
             barrel.transform.SetParent(building.transform, false);
-            barrel.transform.localPosition = new Vector3(size.x * 0.3f, 0.4f, size.z * 0.5f + 0.8f);
+            barrel.transform.localPosition = new Vector3(size.x * 0.3f, 0.4f, -size.z * 0.5f - 0.8f);
             barrel.transform.localScale = new Vector3(0.35f, 0.4f, 0.35f);
             barrel.GetComponent<Renderer>().material = CreateMat(new Color(0.48f, 0.33f, 0.2f));
             // Keep barrel collider!
@@ -623,7 +698,7 @@ namespace RangerCity.Lobby
             // Shop sign (emoji text above counter)
             var signObj = new GameObject("Sign");
             signObj.transform.SetParent(building.transform, false);
-            signObj.transform.localPosition = new Vector3(-size.x * 0.25f, 1.8f, size.z * 0.5f + 0.8f);
+            signObj.transform.localPosition = new Vector3(-size.x * 0.25f, 1.8f, -size.z * 0.5f - 0.8f);
             var signTmp = signObj.AddComponent<TextMeshPro>();
             signTmp.text = signText;
             signTmp.fontSize = 4;
