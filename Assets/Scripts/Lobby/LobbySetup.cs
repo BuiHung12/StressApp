@@ -680,25 +680,21 @@ namespace RangerCity.Lobby
 
         private GameObject CreateInteractionPanel(Transform parent)
         {
-            // Root panel (acts as the white border)
+            // Root panel (transparent container)
             var panel = new GameObject("InteractionPanel");
             panel.transform.SetParent(parent, false);
             var panelRT = panel.AddComponent<RectTransform>();
             panelRT.sizeDelta = new Vector2(54, 54);
 
-            // White border background
-            var borderBg = panel.AddComponent<Image>();
-            borderBg.color = Color.white;
-
-            // Punch button (red/orange fill, label is empty)
+            // Punch button (transparent background to let only the fist icon be visible and clickable)
             var punchBtnObj = CreateUIButton("PunchButton", panel.transform, Vector2.zero,
-                "", new Color(0.9f, 0.25f, 0.15f), new Vector2(46, 46));
+                "", Color.clear, new Vector2(54, 54));
             
             // Procedural fist icon inside the button
             var fistIcon = new GameObject("FistIcon");
             fistIcon.transform.SetParent(punchBtnObj.transform, false);
             var fistRT = fistIcon.AddComponent<RectTransform>();
-            fistRT.sizeDelta = new Vector2(28, 28);
+            fistRT.sizeDelta = new Vector2(50, 50);
             var fistImg = fistIcon.AddComponent<Image>();
             fistImg.sprite = CreateFistSprite();
             fistImg.color = Color.white;
@@ -727,14 +723,29 @@ namespace RangerCity.Lobby
             
             Color transparent = new Color(0, 0, 0, 0);
             Color white = Color.white;
+            Color outlineColor = new Color(0.9f, 0.25f, 0.15f); // Red/orange outline
             
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                     tex.SetPixel(x, y, transparent);
 
-            // Draw wrist
+            // 1. Draw outline (slightly larger shape)
+            // Wrist outline
+            DrawRect(tex, 12, 0, 8, 9, outlineColor);
+            // Palm outline
+            DrawRect(tex, 9, 7, 14, 16, outlineColor);
+            // Fingers outline
+            DrawRect(tex, 9, 21, 5, 6, outlineColor);
+            DrawRect(tex, 12, 21, 5, 7, outlineColor);
+            DrawRect(tex, 15, 21, 5, 7, outlineColor);
+            DrawRect(tex, 18, 21, 5, 6, outlineColor);
+            // Thumb outline
+            DrawRect(tex, 7, 11, 12, 6, outlineColor);
+
+            // 2. Draw inner white fist
+            // Wrist
             DrawRect(tex, 13, 0, 6, 8, white);
-            // Draw palm
+            // Palm
             DrawRect(tex, 10, 8, 12, 14, white);
             // Folded fingers (Pinky to Index)
             DrawRect(tex, 10, 22, 3, 4, white);

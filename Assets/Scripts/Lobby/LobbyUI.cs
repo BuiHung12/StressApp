@@ -141,8 +141,8 @@ namespace RangerCity.Lobby
             if (targetMB == null) return;
 
             // Scale the height offset dynamically according to target character scale.
-            // A local height of 1.75f is just above the head of a standard character.
-            float heightOffset = 1.75f * targetMB.transform.localScale.y;
+            // A local height of 2.4f is positioned cleanly above the head and the name tag.
+            float heightOffset = 2.4f * targetMB.transform.localScale.y;
             Vector3 worldPos = targetMB.transform.position + Vector3.up * heightOffset;
             Vector3 screenPos = _mainCamera.WorldToScreenPoint(worldPos);
             Debug.Log($"[LobbyUI] worldPos={worldPos}, screenPos={screenPos}");
