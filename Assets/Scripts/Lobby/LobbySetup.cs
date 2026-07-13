@@ -737,42 +737,42 @@ namespace RangerCity.Lobby
 
             string[] mask =
             {
-                "................................",
-                "................................",
-                "................................",
-                ".........OOOOOOOOOOOO..........",
-                "........OFFFFFFFFFFFFO.........",
-                ".......OFFFFFFFFFFFFFFO........",
-                ".......OFFFFFFFFFFFFFFO........",
-                "......OFFFFFFFFFFFFFFFFO.......",
-                "......OFFFFFFFFFFFFFFFFO.......",
-                "......OFFFFFFFFFFFFFFFFO.......",
-                ".......OFFFFFFFFFFFFFFO........",
-                "........OFFFFFFFFFFFFO.........",
-                ".........OFFFFFFFFFFO..........",
-                ".........OFFFFFFFFFFO..........",
-                "........OFFFFFFFFFFFFO.........",
-                ".......OFFFFFFFFFFFFFFO........",
-                "......OFFFFFFFFFFFFFFFFO.......",
-                "......OFFFFFFFFFFFFFFFFO.......",
-                "......OFFFFFFFFFFFFFFFFO.......",
-                ".......OFFFFFFFFFFFFFFO........",
-                "........OFFFFFFFFFFFFO.........",
-                "..........OFFFFFFO............",
-                "...........OFFFFO.............",
-                "............OFFO..............",
-                ".............OO...............",
-                "................................",
-                "................................",
-                "................................",
-                "................................",
-                "................................",
-                "................................",
-                "................................"
+                "................................", // 0
+                "................................", // 1
+                "................................", // 2
+                "................................", // 3
+                "........OOOOOOOOOOOOOOO.........", // 4 (Row 11: 8 spaces, 13 blocks)
+                "........OFFFFFFFFFFFFFO.........", // 5 (Row 11)
+                ".....OOOFFFFFFFFFFFFFFFFOOO.....", // 6 (Row 10: 5 spaces, 19 blocks)
+                ".....OFFFFFFFFFFFFFFFFFFFO......", // 7 (Row 10)
+                "...OOOFFFFFFFFFFFFFFFFFFFFOOO...", // 8 (Row 9: 3 spaces, 23 blocks)
+                "...OFFFFFFFFFFFFFFFFFFFFFFFO....", // 9 (Row 9)
+                "..OOFFFFFFFFFFFFFFFFFFFFFFFFOO..", // 10 (Row 8: 2 spaces, 25 blocks)
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFO...", // 11 (Row 8)
+                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 12 (Row 7: 1 space, 27 blocks)
+                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 13 (Row 7)
+                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 14 (Row 6: 1 space, 27 blocks)
+                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 15 (Row 6)
+                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 16 (Row 5: 1 space, 27 blocks)
+                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 17 (Row 5)
+                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 18 (Row 4: 1 space, 27 blocks)
+                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 19 (Row 4)
+                "..OOFFFFFFFFFFFFFFFFFFFFFFFFOO..", // 20 (Row 3: 2 spaces, 25 blocks)
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFO...", // 21 (Row 3)
+                "...OOOFFFFFFFFFFFFFFFFFFFFOOO...", // 22 (Row 2: 3 spaces, 23 blocks)
+                "...OFFFFFFFFFFFFFFFFFFFFFFFO....", // 23 (Row 2)
+                ".....OOOFFFFFFFFFFFFFFFFOOO.....", // 24 (Row 1: 5 spaces, 20 blocks)
+                ".....OFFFFFFFFFFFFFFFFFFFO......", // 25 (Row 1)
+                "........OOOOOOOOOOOOOOO.........", // 26 (Row 0: 8 spaces, 15 blocks)
+                "........OOOOOOOOOOOOOOO.........", // 27 (Row 0)
+                "................................", // 28
+                "................................", // 29
+                "................................", // 30
+                "................................"  // 31
             };
 
             int startX = 0;
-            int startY = 3;
+            int startY = 0;
 
             for (int row = 0; row < mask.Length; row++)
             {
@@ -809,10 +809,13 @@ namespace RangerCity.Lobby
                 }
             }
 
-            // Khe giữa các khớp ngón tay
-            DrawLine(tex, 11, 5, 11, 9, outline);
-            DrawLine(tex, 15, 4, 15, 9, outline);
-            DrawLine(tex, 19, 4, 19, 9, outline);
+            // Khe giữa các khớp ngón tay (Y=18 đến Y=27 ở phần trên của vòng tròn)
+            DrawLine(tex, 11, 18, 11, 27, outline);
+            DrawLine(tex, 16, 17, 16, 27, outline);
+            DrawLine(tex, 21, 18, 21, 27, outline);
+
+            // Nếp gấp ngón cái ở dưới (Y=10)
+            DrawLine(tex, 7, 10, 25, 10, outline);
 
             tex.Apply();
 
