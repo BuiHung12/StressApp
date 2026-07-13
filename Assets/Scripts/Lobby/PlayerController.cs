@@ -43,9 +43,16 @@ namespace RangerCity.Lobby
         public System.Action<IInteractable> OnNearInteractable;
         public System.Action OnLeaveInteractable;
         public System.Action OnPunchHit;
+        public System.Action<float> OnJailStart;  // param = jail duration
+        public System.Action OnJailEnd;
+
+        // Jail state
+        private bool _isJailed;
+        private float _jailTimer;
 
         public float InteractionRange => _interactionRange;
         public bool IsPunching => _isPunching;
+        public bool IsJailed => _isJailed;
 
         private void Start()
         {
@@ -55,6 +62,18 @@ namespace RangerCity.Lobby
 
         private void Update()
         {
+            // Jail freeze
+            if (_isJailed)
+            {
+                _jailTimer -= Time.deltaTime;
+                if (_jailTimer <= 0f)
+                {
+                    _isJailed = false;
+                    OnJailEnd?.Invoke();
+                }
+                return; // Block all input while jailed
+            }
+
             if (_isPunching) return;
 
             HandleKeyboardMovement();
@@ -221,9 +240,22 @@ namespace RangerCity.Lobby
                 // Trigger Cartoon Fight Cloud!
                 FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
                 OnPunchHit?.Invoke();
+                // Send to jail after fight cloud ends
+                Invoke(nameof(GoToJail), 1.6f);
             }
 
             Invoke(nameof(EndPunch), 0.35f);
+        }
+
+        private void GoToJail()
+        {
+            float jailDuration = 3f;
+            // Teleport to in front of Prison Gate (South, Z-)
+            transform.position = new Vector3(0, 0, -11f);
+            _isJailed = true;
+            _jailTimer = jailDuration;
+            _isClickMoving = false;
+            OnJailStart?.Invoke(jailDuration);
         }
 
         private void EndPunch() => _isPunching = false;

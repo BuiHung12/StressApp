@@ -42,6 +42,10 @@ namespace RangerCity.Lobby
         private Coroutine _typingCoroutine;
         private bool _isTypingComplete;
 
+        // Jail UI (created dynamically)
+        private GameObject _jailPanel;
+        private TextMeshProUGUI _jailText;
+
         private void Start()
         {
             _player = FindAnyObjectByType<PlayerController>();
@@ -61,6 +65,8 @@ namespace RangerCity.Lobby
             {
                 _player.OnNearInteractable += ShowInteractionPrompt;
                 _player.OnLeaveInteractable += HideInteractionPrompt;
+                _player.OnJailStart += ShowJailNotification;
+                _player.OnJailEnd += HideJailNotification;
 
                 // Proactively check if player is already near someone
                 var currentNear = _player.GetNearestInteractable();
@@ -85,6 +91,8 @@ namespace RangerCity.Lobby
             {
                 _player.OnNearInteractable -= ShowInteractionPrompt;
                 _player.OnLeaveInteractable -= HideInteractionPrompt;
+                _player.OnJailStart -= ShowJailNotification;
+                _player.OnJailEnd -= HideJailNotification;
             }
         }
 
@@ -264,6 +272,68 @@ namespace RangerCity.Lobby
             Vector3 screenPos = _mainCamera.WorldToScreenPoint(worldPosition + Vector3.up * 1.5f);
             effect.transform.position = screenPos;
             Destroy(effect, 1f);
+        }
+
+        // ── Jail Notification ────────────────────────────────
+
+        private void ShowJailNotification(float duration)
+        {
+            // Create jail panel dynamically if it doesn't exist
+            if (_jailPanel == null)
+            {
+                var canvas = GetComponentInParent<Canvas>();
+                if (canvas == null) canvas = FindAnyObjectByType<Canvas>();
+                if (canvas == null) return;
+
+                _jailPanel = new GameObject("JailPanel");
+                _jailPanel.transform.SetParent(canvas.transform, false);
+
+                var rt = _jailPanel.AddComponent<RectTransform>();
+                rt.anchorMin = new Vector2(0.2f, 0.35f);
+                rt.anchorMax = new Vector2(0.8f, 0.65f);
+                rt.offsetMin = rt.offsetMax = Vector2.zero;
+
+                var bg = _jailPanel.AddComponent<Image>();
+                bg.color = new Color(0.15f, 0.05f, 0.05f, 0.92f);
+
+                // Jail text
+                var textObj = new GameObject("JailText");
+                textObj.transform.SetParent(_jailPanel.transform, false);
+                var trt = textObj.AddComponent<RectTransform>();
+                trt.anchorMin = new Vector2(0.05f, 0.1f);
+                trt.anchorMax = new Vector2(0.95f, 0.9f);
+                trt.offsetMin = trt.offsetMax = Vector2.zero;
+
+                _jailText = textObj.AddComponent<TextMeshProUGUI>();
+                _jailText.fontSize = 22;
+                _jailText.alignment = TextAlignmentOptions.Center;
+                _jailText.color = Color.white;
+            }
+
+            _jailText.text = $"\ud83d\udd12 B\u1ea1n \u0111\u00e3 b\u1ecb b\u1eaft v\u00e0o t\u00f9!\nB\u1ea1o l\u1ef1c l\u00e0 x\u1ea5u! \ud83d\ude45\nCh\u1edd {duration:0} gi\u00e2y...";
+            _jailPanel.SetActive(true);
+            HideInteractionPrompt();
+
+            // Start countdown coroutine
+            StartCoroutine(JailCountdownCoroutine(duration));
+        }
+
+        private System.Collections.IEnumerator JailCountdownCoroutine(float duration)
+        {
+            float remaining = duration;
+            while (remaining > 0f)
+            {
+                remaining -= Time.deltaTime;
+                if (_jailText != null)
+                    _jailText.text = $"\ud83d\udd12 B\u1ea1n \u0111\u00e3 b\u1ecb b\u1eaft v\u00e0o t\u00f9!\nB\u1ea1o l\u1ef1c l\u00e0 x\u1ea5u! \ud83d\ude45\nCh\u1edd {Mathf.Ceil(remaining):0} gi\u00e2y...";
+                yield return null;
+            }
+        }
+
+        private void HideJailNotification()
+        {
+            if (_jailPanel != null)
+                _jailPanel.SetActive(false);
         }
     }
 }
