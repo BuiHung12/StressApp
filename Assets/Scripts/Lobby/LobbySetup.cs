@@ -741,30 +741,34 @@ namespace RangerCity.Lobby
                 "................................", // 1
                 "................................", // 2
                 "................................", // 3
-                "........OOOOOOOOOOOOOOO.........", // 4 (Row 11: 8 spaces, 13 blocks)
-                "........OFFFFFFFFFFFFFO.........", // 5 (Row 11)
-                ".....OOOFFFFFFFFFFFFFFFFOOO.....", // 6 (Row 10: 5 spaces, 19 blocks)
-                ".....OFFFFFFFFFFFFFFFFFFFO......", // 7 (Row 10)
-                "...OOOFFFFFFFFFFFFFFFFFFFFOOO...", // 8 (Row 9: 3 spaces, 23 blocks)
-                "...OFFFFFFFFFFFFFFFFFFFFFFFO....", // 9 (Row 9)
-                "..OOFFFFFFFFFFFFFFFFFFFFFFFFOO..", // 10 (Row 8: 2 spaces, 25 blocks)
-                "..OFFFFFFFFFFFFFFFFFFFFFFFFFO...", // 11 (Row 8)
-                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 12 (Row 7: 1 space, 27 blocks)
-                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 13 (Row 7)
-                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 14 (Row 6: 1 space, 27 blocks)
-                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 15 (Row 6)
-                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 16 (Row 5: 1 space, 27 blocks)
-                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 17 (Row 5)
-                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 18 (Row 4: 1 space, 27 blocks)
-                ".OFFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 19 (Row 4)
-                "..OOFFFFFFFFFFFFFFFFFFFFFFFFOO..", // 20 (Row 3: 2 spaces, 25 blocks)
-                "..OFFFFFFFFFFFFFFFFFFFFFFFFFO...", // 21 (Row 3)
-                "...OOOFFFFFFFFFFFFFFFFFFFFOOO...", // 22 (Row 2: 3 spaces, 23 blocks)
-                "...OFFFFFFFFFFFFFFFFFFFFFFFO....", // 23 (Row 2)
-                ".....OOOFFFFFFFFFFFFFFFFOOO.....", // 24 (Row 1: 5 spaces, 20 blocks)
-                ".....OFFFFFFFFFFFFFFFFFFFO......", // 25 (Row 1)
-                "........OOOOOOOOOOOOOOO.........", // 26 (Row 0: 8 spaces, 15 blocks)
-                "........OOOOOOOOOOOOOOO.........", // 27 (Row 0)
+                // Knuckle tips outline
+                "......OOO...OO...OO...OO...OOO..", // 4
+                // Knuckle sides and fills
+                ".....OFFFO.OFFO.OFFO.OFFO.OFFFO.", // 5
+                // Knuckle creases starting to merge
+                "....OFFFFOFFFFOFFFFOFFFFOFFFFO..", // 6
+                "...OFFFFFFOFFFFOFFFFOFFFFFFFO...", // 7
+                // Palm main body
+                "...OFFFFFFFFFFFFFFFFFFFFFFFFO...", // 8
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 9
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 10
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 11
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 12
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 13
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 14
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 15
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 16
+                "..OFFFFFFFFFFFFFFFFFFFFFFFFFFO..", // 17
+                "...OFFFFFFFFFFFFFFFFFFFFFFFFO...", // 18
+                "...OFFFFFFFFFFFFFFFFFFFFFFFFO...", // 19
+                "....OFFFFFFFFFFFFFFFFFFFFFFO....", // 20
+                ".....OFFFFFFFFFFFFFFFFFFFFO.....", // 21
+                "......OFFFFFFFFFFFFFFFFFFO......", // 22
+                ".......OFFFFFFFFFFFFFFFFO.......", // 23
+                ".........OFFFFFFFFFFFFO.........", // 24
+                "...........OFFFFFFFFO...........", // 25
+                ".............OOOOOO.............", // 26
+                "................................", // 27
                 "................................", // 28
                 "................................", // 29
                 "................................", // 30
@@ -808,14 +812,6 @@ namespace RangerCity.Lobby
                     }
                 }
             }
-
-            // Khe giữa các khớp ngón tay (Y=18 đến Y=27 ở phần trên của vòng tròn)
-            DrawLine(tex, 11, 18, 11, 27, outline);
-            DrawLine(tex, 16, 17, 16, 27, outline);
-            DrawLine(tex, 21, 18, 21, 27, outline);
-
-            // Nếp gấp ngón cái ở dưới (Y=10)
-            DrawLine(tex, 7, 10, 25, 10, outline);
 
             tex.Apply();
 
