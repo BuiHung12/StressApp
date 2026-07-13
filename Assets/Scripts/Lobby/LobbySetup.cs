@@ -680,24 +680,38 @@ namespace RangerCity.Lobby
 
         private GameObject CreateInteractionPanel(Transform parent)
         {
+            // Root panel (acts as the white border)
             var panel = new GameObject("InteractionPanel");
             panel.transform.SetParent(parent, false);
             var panelRT = panel.AddComponent<RectTransform>();
-            panelRT.sizeDelta = new Vector2(180, 75);
+            panelRT.sizeDelta = new Vector2(54, 54);
 
-            // Semi-transparent rounded background
-            var panelBg = panel.AddComponent<Image>();
-            panelBg.color = new Color(0, 0, 0, 0.55f);
+            // White border background
+            var borderBg = panel.AddComponent<Image>();
+            borderBg.color = Color.white;
 
-            // Target name at top
-            CreateTMPText("TargetName", panel.transform, new Vector2(0, 20), "NPC", 14,
-                TextAlignmentOptions.Center, new Color(1f, 0.95f, 0.7f));
+            // Punch button (red/orange fill)
+            var punchBtnObj = CreateUIButton("PunchButton", panel.transform, Vector2.zero,
+                "👊", new Color(0.9f, 0.25f, 0.15f), new Vector2(46, 46));
+            
+            // Adjust the emoji text size and center it
+            var textComp = punchBtnObj.GetComponentInChildren<TextMeshProUGUI>();
+            if (textComp != null)
+            {
+                textComp.fontSize = 24;
+                textComp.alignment = TextAlignmentOptions.Center;
+            }
 
-            // Compact buttons side by side
-            CreateUIButton("TalkButton", panel.transform, new Vector2(-45, -12),
-                "💬 Talk", new Color(0.18f, 0.62f, 0.25f), new Vector2(82, 30));
-            CreateUIButton("PunchButton", panel.transform, new Vector2(45, -12),
-                "👊 Punch", new Color(0.9f, 0.3f, 0.15f), new Vector2(82, 30));
+            // Dummy components to satisfy LobbyUI.cs references
+            var talkBtnObj = CreateUIButton("TalkButton", panel.transform, new Vector2(9999f, 9999f), 
+                "DummyTalk", Color.clear, Vector2.one);
+            talkBtnObj.SetActive(false);
+
+            var nameObj = new GameObject("TargetName");
+            nameObj.transform.SetParent(panel.transform, false);
+            nameObj.transform.localPosition = new Vector3(9999f, 9999f, 0);
+            var nameTmp = nameObj.AddComponent<TextMeshProUGUI>();
+            nameTmp.text = "";
 
             panel.SetActive(false);
             return panel;
@@ -1014,7 +1028,7 @@ namespace RangerCity.Lobby
             }
         }
 
-        private void CreateUIButton(string name, Transform parent, Vector2 pos,
+        private GameObject CreateUIButton(string name, Transform parent, Vector2 pos,
             string label, Color bgColor, Vector2 size)
         {
             var btnObj = new GameObject(name);
@@ -1037,6 +1051,7 @@ namespace RangerCity.Lobby
             var lrt = tmp.GetComponent<RectTransform>();
             lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
             lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+            return btnObj;
         }
 
         private void SetField<T>(object obj, string fieldName, T value)
