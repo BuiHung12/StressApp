@@ -1,6 +1,7 @@
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using Mirror;
 
 namespace RangerCity.Lobby
 {
@@ -36,8 +37,34 @@ namespace RangerCity.Lobby
             CreateCamera(player.transform);
             CreateUI();
 
+            // Setup networking
+            SetupNetworking(player);
+
             Debug.Log("🎮 Ranger City Lobby (2D Top-Down) loaded!");
             Debug.Log("📋 WASD to move, Space to punch, Click to move");
+            Debug.Log("🌐 Multiplayer: Mirror networking enabled!");
+        }
+
+        private void SetupNetworking(GameObject player)
+        {
+            // Thêm NetworkSetup vào scene
+            var networkSetup = gameObject.AddComponent<NetworkSetup>();
+
+            // Thêm NetworkIdentity cho player (bắt buộc cho Mirror)
+            if (player.GetComponent<NetworkIdentity>() == null)
+                player.AddComponent<NetworkIdentity>();
+
+            // Thêm NetworkPlayer cho đồng bộ vị trí/tên/màu
+            if (player.GetComponent<NetworkPlayer>() == null)
+                player.AddComponent<NetworkPlayer>();
+
+            // Thêm EmojiSystem cho hệ thống biểu tượng cảm xúc
+            if (player.GetComponent<EmojiSystem>() == null)
+                player.AddComponent<EmojiSystem>();
+
+            // Đăng ký player prefab và tự động start host
+            networkSetup.RegisterPlayerPrefab(player);
+            networkSetup.StartAsHost();
         }
 
         // ── Environment (flat 2D top-down) ──

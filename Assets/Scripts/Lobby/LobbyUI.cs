@@ -49,6 +49,11 @@ namespace RangerCity.Lobby
         // Coins UI (created dynamically)
         private TextMeshProUGUI _coinText;
 
+        // Emoji UI (created dynamically)
+        private GameObject _emojiToggleButton;
+        private GameObject _emojiPanel;
+        private bool _emojiPanelOpen;
+
         private void Start()
         {
             _player = FindAnyObjectByType<PlayerController>();
@@ -81,6 +86,9 @@ namespace RangerCity.Lobby
 
                 // Create dynamic Coin UI in screen corner
                 CreateCoinUI();
+
+                // Create emoji picker UI
+                CreateEmojiUI();
             }
             else
             {
@@ -374,6 +382,123 @@ namespace RangerCity.Lobby
         {
             if (_jailPanel != null)
                 _jailPanel.SetActive(false);
+        }
+
+        // ── Emoji Picker UI ──
+
+        private void CreateEmojiUI()
+        {
+            var canvas = GetComponentInParent<Canvas>();
+            if (canvas == null) canvas = FindAnyObjectByType<Canvas>();
+            if (canvas == null) return;
+
+            // Toggle button (bottom-left corner)
+            _emojiToggleButton = new GameObject("EmojiToggleBtn");
+            _emojiToggleButton.transform.SetParent(canvas.transform, false);
+
+            var toggleRt = _emojiToggleButton.AddComponent<RectTransform>();
+            toggleRt.anchorMin = new Vector2(0.02f, 0.02f);
+            toggleRt.anchorMax = new Vector2(0.08f, 0.08f);
+            toggleRt.offsetMin = toggleRt.offsetMax = Vector2.zero;
+
+            var toggleImg = _emojiToggleButton.AddComponent<Image>();
+            toggleImg.color = new Color(0.2f, 0.2f, 0.3f, 0.85f);
+
+            var toggleBtn = _emojiToggleButton.AddComponent<Button>();
+            toggleBtn.onClick.AddListener(ToggleEmojiPanel);
+
+            var toggleTextObj = new GameObject("Text");
+            toggleTextObj.transform.SetParent(_emojiToggleButton.transform, false);
+            var toggleTextRt = toggleTextObj.AddComponent<RectTransform>();
+            toggleTextRt.anchorMin = Vector2.zero;
+            toggleTextRt.anchorMax = Vector2.one;
+            toggleTextRt.offsetMin = toggleTextRt.offsetMax = Vector2.zero;
+            var toggleTxt = toggleTextObj.AddComponent<TextMeshProUGUI>();
+            toggleTxt.text = "😀";
+            toggleTxt.fontSize = 28;
+            toggleTxt.alignment = TextAlignmentOptions.Center;
+
+            // Emoji panel (grid of emoji buttons)
+            _emojiPanel = new GameObject("EmojiPanel");
+            _emojiPanel.transform.SetParent(canvas.transform, false);
+
+            var panelRt = _emojiPanel.AddComponent<RectTransform>();
+            panelRt.anchorMin = new Vector2(0.02f, 0.1f);
+            panelRt.anchorMax = new Vector2(0.28f, 0.35f);
+            panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
+
+            var panelImg = _emojiPanel.AddComponent<Image>();
+            panelImg.color = new Color(0.15f, 0.15f, 0.22f, 0.92f);
+
+            // Grid layout
+            var grid = _emojiPanel.AddComponent<UnityEngine.UI.GridLayoutGroup>();
+            grid.cellSize = new Vector2(50, 50);
+            grid.spacing = new Vector2(6, 6);
+            grid.padding = new RectOffset(8, 8, 8, 8);
+            grid.constraint = UnityEngine.UI.GridLayoutGroup.Constraint.FixedColumnCount;
+            grid.constraintCount = 6;
+
+            // Create emoji buttons
+            for (int i = 0; i < EmojiSystem.AvailableEmojis.Length; i++)
+            {
+                int index = i; // Capture for closure
+                var emojiBtn = new GameObject($"Emoji_{i}");
+                emojiBtn.transform.SetParent(_emojiPanel.transform, false);
+
+                var btnImg = emojiBtn.AddComponent<Image>();
+                btnImg.color = new Color(0.25f, 0.25f, 0.35f, 0.9f);
+
+                var btn = emojiBtn.AddComponent<Button>();
+                btn.onClick.AddListener(() => OnEmojiClicked(index));
+
+                // Hover effect
+                var colors = btn.colors;
+                colors.highlightedColor = new Color(0.4f, 0.4f, 0.6f, 1f);
+                colors.pressedColor = new Color(0.5f, 0.5f, 0.8f, 1f);
+                btn.colors = colors;
+
+                var emojiTextObj = new GameObject("Text");
+                emojiTextObj.transform.SetParent(emojiBtn.transform, false);
+                var emojiTextRt = emojiTextObj.AddComponent<RectTransform>();
+                emojiTextRt.anchorMin = Vector2.zero;
+                emojiTextRt.anchorMax = Vector2.one;
+                emojiTextRt.offsetMin = emojiTextRt.offsetMax = Vector2.zero;
+                var emojiTxt = emojiTextObj.AddComponent<TextMeshProUGUI>();
+                emojiTxt.text = EmojiSystem.AvailableEmojis[i];
+                emojiTxt.fontSize = 28;
+                emojiTxt.alignment = TextAlignmentOptions.Center;
+            }
+
+            _emojiPanel.SetActive(false); // Ẩn ban đầu
+        }
+
+        private void ToggleEmojiPanel()
+        {
+            _emojiPanelOpen = !_emojiPanelOpen;
+            if (_emojiPanel != null)
+                _emojiPanel.SetActive(_emojiPanelOpen);
+        }
+
+        private void OnEmojiClicked(int index)
+        {
+            // Tìm EmojiSystem trên player local
+            if (_player != null)
+            {
+                var emojiSystem = _player.GetComponent<EmojiSystem>();
+                if (emojiSystem != null)
+                {
+                    emojiSystem.ShowEmoji(index);
+                }
+                else
+                {
+                    Debug.LogWarning("[LobbyUI] EmojiSystem not found on player!");
+                }
+            }
+
+            // Đóng panel sau khi chọn
+            _emojiPanelOpen = false;
+            if (_emojiPanel != null)
+                _emojiPanel.SetActive(false);
         }
     }
 }

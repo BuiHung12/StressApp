@@ -21,8 +21,14 @@ def main():
             print(f"  [OK] {f}")
             count += 1
 
+    # Also upload manifest.json for Mirror package
+    local_manifest = r"d:\WORK\project\Applications\project2\Packages\manifest.json"
+    remote_manifest = "/home/hung/project2/Packages/manifest.json"
+    sftp.put(local_manifest, remote_manifest)
+    print(f"  [OK] manifest.json (Mirror package)")
+
     sftp.close()
-    print(f"\n{count} scripts uploaded! Stop Play -> Click Unity -> Play again.")
+    print(f"\n{count} scripts + manifest uploaded! Stop Play -> Click Unity -> Play again.")
     client.close()
 
 if __name__ == "__main__":
