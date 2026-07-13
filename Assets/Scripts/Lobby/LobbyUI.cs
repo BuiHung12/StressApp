@@ -571,57 +571,57 @@ namespace RangerCity.Lobby
             panelImg.color = new Color(0.04f, 0.04f, 0.08f, 0.96f);
 
             // ── Main Card (glassmorphism) ──
-            var card = CreatePanel(_connectionPanel.transform, "MainCard", Vector2.zero, new Vector2(780, 520));
+            var card = CreatePanel(_connectionPanel.transform, "MainCard", Vector2.zero, new Vector2(1000, 650));
             var cardImg = card.GetComponent<Image>();
             cardImg.color = new Color(0.12f, 0.13f, 0.18f, 0.95f);
 
             // Subtle card border (outer glow simulation)
-            var cardBorder = CreatePanel(card.transform, "CardBorder", Vector2.zero, new Vector2(784, 524));
+            var cardBorder = CreatePanel(card.transform, "CardBorder", Vector2.zero, new Vector2(1006, 656));
             cardBorder.transform.SetAsFirstSibling();
             cardBorder.GetComponent<Image>().color = new Color(0.3f, 0.5f, 0.85f, 0.25f);
 
             // ── Title bar ──
-            var titleBar = CreatePanel(card.transform, "TitleBar", new Vector2(0, 235), new Vector2(740, 45));
+            var titleBar = CreatePanel(card.transform, "TitleBar", new Vector2(0, 295), new Vector2(960, 48));
             titleBar.GetComponent<Image>().color = new Color(0.08f, 0.09f, 0.14f, 0.9f);
-            var titleTxt = MakeText(titleBar.transform, "TitleText", "✨ RANGER CITY — TÙY CHỈNH NHÂN VẬT", 20,
-                Vector2.zero, new Vector2(700, 40), TextAlignmentOptions.Center, new Color(0.5f, 0.85f, 1f));
+            var titleTxt = MakeText(titleBar.transform, "TitleText", "✨ RANGER CITY — TÙY CHỈNH NHÂN VẬT", 22,
+                Vector2.zero, new Vector2(900, 40), TextAlignmentOptions.Center, new Color(0.5f, 0.85f, 1f));
 
             // ═══════════════════════════════════
             //  LEFT COLUMN — Character Preview
             // ═══════════════════════════════════
 
-            var leftCol = CreatePanel(card.transform, "LeftCol", new Vector2(-210, -15), new Vector2(300, 410));
+            var leftCol = CreatePanel(card.transform, "LeftCol", new Vector2(-250, -20), new Vector2(440, 510));
             leftCol.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.12f, 0.8f);
 
-            MakeText(leftCol.transform, "PreviewLabel", "XEM TRƯỚC", 12,
-                new Vector2(0, 185), new Vector2(260, 24), TextAlignmentOptions.Center, new Color(0.5f, 0.55f, 0.7f));
+            MakeText(leftCol.transform, "PreviewLabel", "XEM TRƯỚC", 14,
+                new Vector2(0, 230), new Vector2(400, 24), TextAlignmentOptions.Center, new Color(0.5f, 0.55f, 0.7f));
 
             // Create preview character (3D object rendered by scene camera)
             CreatePreviewCharacter(leftCol.transform);
 
             // Name input under preview
-            MakeText(leftCol.transform, "NameLabel", "TÊN NHÂN VẬT", 12,
-                new Vector2(0, -120), new Vector2(260, 20), TextAlignmentOptions.Center, new Color(0.5f, 0.55f, 0.7f));
+            MakeText(leftCol.transform, "NameLabel", "TÊN NHÂN VẬT", 14,
+                new Vector2(0, -145), new Vector2(400, 20), TextAlignmentOptions.Center, new Color(0.5f, 0.55f, 0.7f));
 
             var nameInputObj = CreateInputFieldV2(leftCol.transform, savedName, "Nhập tên...",
-                new Vector2(0, -148), new Vector2(250, 38));
+                new Vector2(0, -180), new Vector2(320, 42));
             _nameInput = nameInputObj;
 
             // Device ID
             string deviceId = SystemInfo.deviceUniqueIdentifier;
             string shortId = deviceId.Length > 10 ? deviceId.Substring(0, 10) + "..." : deviceId;
-            MakeText(leftCol.transform, "DeviceId", $"ID: {shortId}", 10,
-                new Vector2(0, -178), new Vector2(260, 18), TextAlignmentOptions.Center, new Color(0.4f, 0.4f, 0.5f));
+            MakeText(leftCol.transform, "DeviceId", $"ID: {shortId}", 11,
+                new Vector2(0, -225), new Vector2(400, 18), TextAlignmentOptions.Center, new Color(0.4f, 0.4f, 0.5f));
 
             // ═══════════════════════════════════
             //  RIGHT COLUMN — Customization Tabs
             // ═══════════════════════════════════
 
-            var rightCol = CreatePanel(card.transform, "RightCol", new Vector2(170, 20), new Vector2(340, 340));
+            var rightCol = CreatePanel(card.transform, "RightCol", new Vector2(220, 25), new Vector2(440, 420));
             rightCol.GetComponent<Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.6f);
 
             // Tab buttons row
-            var tabRow = CreatePanel(rightCol.transform, "TabRow", new Vector2(0, 152), new Vector2(320, 36));
+            var tabRow = CreatePanel(rightCol.transform, "TabRow", new Vector2(0, 192), new Vector2(420, 42));
             tabRow.GetComponent<Image>().color = Color.clear;
             _tabButtons = new Image[3];
             string[] tabLabels = { "💇 Tóc", "👕 Áo", "👖 Quần" };
@@ -629,26 +629,26 @@ namespace RangerCity.Lobby
             {
                 int tabIdx = i;
                 var tabBtn = CreatePanel(tabRow.transform, $"Tab_{i}",
-                    new Vector2(-107 + i * 107, 0), new Vector2(100, 32));
+                    new Vector2(-135 + i * 135, 0), new Vector2(130, 36));
                 _tabButtons[i] = tabBtn.GetComponent<Image>();
                 _tabButtons[i].color = i == 0 ? new Color(0.25f, 0.45f, 0.8f, 0.9f) : new Color(0.18f, 0.18f, 0.24f, 0.8f);
                 var btn = tabBtn.AddComponent<Button>();
                 btn.onClick.AddListener(() => SwitchTab(tabIdx));
-                MakeText(tabBtn.transform, "Label", tabLabels[i], 14,
-                    Vector2.zero, new Vector2(96, 28), TextAlignmentOptions.Center, Color.white);
+                MakeText(tabBtn.transform, "Label", tabLabels[i], 16,
+                    Vector2.zero, new Vector2(120, 32), TextAlignmentOptions.Center, Color.white);
             }
 
             // Tab contents
-            _tabHairContent = CreatePanel(rightCol.transform, "HairContent", new Vector2(0, 10), new Vector2(320, 270));
+            _tabHairContent = CreatePanel(rightCol.transform, "HairContent", new Vector2(0, 10), new Vector2(420, 320));
             _tabHairContent.GetComponent<Image>().color = Color.clear;
             BuildHairTab(_tabHairContent.transform);
 
-            _tabOutfitContent = CreatePanel(rightCol.transform, "OutfitContent", new Vector2(0, 10), new Vector2(320, 270));
+            _tabOutfitContent = CreatePanel(rightCol.transform, "OutfitContent", new Vector2(0, 10), new Vector2(420, 320));
             _tabOutfitContent.GetComponent<Image>().color = Color.clear;
             BuildOutfitTab(_tabOutfitContent.transform);
             _tabOutfitContent.SetActive(false);
 
-            _tabPantsContent = CreatePanel(rightCol.transform, "PantsContent", new Vector2(0, 10), new Vector2(320, 270));
+            _tabPantsContent = CreatePanel(rightCol.transform, "PantsContent", new Vector2(0, 10), new Vector2(420, 320));
             _tabPantsContent.GetComponent<Image>().color = Color.clear;
             BuildPantsTab(_tabPantsContent.transform);
             _tabPantsContent.SetActive(false);
@@ -657,107 +657,107 @@ namespace RangerCity.Lobby
             //  BOTTOM — Connection Buttons
             // ═══════════════════════════════════
 
-            var bottomBar = CreatePanel(card.transform, "BottomBar", new Vector2(170, -180), new Vector2(340, 90));
+            var bottomBar = CreatePanel(card.transform, "BottomBar", new Vector2(220, -235), new Vector2(440, 100));
             bottomBar.GetComponent<Image>().color = Color.clear;
 
             // Host button
             CreateGradientButton(bottomBar.transform, "HostBtn", "▶ HOST SERVER",
                 new Color(0.15f, 0.55f, 0.3f), new Color(0.2f, 0.7f, 0.4f),
-                new Vector2(0, 25), new Vector2(310, 42), OnHostServerClicked);
+                new Vector2(0, 25), new Vector2(400, 46), OnHostServerClicked);
 
             // IP + Port + Join row
-            var joinRow = CreatePanel(bottomBar.transform, "JoinRow", new Vector2(0, -25), new Vector2(310, 36));
+            var joinRow = CreatePanel(bottomBar.transform, "JoinRow", new Vector2(0, -25), new Vector2(400, 42));
             joinRow.GetComponent<Image>().color = Color.clear;
 
             _addressInput = CreateInputFieldV2(joinRow.transform, "wool-delivery.gl.at.ply.gg", "",
-                new Vector2(-55, 0), new Vector2(170, 32));
+                new Vector2(-75, 0), new Vector2(220, 36));
 
             _portInput = CreateInputFieldV2(joinRow.transform, "30645", "",
-                new Vector2(100, 0), new Vector2(60, 32));
+                new Vector2(75, 0), new Vector2(65, 36));
 
             CreateGradientButton(joinRow.transform, "JoinBtn", "JOIN",
                 new Color(0.2f, 0.4f, 0.75f), new Color(0.3f, 0.55f, 0.9f),
-                new Vector2(148, 0), new Vector2(56, 32), OnJoinServerClicked);
+                new Vector2(160, 0), new Vector2(85, 36), OnJoinServerClicked);
         }
 
         // ── Tab Builders ──
 
         private void BuildHairTab(Transform parent)
         {
-            MakeText(parent, "StyleLabel", "KIỂU TÓC", 12,
-                new Vector2(0, 115), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            MakeText(parent, "StyleLabel", "KIỂU TÓC", 14,
+                new Vector2(0, 140), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
 
             // Style grid (2 rows x 3 cols)
-            float y = 80f;
+            float y = 95f;
             for (int i = 0; i < NetworkPlayer.HairStyleNames.Length; i++)
             {
                 int idx = i;
                 int row = i / 3; int col = i % 3;
-                float x = -100f + col * 100f;
-                float yPos = y - row * 65f;
+                float x = -130f + col * 130f;
+                float yPos = y - row * 75f;
 
                 var slot = CreateStyleSlot(parent, $"Hair_{i}", NetworkPlayer.HairStyleIcons[i],
-                    NetworkPlayer.HairStyleNames[i], new Vector2(x, yPos), new Vector2(90, 58),
+                    NetworkPlayer.HairStyleNames[i], new Vector2(x, yPos), new Vector2(110, 66),
                     i == _selectedHairStyle);
                 slot.GetComponent<Button>().onClick.AddListener(() => { _selectedHairStyle = idx; RefreshHairStyleHighlight(); UpdatePreview(); });
             }
 
             // Color row
             y -= 155f;
-            MakeText(parent, "HColorLabel", "MÀU TÓC", 12,
-                new Vector2(0, y + 20), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
-            BuildColorRow(parent, NetworkPlayer.HairColorPalette, _selectedHairColor, y - 10f,
+            MakeText(parent, "HColorLabel", "MÀU TÓC", 14,
+                new Vector2(0, y + 15), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            BuildColorRow(parent, NetworkPlayer.HairColorPalette, _selectedHairColor, y - 20f,
                 (idx) => { _selectedHairColor = idx; UpdatePreview(); }, "HairCol");
         }
 
         private void BuildOutfitTab(Transform parent)
         {
-            MakeText(parent, "StyleLabel", "KIỂU ÁO", 12,
-                new Vector2(0, 115), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            MakeText(parent, "StyleLabel", "KIỂU ÁO", 14,
+                new Vector2(0, 140), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
 
-            float y = 80f;
+            float y = 95f;
             for (int i = 0; i < NetworkPlayer.OutfitStyleNames.Length; i++)
             {
                 int idx = i;
                 int row = i / 3; int col = i % 3;
-                float x = -100f + col * 100f;
-                float yPos = y - row * 65f;
+                float x = -130f + col * 130f;
+                float yPos = y - row * 75f;
 
                 var slot = CreateStyleSlot(parent, $"Outfit_{i}", NetworkPlayer.OutfitStyleIcons[i],
-                    NetworkPlayer.OutfitStyleNames[i], new Vector2(x, yPos), new Vector2(90, 58),
+                    NetworkPlayer.OutfitStyleNames[i], new Vector2(x, yPos), new Vector2(110, 66),
                     i == _selectedOutfitStyle);
                 slot.GetComponent<Button>().onClick.AddListener(() => { _selectedOutfitStyle = idx; RefreshOutfitStyleHighlight(); UpdatePreview(); });
             }
 
-            float cy = -30f;
-            MakeText(parent, "OColorLabel", "MÀU ÁO", 12,
-                new Vector2(0, cy + 20), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
-            BuildColorRow(parent, NetworkPlayer.BodyColorPalette, _selectedBodyColor, cy - 10f,
+            float cy = -65f;
+            MakeText(parent, "OColorLabel", "MÀU ÁO", 14,
+                new Vector2(0, cy + 15), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            BuildColorRow(parent, NetworkPlayer.BodyColorPalette, _selectedBodyColor, cy - 20f,
                 (idx) => { _selectedBodyColor = idx; UpdatePreview(); }, "BodyCol");
         }
 
         private void BuildPantsTab(Transform parent)
         {
-            MakeText(parent, "StyleLabel", "KIỂU QUẦN", 12,
-                new Vector2(0, 115), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            MakeText(parent, "StyleLabel", "KIỂU QUẦN", 14,
+                new Vector2(0, 140), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
 
-            float y = 80f;
+            float y = 95f;
             for (int i = 0; i < NetworkPlayer.PantsStyleNames.Length; i++)
             {
                 int idx = i;
                 int col = i;
-                float x = -112f + col * 75f;
+                float x = -145f + col * 97f;
 
                 var slot = CreateStyleSlot(parent, $"Pants_{i}", NetworkPlayer.PantsStyleIcons[i],
-                    NetworkPlayer.PantsStyleNames[i], new Vector2(x, y), new Vector2(68, 58),
+                    NetworkPlayer.PantsStyleNames[i], new Vector2(x, y), new Vector2(85, 66),
                     i == _selectedPantsStyle);
                 slot.GetComponent<Button>().onClick.AddListener(() => { _selectedPantsStyle = idx; RefreshPantsStyleHighlight(); UpdatePreview(); });
             }
 
-            float cy = 0f;
-            MakeText(parent, "PColorLabel", "MÀU QUẦN", 12,
-                new Vector2(0, cy + 20), new Vector2(300, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
-            BuildColorRow(parent, NetworkPlayer.PantsColorPalette, _selectedPantsColor, cy - 10f,
+            float cy = -45f;
+            MakeText(parent, "PColorLabel", "MÀU QUẦN", 14,
+                new Vector2(0, cy + 15), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            BuildColorRow(parent, NetworkPlayer.PantsColorPalette, _selectedPantsColor, cy - 20f,
                 (idx) => { _selectedPantsColor = idx; UpdatePreview(); }, "PantsCol");
         }
 
@@ -766,8 +766,8 @@ namespace RangerCity.Lobby
         private void BuildColorRow(Transform parent, Color[] palette, int selected, float yPos,
             System.Action<int> onSelect, string prefix)
         {
-            float swatchSize = 28f;
-            float spacing = 4f;
+            float swatchSize = 34f;
+            float spacing = 6f;
             float totalWidth = palette.Length * (swatchSize + spacing) - spacing;
             float startX = -totalWidth / 2f + swatchSize / 2f;
 
