@@ -83,8 +83,8 @@ namespace RangerCity.Lobby
             // Street Lamps (3D)
             CreateStreetLamps();
 
-            // Zone Gates at the 4 path endpoints
-            CreateGates();
+            // Teleportation Portals at the 4 path endpoints
+            CreatePortals();
         }
 
         private void CreateTrees3D()
@@ -405,22 +405,17 @@ namespace RangerCity.Lobby
             Color fenceColor = new Color(0.96f, 0.94f, 0.90f); // Warm creamy white
             float half = _lobbySize * 0.45f;
             float step = 1.6f;
-            float gateGap = 2.0f; // skip fence segments within this range of center (gate opening)
 
-            // Fences along the 4 edges (skip segments at gate openings)
-            // Horizontal fences (North z=half, South z=-half) — gate at x≈0
+            // Fences along the 4 edges (fully enclosed, no gaps)
+            // Horizontal fences
             for (float x = -half; x < half; x += step)
             {
-                float mid = x + step * 0.5f;
-                if (Mathf.Abs(mid) < gateGap) continue; // skip for gate opening
                 CreateFenceSegment(new Vector3(x, 0, half), new Vector3(x + step, 0, half), fenceColor);
                 CreateFenceSegment(new Vector3(x, 0, -half), new Vector3(x + step, 0, -half), fenceColor);
             }
-            // Vertical fences (East x=half, West x=-half) — gate at z≈0
+            // Vertical fences
             for (float z = -half; z < half; z += step)
             {
-                float mid = z + step * 0.5f;
-                if (Mathf.Abs(mid) < gateGap) continue; // skip for gate opening
                 CreateFenceSegment(new Vector3(half, 0, z), new Vector3(half, 0, z + step), fenceColor, rotate90: true);
                 CreateFenceSegment(new Vector3(-half, 0, z), new Vector3(-half, 0, z + step), fenceColor, rotate90: true);
             }
@@ -784,132 +779,114 @@ namespace RangerCity.Lobby
             }
         }
 
-        // ── Zone Gates ──
+        // ── Teleportation Portals ──
 
-        private void CreateGates()
+        private void CreatePortals()
         {
-            float half = _lobbySize * 0.45f;
+            float pathEnd = _lobbySize * 0.8f * 0.5f - 0.5f; // just before path ends (11.1)
 
-            // North gate → Garden (green)
-            CreateGate("GardenGate", new Vector3(0, 0, half), 0f,
-                new Color(0.2f, 0.6f, 0.25f), // green pillars
-                new Color(0.35f, 0.75f, 0.3f), // green accent
+            // North → Garden (green energy)
+            CreatePortal("GardenPortal", new Vector3(0, 0, pathEnd), 0f,
+                new Color(0.3f, 0.35f, 0.4f),    // stone ring
+                new Color(0.15f, 0.85f, 0.3f, 0.7f), // green energy
                 "🌿 Vườn Trên Cao");
 
-            // South gate → Prison (dark gray)
-            CreateGate("PrisonGate", new Vector3(0, 0, -half), 180f,
-                new Color(0.3f, 0.3f, 0.35f), // dark stone
-                new Color(0.5f, 0.15f, 0.15f), // red accent
+            // South → Prison (red energy)
+            CreatePortal("PrisonPortal", new Vector3(0, 0, -pathEnd), 0f,
+                new Color(0.25f, 0.25f, 0.3f),    // dark stone ring
+                new Color(0.85f, 0.15f, 0.15f, 0.7f), // red energy
                 "🔒 Nhà Tù");
 
-            // East gate → Fishing (blue)
-            CreateGate("FishingGate", new Vector3(half, 0, 0), 90f,
-                new Color(0.25f, 0.45f, 0.7f), // blue stone
-                new Color(0.3f, 0.7f, 0.9f), // cyan accent
+            // East → Fishing (blue energy)
+            CreatePortal("FishingPortal", new Vector3(pathEnd, 0, 0), 90f,
+                new Color(0.3f, 0.35f, 0.4f),    // stone ring
+                new Color(0.2f, 0.5f, 0.95f, 0.7f), // blue energy
                 "🎣 Khu Câu Cá");
 
-            // West gate → Study (warm brown)
-            CreateGate("StudyGate", new Vector3(-half, 0, 0), -90f,
-                new Color(0.55f, 0.38f, 0.22f), // warm wood
-                new Color(0.85f, 0.65f, 0.3f), // gold accent
+            // West → Study (gold energy)
+            CreatePortal("StudyPortal", new Vector3(-pathEnd, 0, 0), 90f,
+                new Color(0.4f, 0.32f, 0.22f),    // warm stone ring
+                new Color(0.95f, 0.75f, 0.15f, 0.7f), // gold energy
                 "📚 Khu Học Tập");
         }
 
-        private void CreateGate(string name, Vector3 pos, float rotY, Color pillarColor, Color accentColor, string label)
+        private void CreatePortal(string name, Vector3 pos, float rotY, Color ringColor, Color energyColor, string label)
         {
-            var gate = new GameObject(name);
-            gate.transform.position = pos;
-            gate.transform.rotation = Quaternion.Euler(0, rotY, 0);
+            var portal = new GameObject(name);
+            portal.transform.position = pos;
+            portal.transform.rotation = Quaternion.Euler(0, rotY, 0);
 
-            float pillarSpacing = 1.3f; // half-width of opening
-            float pillarHeight = 3.5f;
+            float ringRadius = 1.4f;
+            int segments = 24;
 
-            // Left pillar (KEEP COLLIDER)
-            var leftPillar = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            leftPillar.name = "Pillar_Collider";
-            leftPillar.transform.SetParent(gate.transform, false);
-            leftPillar.transform.localPosition = new Vector3(-pillarSpacing, pillarHeight * 0.5f, 0);
-            leftPillar.transform.localScale = new Vector3(0.35f, pillarHeight * 0.5f, 0.35f);
-            leftPillar.GetComponent<Renderer>().material = CreateMat(pillarColor);
-            // Keep collider!
+            // Base pedestal (stone platform)
+            var basePedestal = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            basePedestal.name = "Pedestal";
+            basePedestal.transform.SetParent(portal.transform, false);
+            basePedestal.transform.localPosition = new Vector3(0, 0.08f, 0);
+            basePedestal.transform.localScale = new Vector3(ringRadius * 2 + 0.4f, 0.08f, 0.6f);
+            basePedestal.GetComponent<Renderer>().material = CreateMat(ringColor * 0.7f);
+            Destroy(basePedestal.GetComponent<Collider>());
 
-            // Right pillar (KEEP COLLIDER)
-            var rightPillar = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            rightPillar.name = "Pillar_Collider";
-            rightPillar.transform.SetParent(gate.transform, false);
-            rightPillar.transform.localPosition = new Vector3(pillarSpacing, pillarHeight * 0.5f, 0);
-            rightPillar.transform.localScale = new Vector3(0.35f, pillarHeight * 0.5f, 0.35f);
-            rightPillar.GetComponent<Renderer>().material = CreateMat(pillarColor);
-            // Keep collider!
-
-            // Pillar caps (decorative spheres on top)
-            for (int i = 0; i < 2; i++)
+            // Ring frame (spheres arranged in a circle, standing upright on XY plane)
+            for (int i = 0; i < segments; i++)
             {
-                float px = i == 0 ? -pillarSpacing : pillarSpacing;
-                var cap = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                cap.name = "PillarCap";
-                cap.transform.SetParent(gate.transform, false);
-                cap.transform.localPosition = new Vector3(px, pillarHeight + 0.15f, 0);
-                cap.transform.localScale = Vector3.one * 0.4f;
-                cap.GetComponent<Renderer>().material = CreateMat(accentColor);
-                Destroy(cap.GetComponent<Collider>());
+                float angle = i * 360f / segments * Mathf.Deg2Rad;
+                float lx = Mathf.Cos(angle) * ringRadius;
+                float ly = Mathf.Sin(angle) * ringRadius + ringRadius + 0.2f; // offset up so bottom sits on ground
+
+                var piece = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                piece.name = $"Ring_{i}";
+                piece.transform.SetParent(portal.transform, false);
+                piece.transform.localPosition = new Vector3(lx, ly, 0);
+                piece.transform.localScale = Vector3.one * 0.32f;
+                // Alternate ring colors for carved-stone look
+                Color pieceColor = (i % 3 == 0) ? ringColor * 1.15f : ringColor;
+                piece.GetComponent<Renderer>().material = CreateMat(pieceColor);
+                Destroy(piece.GetComponent<Collider>());
             }
 
-            // Crossbeam (top horizontal bar connecting pillars)
-            var beam = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            beam.name = "Crossbeam";
-            beam.transform.SetParent(gate.transform, false);
-            beam.transform.localPosition = new Vector3(0, pillarHeight - 0.1f, 0);
-            beam.transform.localScale = new Vector3(pillarSpacing * 2 + 0.35f, 0.3f, 0.3f);
-            beam.GetComponent<Renderer>().material = CreateMat(pillarColor * 0.9f);
-            Destroy(beam.GetComponent<Collider>());
-
-            // Arch detail (smaller decorative bar below crossbeam)
-            var archDetail = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            archDetail.name = "ArchDetail";
-            archDetail.transform.SetParent(gate.transform, false);
-            archDetail.transform.localPosition = new Vector3(0, pillarHeight - 0.45f, 0);
-            archDetail.transform.localScale = new Vector3(pillarSpacing * 2 - 0.2f, 0.12f, 0.15f);
-            archDetail.GetComponent<Renderer>().material = CreateMat(accentColor);
-            Destroy(archDetail.GetComponent<Collider>());
-
-            // Lanterns hanging from crossbeam (2 lanterns)
-            for (int i = 0; i < 2; i++)
+            // Inner glow ring (smaller ring of glowing orbs inside)
+            int innerSegments = 16;
+            float innerRadius = ringRadius * 0.75f;
+            for (int i = 0; i < innerSegments; i++)
             {
-                float lx = i == 0 ? -0.7f : 0.7f;
+                float angle = i * 360f / innerSegments * Mathf.Deg2Rad;
+                float lx = Mathf.Cos(angle) * innerRadius;
+                float ly = Mathf.Sin(angle) * innerRadius + ringRadius + 0.2f;
 
-                // Lantern chain
-                var chain = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                chain.name = "Chain";
-                chain.transform.SetParent(gate.transform, false);
-                chain.transform.localPosition = new Vector3(lx, pillarHeight - 0.55f, 0);
-                chain.transform.localScale = new Vector3(0.03f, 0.3f, 0.03f);
-                chain.GetComponent<Renderer>().material = CreateMat(new Color(0.25f, 0.25f, 0.25f));
-                Destroy(chain.GetComponent<Collider>());
-
-                // Lantern body (cube)
-                var lanternBody = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                lanternBody.name = "LanternBody";
-                lanternBody.transform.SetParent(gate.transform, false);
-                lanternBody.transform.localPosition = new Vector3(lx, pillarHeight - 0.85f, 0);
-                lanternBody.transform.localScale = new Vector3(0.2f, 0.25f, 0.2f);
-                lanternBody.GetComponent<Renderer>().material = CreateMat(accentColor * 0.8f);
-                Destroy(lanternBody.GetComponent<Collider>());
-
-                // Lantern glow (sphere inside)
                 var glow = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                glow.name = "LanternGlow";
-                glow.transform.SetParent(gate.transform, false);
-                glow.transform.localPosition = new Vector3(lx, pillarHeight - 0.85f, 0);
-                glow.transform.localScale = Vector3.one * 0.18f;
-                glow.GetComponent<Renderer>().material = CreateMat(new Color(1f, 0.95f, 0.5f, 0.9f));
+                glow.name = $"InnerGlow_{i}";
+                glow.transform.SetParent(portal.transform, false);
+                glow.transform.localPosition = new Vector3(lx, ly, 0);
+                glow.transform.localScale = Vector3.one * 0.15f;
+                glow.GetComponent<Renderer>().material = CreateMat(energyColor);
                 Destroy(glow.GetComponent<Collider>());
             }
 
-            // Sign board (TextMeshPro billboard above crossbeam)
-            var signObj = new GameObject("GateSign");
-            signObj.transform.SetParent(gate.transform, false);
-            signObj.transform.localPosition = new Vector3(0, pillarHeight + 0.6f, 0);
+            // Central energy field (flattened semi-transparent sphere)
+            var energy = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            energy.name = "EnergyField";
+            energy.transform.SetParent(portal.transform, false);
+            energy.transform.localPosition = new Vector3(0, ringRadius + 0.2f, 0);
+            energy.transform.localScale = new Vector3(ringRadius * 1.5f, ringRadius * 1.5f, 0.15f);
+            energy.GetComponent<Renderer>().material = CreateMat(energyColor * 0.6f);
+            Destroy(energy.GetComponent<Collider>());
+
+            // Bright core (smaller, more opaque sphere in center)
+            var core = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            core.name = "Core";
+            core.transform.SetParent(portal.transform, false);
+            core.transform.localPosition = new Vector3(0, ringRadius + 0.2f, 0);
+            core.transform.localScale = new Vector3(ringRadius * 0.7f, ringRadius * 0.7f, 0.08f);
+            Color coreColor = new Color(energyColor.r * 1.3f, energyColor.g * 1.3f, energyColor.b * 1.3f, 0.9f);
+            core.GetComponent<Renderer>().material = CreateMat(coreColor);
+            Destroy(core.GetComponent<Collider>());
+
+            // Sign board (TextMeshPro billboard above portal)
+            var signObj = new GameObject("PortalSign");
+            signObj.transform.SetParent(portal.transform, false);
+            signObj.transform.localPosition = new Vector3(0, ringRadius * 2 + 1.0f, 0);
             var signTmp = signObj.AddComponent<TextMeshPro>();
             signTmp.text = label;
             signTmp.fontSize = 5;
@@ -917,13 +894,13 @@ namespace RangerCity.Lobby
             signTmp.color = Color.white;
             signObj.AddComponent<BillboardText>();
 
-            // Sign background plank
+            // Sign background
             var signBg = GameObject.CreatePrimitive(PrimitiveType.Cube);
             signBg.name = "SignBg";
             signBg.transform.SetParent(signObj.transform, false);
             signBg.transform.localPosition = new Vector3(0, 0, 0.02f);
             signBg.transform.localScale = new Vector3(2.8f, 0.7f, 0.06f);
-            signBg.GetComponent<Renderer>().material = CreateMat(pillarColor * 0.6f);
+            signBg.GetComponent<Renderer>().material = CreateMat(new Color(0.1f, 0.08f, 0.06f, 0.85f));
             Destroy(signBg.GetComponent<Collider>());
         }
 
