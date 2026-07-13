@@ -720,76 +720,147 @@ namespace RangerCity.Lobby
 
         private Sprite CreateFistSprite()
         {
-            int w = 32;
-            int h = 32;
+            const int w = 32;
+            const int h = 32;
+
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
             tex.filterMode = FilterMode.Point;
 
-            Color transparent = new Color(0, 0, 0, 0);
-            Color outline = new Color(0.55f, 0.22f, 0.0f);
+            Color clear = new Color(0, 0, 0, 0);
+            Color outline = new Color(0.55f, 0.22f, 0.00f);
+            Color fill = new Color(1.00f, 0.78f, 0.12f);
+            Color highlight = new Color(1.00f, 0.92f, 0.35f);
 
-            // Clear
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
-                    tex.SetPixel(x, y, transparent);
+                    tex.SetPixel(x, y, clear);
 
-            // Pass 1: Outline (slightly larger shape)
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
-                    if (FistHit(x, y, 1.3f))
-                        tex.SetPixel(x, y, outline);
-
-            // Pass 2: Yellow-to-orange gradient fill
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
-                    if (FistHit(x, y, 0f))
-                    {
-                        float t = (float)y / h;
-                        tex.SetPixel(x, y, Color.Lerp(
-                            new Color(0.95f, 0.55f, 0.05f),
-                            new Color(1f, 0.92f, 0.22f),
-                            t));
-                    }
-
-            // Pass 3: Thumb crease (thin dark horizontal line)
-            for (int x = 0; x < w; x++)
-                if (FistHit(x, 10, 0f))
-                    tex.SetPixel(x, 10, outline);
-
-            tex.Apply();
-            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f));
-        }
-
-        private bool FistHit(int x, int y, float pad)
-        {
-            // Main palm: a rounded box instead of a massive circle
-            // X center 16, width 18, Y center 14, height 16
-            float px = Mathf.Abs(x - 16f);
-            float py = Mathf.Abs(y - 14f);
-            float pw = 8f + pad; // half width
-            float ph = 7f + pad; // half height
-            if (px <= pw && py <= ph)
+            string[] mask =
             {
-                // Round the bottom corners slightly
-                if (y < 9 && px > pw - 2f && (y - 9f) * (y - 9f) + (px - (pw - 2f)) * (px - (pw - 2f)) > 4f)
-                    return false;
-                return true;
+                "................................",
+                "................................",
+                "................................",
+                ".........OOOOOOOOOOOO..........",
+                "........OFFFFFFFFFFFFO.........",
+                ".......OFFFFFFFFFFFFFFO........",
+                ".......OFFFFFFFFFFFFFFO........",
+                "......OFFFFFFFFFFFFFFFFO.......",
+                "......OFFFFFFFFFFFFFFFFO.......",
+                "......OFFFFFFFFFFFFFFFFO.......",
+                ".......OFFFFFFFFFFFFFFO........",
+                "........OFFFFFFFFFFFFO.........",
+                ".........OFFFFFFFFFFO..........",
+                ".........OFFFFFFFFFFO..........",
+                "........OFFFFFFFFFFFFO.........",
+                ".......OFFFFFFFFFFFFFFO........",
+                "......OFFFFFFFFFFFFFFFFO.......",
+                "......OFFFFFFFFFFFFFFFFO.......",
+                "......OFFFFFFFFFFFFFFFFO.......",
+                ".......OFFFFFFFFFFFFFFO........",
+                "........OFFFFFFFFFFFFO.........",
+                "..........OFFFFFFO............",
+                "...........OFFFFO.............",
+                "............OFFO..............",
+                ".............OO...............",
+                "................................",
+                "................................",
+                "................................",
+                "................................",
+                "................................",
+                "................................",
+                "................................"
+            };
+
+            int startX = 0;
+            int startY = 3;
+
+            for (int row = 0; row < mask.Length; row++)
+            {
+                string line = mask[row];
+
+                for (int col = 0; col < line.Length; col++)
+                {
+                    int px = startX + col;
+                    int py = startY + row;
+
+                    if (px < 0 || px >= w || py < 0 || py >= h)
+                        continue;
+
+                    char c = line[col];
+
+                    switch (c)
+                    {
+                        case 'O':
+                            tex.SetPixel(px, py, outline);
+                            break;
+
+                        case 'F':
+                        {
+                            float t = (float)row / mask.Length;
+
+                            tex.SetPixel(
+                                px,
+                                py,
+                                Color.Lerp(fill, highlight, t)
+                            );
+                            break;
+                        }
+                    }
+                }
             }
 
-            // 4 tight knuckles at the top (smaller radius, closely packed)
-            float kr = 1.8f + pad;
-            if ((x - 9f)  * (x - 9f)  + (y - 22f) * (y - 22f) <= kr * kr) return true;
-            if ((x - 13.5f)*(x - 13.5f)+ (y - 23f) * (y - 23f) <= kr * kr) return true;
-            if ((x - 18.5f)*(x - 18.5f)+ (y - 23f) * (y - 23f) <= kr * kr) return true;
-            if ((x - 23f)  * (x - 23f)  + (y - 22f) * (y - 22f) <= kr * kr) return true;
+            // Khe giữa các khớp ngón tay
+            DrawLine(tex, 11, 5, 11, 9, outline);
+            DrawLine(tex, 15, 4, 15, 9, outline);
+            DrawLine(tex, 19, 4, 19, 9, outline);
 
-            // Thumb: folded horizontally on the lower part
-            float tx = Mathf.Abs(x - 16f);
-            float ty = Mathf.Abs(y - 8f);
-            if (tx <= 9f + pad && ty <= 2.2f + pad)
-                return true;
+            tex.Apply();
 
-            return false;
+            return Sprite.Create(
+                tex,
+                new Rect(0, 0, w, h),
+                new Vector2(0.5f, 0.5f),
+                32f
+            );
+        }
+
+        private void DrawLine(
+            Texture2D tex,
+            int x1,
+            int y1,
+            int x2,
+            int y2,
+            Color color)
+        {
+            int dx = Mathf.Abs(x2 - x1);
+            int dy = Mathf.Abs(y2 - y1);
+
+            int sx = x1 < x2 ? 1 : -1;
+            int sy = y1 < y2 ? 1 : -1;
+
+            int err = dx - dy;
+
+            while (true)
+            {
+                tex.SetPixel(x1, y1, color);
+
+                if (x1 == x2 && y1 == y2)
+                    break;
+
+                int e2 = err * 2;
+
+                if (e2 > -dy)
+                {
+                    err -= dy;
+                    x1 += sx;
+                }
+
+                if (e2 < dx)
+                {
+                    err += dx;
+                    y1 += sy;
+                }
+            }
         }
 
         private GameObject CreateDialoguePanel(Transform parent)
