@@ -159,7 +159,10 @@ namespace RangerCity.Lobby
 
             if (_animator) _animator.SetTrigger(AnimPunch);
 
-            // Find targets in range
+            // Find nearest target in range
+            MonoBehaviour closestTarget = null;
+            float closestDist = _punchRange;
+
             var allObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
             foreach (var obj in allObjects)
             {
@@ -168,13 +171,18 @@ namespace RangerCity.Lobby
                 if (punchable == null) continue;
 
                 float dist = Vector3.Distance(transform.position, obj.transform.position);
-                if (dist < _punchRange)
+                if (dist < closestDist)
                 {
-                    Vector3 knockDir = (obj.transform.position - transform.position).normalized;
-                    knockDir.y = 0;
-                    punchable.ReceivePunch(knockDir, _punchKnockbackForce);
-                    OnPunchHit?.Invoke();
+                    closestDist = dist;
+                    closestTarget = obj;
                 }
+            }
+
+            if (closestTarget != null)
+            {
+                // Trigger Cartoon Fight Cloud!
+                FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
+                OnPunchHit?.Invoke();
             }
 
             Invoke(nameof(EndPunch), 0.35f);
