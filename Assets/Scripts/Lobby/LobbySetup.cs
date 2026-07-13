@@ -753,8 +753,8 @@ namespace RangerCity.Lobby
 
             // Pass 3: Thumb crease (thin dark horizontal line)
             for (int x = 0; x < w; x++)
-                if (FistHit(x, 9, 0f))
-                    tex.SetPixel(x, 9, outline);
+                if (FistHit(x, 10, 0f))
+                    tex.SetPixel(x, 10, outline);
 
             tex.Apply();
             return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f));
@@ -762,17 +762,32 @@ namespace RangerCity.Lobby
 
         private bool FistHit(int x, int y, float pad)
         {
-            // Main body: big round circle filling most of the 32x32 (NO wrist)
-            float cx = 16f, cy = 15f, r = 13f + pad;
-            if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= r * r)
+            // Main palm: a rounded box instead of a massive circle
+            // X center 16, width 18, Y center 14, height 16
+            float px = Mathf.Abs(x - 16f);
+            float py = Mathf.Abs(y - 14f);
+            float pw = 8f + pad; // half width
+            float ph = 7f + pad; // half height
+            if (px <= pw && py <= ph)
+            {
+                // Round the bottom corners slightly
+                if (y < 9 && px > pw - 2f && (y - 9f) * (y - 9f) + (px - (pw - 2f)) * (px - (pw - 2f)) > 4f)
+                    return false;
                 return true;
+            }
 
-            // 4 knuckle bumps at top
-            float kr = 2.5f + pad;
-            if ((x - 8f) * (x - 8f) + (y - 28f) * (y - 28f) <= kr * kr) return true;
-            if ((x - 13f) * (x - 13f) + (y - 29f) * (y - 29f) <= kr * kr) return true;
-            if ((x - 19f) * (x - 19f) + (y - 29f) * (y - 29f) <= kr * kr) return true;
-            if ((x - 24f) * (x - 24f) + (y - 28f) * (y - 28f) <= kr * kr) return true;
+            // 4 tight knuckles at the top (smaller radius, closely packed)
+            float kr = 1.8f + pad;
+            if ((x - 9f)  * (x - 9f)  + (y - 22f) * (y - 22f) <= kr * kr) return true;
+            if ((x - 13.5f)*(x - 13.5f)+ (y - 23f) * (y - 23f) <= kr * kr) return true;
+            if ((x - 18.5f)*(x - 18.5f)+ (y - 23f) * (y - 23f) <= kr * kr) return true;
+            if ((x - 23f)  * (x - 23f)  + (y - 22f) * (y - 22f) <= kr * kr) return true;
+
+            // Thumb: folded horizontally on the lower part
+            float tx = Mathf.Abs(x - 16f);
+            float ty = Mathf.Abs(y - 8f);
+            if (tx <= 9f + pad && ty <= 2.2f + pad)
+                return true;
 
             return false;
         }
