@@ -75,7 +75,17 @@ namespace RangerCity.Lobby
 
                 if (dir.magnitude > 0.2f)
                 {
-                    transform.position += dir.normalized * _moveSpeed * Time.deltaTime;
+                    Vector3 nextPos = transform.position + dir.normalized * _moveSpeed * Time.deltaTime;
+                    if (IsValidPosition(nextPos))
+                    {
+                        transform.position = nextPos;
+                    }
+                    else
+                    {
+                        // Blocked by obstacle, cancel current wander and choose another target later
+                        _isWandering = false;
+                        _wanderTimer = Random.Range(_wanderPauseMin, _wanderPauseMax);
+                    }
                 }
                 else
                 {
@@ -132,6 +142,27 @@ namespace RangerCity.Lobby
                 if (_swollenFaceEffect != null) _swollenFaceEffect.SetActive(false);
                 if (_punchStarsEffect != null) _punchStarsEffect.SetActive(false);
             }
+        }
+
+        private bool IsValidPosition(Vector3 pos)
+        {
+            Collider[] hits = Physics.OverlapSphere(pos + Vector3.up * 0.5f, 0.45f);
+            foreach (var hit in hits)
+            {
+                if (hit.transform.root == transform.root) continue;
+                if (hit.isTrigger) continue;
+
+                string name = hit.gameObject.name;
+                if (name.Contains("Collider") || name.Contains("Obstacle") || name.Contains("Walls") ||
+                    name.Contains("Tree") || name.Contains("Post") || name.Contains("Picket") ||
+                    name.Contains("Seat") || name.Contains("Base") || name.Contains("Pillar") ||
+                    name.Contains("Bowl") || name.Contains("Bench") || name.Contains("Fountain") ||
+                    name.Contains("Fence") || name.Contains("House") || name.Contains("Shop"))
+                {
+                    return false;
+                }
+            }
+            return true;
         }
 
         private void OnDrawGizmosSelected()

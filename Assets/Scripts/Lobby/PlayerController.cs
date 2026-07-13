@@ -81,9 +81,21 @@ namespace RangerCity.Lobby
                 _isClickMoving = false; // Cancel click-to-move
                 _lastMoveDir = dir;
 
-                Vector3 newPos = transform.position + dir * _moveSpeed * Time.deltaTime;
-                newPos = ClampToWorld(newPos);
-                transform.position = newPos;
+                // Move X
+                Vector3 moveX = new Vector3(dir.x, 0, 0) * _moveSpeed * Time.deltaTime;
+                Vector3 targetPosX = ClampToWorld(transform.position + moveX);
+                if (IsValidPosition(targetPosX))
+                {
+                    transform.position = targetPosX;
+                }
+
+                // Move Z
+                Vector3 moveZ = new Vector3(0, 0, dir.z) * _moveSpeed * Time.deltaTime;
+                Vector3 targetPosZ = ClampToWorld(transform.position + moveZ);
+                if (IsValidPosition(targetPosZ))
+                {
+                    transform.position = targetPosZ;
+                }
 
                 if (_animator) _animator.SetFloat(AnimSpeed, 1f);
             }
@@ -122,12 +134,38 @@ namespace RangerCity.Lobby
 
                 if (dir.magnitude > 0.15f)
                 {
-                    Vector3 move = dir.normalized * _moveSpeed * Time.deltaTime;
-                    Vector3 newPos = ClampToWorld(transform.position + move);
-                    transform.position = newPos;
-                    _lastMoveDir = dir.normalized;
+                    Vector3 moveDir = dir.normalized;
+                    
+                    // Move X
+                    Vector3 moveX = new Vector3(moveDir.x, 0, 0) * _moveSpeed * Time.deltaTime;
+                    Vector3 targetPosX = ClampToWorld(transform.position + moveX);
+                    bool movedX = false;
+                    if (IsValidPosition(targetPosX))
+                    {
+                        transform.position = targetPosX;
+                        movedX = true;
+                    }
+
+                    // Move Z
+                    Vector3 moveZ = new Vector3(0, 0, moveDir.z) * _moveSpeed * Time.deltaTime;
+                    Vector3 targetPosZ = ClampToWorld(transform.position + moveZ);
+                    bool movedZ = false;
+                    if (IsValidPosition(targetPosZ))
+                    {
+                        transform.position = targetPosZ;
+                        movedZ = true;
+                    }
+
+                    _lastMoveDir = moveDir;
 
                     if (_animator) _animator.SetFloat(AnimSpeed, 1f);
+
+                    // If we got completely blocked, cancel click-movement
+                    if (!movedX && !movedZ)
+                    {
+                        _isClickMoving = false;
+                        if (_animator) _animator.SetFloat(AnimSpeed, 0f);
+                    }
                 }
                 else
                 {
@@ -153,8 +191,8 @@ namespace RangerCity.Lobby
         {
             if (_isPunching || _punchCooldownTimer > 0f) return;
 
-            _isPunching = true;
             _punchCooldownTimer = _punchCooldown;
+            _isPunching = true;
             _isClickMoving = false;
 
             if (_animator) _animator.SetTrigger(AnimPunch);
@@ -225,6 +263,29 @@ namespace RangerCity.Lobby
         }
 
         public IInteractable GetNearestInteractable() => _nearestInteractable;
+
+        private bool IsValidPosition(Vector3 pos)
+        {
+            // Characters are capsule/spheres of size 1.2 units (radius 0.6)
+            // Use radius 0.5f to allow walking close to walls but not clipping into them
+            Collider[] hits = Physics.OverlapSphere(pos + Vector3.up * 0.5f, 0.45f);
+            foreach (var hit in hits)
+            {
+                if (hit.transform.root == transform.root) continue;
+                if (hit.isTrigger) continue;
+
+                string name = hit.gameObject.name;
+                if (name.Contains("Collider") || name.Contains("Obstacle") || name.Contains("Walls") ||
+                    name.Contains("Tree") || name.Contains("Post") || name.Contains("Picket") ||
+                    name.Contains("Seat") || name.Contains("Base") || name.Contains("Pillar") ||
+                    name.Contains("Bowl") || name.Contains("Bench") || name.Contains("Fountain") ||
+                    name.Contains("Fence") || name.Contains("House") || name.Contains("Shop"))
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
 
         private Vector3 ClampToWorld(Vector3 pos)
         {
