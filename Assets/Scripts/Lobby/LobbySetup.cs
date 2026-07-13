@@ -549,10 +549,10 @@ namespace RangerCity.Lobby
             SetField(ctrl, "_displayName", name);
             SetField(ctrl, "_avatarEmoji", emoji);
             SetField(ctrl, "_dialogueLines", dialogues);
-            SetField(ctrl, "_moveSpeed", 0.6f);       // NPC di chuyển chậm
-            SetField(ctrl, "_wanderPauseMin", 3f);     // Dừng lâu hơn
-            SetField(ctrl, "_wanderPauseMax", 7f);
-            SetField(ctrl, "_wanderRadius", 3f);       // Đi gần hơn
+            SetField(ctrl, "_moveSpeed", 0.3f);        // NPC di chuyển rất chậm (strolling)
+            SetField(ctrl, "_wanderPauseMin", 5f);      // Dừng lại nghỉ lâu hơn
+            SetField(ctrl, "_wanderPauseMax", 10f);
+            SetField(ctrl, "_wanderRadius", 3f);
 
             AddSwollenFaceEffect(npc);
             AddNameTag(npc, name);
@@ -585,6 +585,10 @@ namespace RangerCity.Lobby
                 var ctrl = fp.AddComponent<FakePlayerController>();
                 SetField(ctrl, "_displayName", fpName);
                 SetField(ctrl, "_greetings", greetings);
+                SetField(ctrl, "_moveSpeed", 0.35f);       // Fake player đi chậm dạo mát
+                SetField(ctrl, "_pauseMin", 5f);           // Dừng lâu hơn
+                SetField(ctrl, "_pauseMax", 10f);
+                SetField(ctrl, "_wanderRadius", 4f);
 
                 AddSwollenFaceEffect(fp);
                 AddNameTag(fp, fpName);
