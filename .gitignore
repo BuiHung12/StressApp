@@ -1,0 +1,54 @@
+# This .gitignore file should be placed at the root of your Unity project.
+#
+# Get latest from https://github.com/github/gitignore/blob/main/Unity.gitignore
+#
+/[Ll]ibrary/
+/[Tt]emp/
+/[Oo]bj/
+/[Bb]uild/
+/[Bb]uilds/
+/[Ll]ogs/
+/[Uu]ser[Ss]ettings/
+
+# Memory dumps
+*.lldmp
+
+# Discard VS/MonoDevelop solution files and Unity crash reports
+ExportedObj/
+.vs/
+/*.sln
+/*.csproj
+/*.unityproj
+/*.suo
+/*.user
+/*.userprefs
+/*.pidb
+/*.developerprofiles
+/*.gush
+/*.dwlt
+
+# Unity3D generated meta files
+/*.pidb.meta
+/*.developerprofiles.meta
+/*.gush.meta
+
+# Unity3D Generated File Groups
+sysinfo.txt
+
+# Builds
+*.apk
+*.aab
+*.unitypackage
+*.app
+
+# Crashlytics generated file
+crashlytics-build.properties
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
