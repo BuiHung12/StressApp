@@ -724,80 +724,78 @@ namespace RangerCity.Lobby
             int h = 32;
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
             tex.filterMode = FilterMode.Point;
-            
-            Color transparent = new Color(0, 0, 0, 0);
-            Color outlineColor = new Color(0.35f, 0.08f, 0.02f); // Dark reddish brown outline
-            
-            for (int y = 0; y < h; y++)
-                for (int x = 0; x < w; x++)
-                    tex.SetPixel(x, y, transparent);
 
-            // 1. Draw outline layer
+            // 👊 Front-facing fist pixel bitmap (y=0 is BOTTOM, y=31 is TOP)
+            // '.' = transparent, 'O' = outline, 'Y' = yellow fill, 'T' = thumb crease
+            string[] bitmap = new string[]
+            {
+                "................................", // 0  bottom
+                "................................", // 1
+                "...........OOOOOOOOOO...........", // 2  wrist bottom
+                "..........OYYYYYYYYYYO..........", // 3
+                "..........OYYYYYYYYYYO..........", // 4
+                "..........OYYYYYYYYYYO..........", // 5
+                ".........OYYYYYYYYYYYYO.........", // 6
+                ".........OYYYYYYYYYYYYO.........", // 7
+                "........OYYYYYYYYYYYYYYO........", // 8
+                ".......OYYYYYYYYYYYYYYYYO.......", // 9
+                "......OYYYYYYYYYYYYYYYYYYO......", // 10
+                ".....OYYYYYYYYYYYYYYYYYYYYO.....", // 11
+                "....OYYYYYYYYYYYYYYYYYYYYYYO....", // 12
+                "....OYYYYYYYYYYYYYYYYYYYYYYO....", // 13
+                "....OYYYYYYYYYYYYYYYYYYYYYYO....", // 14
+                "...OYYYYYYYYYYYYYYYYYYYYYYYYO...", // 15
+                "...OYYYYYYYYYYYYYYYYYYYYYYYYO...", // 16
+                "...OTTTTTTTTTTTTTTTTTTTTTTTTO...", // 17 thumb crease
+                "...OYYYYYYYYYYYYYYYYYYYYYYYYO...", // 18
+                "...OYYYYYYYYYYYYYYYYYYYYYYYYO...", // 19
+                "..OYYYYYYYYYYYYYYYYYYYYYYYYYYO..", // 20
+                "..OYYYYYYYYYYYYYYYYYYYYYYYYYYO..", // 21
+                "..OYYYYYYYYYYYYYYYYYYYYYYYYYYO..", // 22
+                "..OYYYYYYYYYYYYYYYYYYYYYYYYYYO..", // 23
+                "..OYYYYOYYYYOYYYYOYYYYOYYYYYO...", // 24 knuckle creases
+                "..OYYO.OYYO.OYYO.OYYO.OYYYYO...", // 25 knuckle gaps
+                "..OYO..OYO..OYO..OYO..OYYYO....", // 26 knuckle tips
+                "..OO...OO...OO...OO...OYYYO....", // 27 knuckle round tops
+                ".........................OYO....", // 28 thumb tip
+                "..........................O.....", // 29
+                "................................", // 30
+                "................................", // 31 top
+            };
+
+            Color transparent = new Color(0, 0, 0, 0);
+            Color outlineColor = new Color(0.45f, 0.18f, 0.02f);
+
             for (int y = 0; y < h; y++)
             {
+                string row = bitmap[y];
                 for (int x = 0; x < w; x++)
                 {
-                    if (IsInsideFist(x, y, true))
+                    char c = (x < row.Length) ? row[x] : '.';
+                    if (c == 'O')
                     {
                         tex.SetPixel(x, y, outlineColor);
                     }
-                }
-            }
-
-            // 2. Draw inner gradient fill layer
-            for (int y = 0; y < h; y++)
-            {
-                for (int x = 0; x < w; x++)
-                {
-                    if (IsInsideFist(x, y, false))
+                    else if (c == 'Y')
                     {
-                        // Vertical gradient: yellow at top, orange at bottom
-                        float ratio = (float)y / h;
-                        Color yellow = new Color(1.0f, 0.92f, 0.25f);
-                        Color orange = new Color(1.0f, 0.5f, 0.02f);
-                        Color pixelColor = Color.Lerp(orange, yellow, ratio);
-                        
-                        tex.SetPixel(x, y, pixelColor);
+                        float t = (float)y / h;
+                        Color yellow = new Color(1.0f, 0.92f, 0.23f);
+                        Color orange = new Color(0.96f, 0.62f, 0.07f);
+                        tex.SetPixel(x, y, Color.Lerp(orange, yellow, t));
+                    }
+                    else if (c == 'T')
+                    {
+                        tex.SetPixel(x, y, outlineColor);
+                    }
+                    else
+                    {
+                        tex.SetPixel(x, y, transparent);
                     }
                 }
             }
 
             tex.Apply();
             return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f));
-        }
-
-        private bool IsInsideFist(int x, int y, bool isOutline)
-        {
-            float rScale = isOutline ? 1.4f : 0f;
-            
-            // 1. Wrist (rect on the right)
-            int wristMinX = 22 - (isOutline ? 1 : 0);
-            int wristMaxX = 32;
-            int wristMinY = 11 - (isOutline ? 1 : 0);
-            int wristMaxY = 21 + (isOutline ? 1 : 0);
-            if (x >= wristMinX && x < wristMaxX && y >= wristMinY && y < wristMaxY)
-                return true;
-
-            // 2. Palm/Body circle
-            if (DistSqr(x, y, 19, 16) <= (6.5f + rScale) * (6.5f + rScale))
-                return true;
-
-            // 3. Knuckles (4 circles on the left forming the folded fingers)
-            if (DistSqr(x, y, 14, 21) <= (3.2f + rScale) * (3.2f + rScale)) return true; // Index
-            if (DistSqr(x, y, 11, 16) <= (3.6f + rScale) * (3.6f + rScale)) return true; // Middle
-            if (DistSqr(x, y, 12, 11) <= (3.2f + rScale) * (3.2f + rScale)) return true; // Ring
-            if (DistSqr(x, y, 15, 6)  <= (2.8f + rScale) * (2.8f + rScale)) return true; // Pinky
-
-            // 4. Thumb folded at the bottom
-            if (DistSqr(x, y, 17, 9) <= (3.2f + rScale) * (3.2f + rScale))
-                return true;
-
-            return false;
-        }
-
-        private float DistSqr(int x1, int y1, int x2, int y2)
-        {
-            return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
         }
 
         private GameObject CreateDialoguePanel(Transform parent)
