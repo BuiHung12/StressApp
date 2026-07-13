@@ -105,6 +105,9 @@ namespace RangerCity.Lobby
 
         private void Update()
         {
+            // Bỏ qua update nếu chưa được spawn qua mạng
+            if (netIdentity == null || netIdentity.netId == 0) return;
+
             if (isLocalPlayer)
             {
                 // Gửi vị trí lên server định kỳ
