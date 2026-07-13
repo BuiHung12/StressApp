@@ -1488,12 +1488,30 @@ namespace RangerCity.Lobby
                     "Chào! Tôi là Milo, chủ cửa hàng! 🛒",
                     "Quay lại khi có Ranger Coins nhé! 💰",
                 });
+
+            // ── Hai ông NPC đen hôi đặc biệt ──
+            CreateNPC("Zhang Guang Yu", "🦨", new Vector3(-6, 0, -2),
+                new Color(0.12f, 0.12f, 0.12f),
+                new[] {
+                    "Chào bồ! Tôi là Zhang Guang Yu đây! 💨",
+                    "Đừng đứng gần tôi quá, tôi chưa tắm 3 tuần rồi... 🦨",
+                    "Người ta bảo tôi đen hôi, nhưng tôi thấy mình men lỳ! 😎"
+                }, new Color(0.25f, 0.18f, 0.12f));
+
+            CreateNPC("Yan Min Sheng", "😷", new Vector3(6, 0, -2),
+                new Color(0.15f, 0.1f, 0.08f),
+                new[] {
+                    "Yan Min Sheng xin chào! Chắc bạn ngửi thấy mùi tôi rồi nhỉ? 😷",
+                    "Nước hoa tốt nhất là mùi mồ hôi tự nhiên! 💦",
+                    "Zhang Guang Yu là tri kỷ của tôi đấy, hai đứa thơm tho như nhau! 🤝"
+                }, new Color(0.2f, 0.14f, 0.09f));
         }
 
         private void CreateNPC(string name, string emoji, Vector3 pos,
-            Color bodyColor, string[] dialogues)
+            Color bodyColor, string[] dialogues, Color? skinColor = null)
         {
-            var npc = CreateCharacterTopDown(name, bodyColor, new Color(1f, 0.88f, 0.7f));
+            Color skinCol = skinColor ?? new Color(1f, 0.88f, 0.7f);
+            var npc = CreateCharacterTopDown(name, bodyColor, skinCol);
             npc.transform.position = pos;
 
             var ctrl = npc.AddComponent<NPCController>();
