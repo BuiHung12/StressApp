@@ -726,66 +726,78 @@ namespace RangerCity.Lobby
             tex.filterMode = FilterMode.Point;
             
             Color transparent = new Color(0, 0, 0, 0);
-            Color fistYellow = new Color(1f, 0.85f, 0.05f); // Beautiful bright yellow
-            Color outlineColor = new Color(0.7f, 0.15f, 0.05f); // Bold dark red/orange outline
+            Color outlineColor = new Color(0.35f, 0.08f, 0.02f); // Dark reddish brown outline
             
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                     tex.SetPixel(x, y, transparent);
 
-            // 1. Draw outline (slightly larger shapes)
-            DrawRect(tex, 11, 0, 10, 10, outlineColor); // Wrist outline
-            DrawCircle(tex, 16, 14, 8.2f, outlineColor); // Palm outline
-            DrawCircle(tex, 10, 18, 4.2f, outlineColor); // Pinky outline
-            DrawCircle(tex, 13, 22, 4.2f, outlineColor); // Ring outline
-            DrawCircle(tex, 16, 23, 4.2f, outlineColor); // Middle outline
-            DrawCircle(tex, 19, 21, 4.2f, outlineColor); // Index outline
-            DrawCircle(tex, 22, 12, 4.7f, outlineColor); // Thumb outline
+            // 1. Draw outline layer
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    if (IsInsideFist(x, y, true))
+                    {
+                        tex.SetPixel(x, y, outlineColor);
+                    }
+                }
+            }
 
-            // 2. Draw inner yellow fist
-            DrawRect(tex, 13, 0, 6, 8, fistYellow); // Wrist
-            DrawCircle(tex, 16, 14, 7.0f, fistYellow); // Palm
-            DrawCircle(tex, 10, 18, 3.0f, fistYellow); // Pinky
-            DrawCircle(tex, 13, 22, 3.0f, fistYellow); // Ring
-            DrawCircle(tex, 16, 23, 3.0f, fistYellow); // Middle
-            DrawCircle(tex, 19, 21, 3.0f, fistYellow); // Index
-            DrawCircle(tex, 22, 12, 3.5f, fistYellow); // Thumb
+            // 2. Draw inner gradient fill layer
+            for (int y = 0; y < h; y++)
+            {
+                for (int x = 0; x < w; x++)
+                {
+                    if (IsInsideFist(x, y, false))
+                    {
+                        // Vertical gradient: yellow at top, orange at bottom
+                        float ratio = (float)y / h;
+                        Color yellow = new Color(1.0f, 0.92f, 0.25f);
+                        Color orange = new Color(1.0f, 0.5f, 0.02f);
+                        Color pixelColor = Color.Lerp(orange, yellow, ratio);
+                        
+                        tex.SetPixel(x, y, pixelColor);
+                    }
+                }
+            }
 
             tex.Apply();
             return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f));
         }
 
-        private void DrawCircle(Texture2D tex, int cx, int cy, float r, Color color)
+        private bool IsInsideFist(int x, int y, bool isOutline)
         {
-            int rInt = Mathf.CeilToInt(r);
-            for (int x = cx - rInt; x <= cx + rInt; x++)
-            {
-                for (int y = cy - rInt; y <= cy + rInt; y++)
-                {
-                    if (x >= 0 && x < tex.width && y >= 0 && y < tex.height)
-                    {
-                        float distSqr = (x - cx) * (x - cx) + (y - cy) * (y - cy);
-                        if (distSqr <= r * r)
-                        {
-                            tex.SetPixel(x, y, color);
-                        }
-                    }
-                }
-            }
+            float rScale = isOutline ? 1.4f : 0f;
+            
+            // 1. Wrist (rect on the right)
+            int wristMinX = 22 - (isOutline ? 1 : 0);
+            int wristMaxX = 32;
+            int wristMinY = 11 - (isOutline ? 1 : 0);
+            int wristMaxY = 21 + (isOutline ? 1 : 0);
+            if (x >= wristMinX && x < wristMaxX && y >= wristMinY && y < wristMaxY)
+                return true;
+
+            // 2. Palm/Body circle
+            if (DistSqr(x, y, 19, 16) <= (6.5f + rScale) * (6.5f + rScale))
+                return true;
+
+            // 3. Knuckles (4 circles on the left forming the folded fingers)
+            if (DistSqr(x, y, 14, 21) <= (3.2f + rScale) * (3.2f + rScale)) return true; // Index
+            if (DistSqr(x, y, 11, 16) <= (3.6f + rScale) * (3.6f + rScale)) return true; // Middle
+            if (DistSqr(x, y, 12, 11) <= (3.2f + rScale) * (3.2f + rScale)) return true; // Ring
+            if (DistSqr(x, y, 15, 6)  <= (2.8f + rScale) * (2.8f + rScale)) return true; // Pinky
+
+            // 4. Thumb folded at the bottom
+            if (DistSqr(x, y, 17, 9) <= (3.2f + rScale) * (3.2f + rScale))
+                return true;
+
+            return false;
         }
 
-        private void DrawRect(Texture2D tex, int x, int y, int width, int height, Color color)
+        private float DistSqr(int x1, int y1, int x2, int y2)
         {
-            for (int i = x; i < x + width; i++)
-            {
-                for (int j = y; j < y + height; j++)
-                {
-                    if (i >= 0 && i < tex.width && j >= 0 && j < tex.height)
-                    {
-                        tex.SetPixel(i, j, color);
-                    }
-                }
-            }
+            return (x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2);
         }
 
         private GameObject CreateDialoguePanel(Transform parent)
