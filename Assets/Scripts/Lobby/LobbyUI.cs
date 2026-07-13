@@ -149,11 +149,9 @@ namespace RangerCity.Lobby
 
         private void UpdatePromptPosition()
         {
-            Debug.Log($"[LobbyUI] UpdatePromptPosition: currentTarget={(_currentTarget != null ? _currentTarget.DisplayName : "null")}, mainCamera={(_mainCamera != null)}, interactionPanel={(_interactionPanel != null)}");
             if (_currentTarget == null || _mainCamera == null || _interactionPanel == null) return;
 
             MonoBehaviour targetMB = _currentTarget as MonoBehaviour;
-            Debug.Log($"[LobbyUI] targetMB is null: {(targetMB == null)}");
             if (targetMB == null) return;
 
             // Scale the height offset dynamically according to target character scale.
@@ -161,16 +159,10 @@ namespace RangerCity.Lobby
             float heightOffset = 2.4f * targetMB.transform.localScale.y;
             Vector3 worldPos = targetMB.transform.position + Vector3.up * heightOffset;
             Vector3 screenPos = _mainCamera.WorldToScreenPoint(worldPos);
-            Debug.Log($"[LobbyUI] worldPos={worldPos}, screenPos={screenPos}");
 
             if (screenPos.z > 0)
             {
                 _interactionPanel.transform.position = screenPos;
-                Debug.Log($"[LobbyUI] Prompt position successfully set to screenPos={screenPos} (Screen size: {Screen.width}x{Screen.height})");
-            }
-            else
-            {
-                Debug.LogWarning($"[LobbyUI] Target screenPos.z <= 0: {screenPos.z}");
             }
         }
 
@@ -318,7 +310,7 @@ namespace RangerCity.Lobby
                 _jailText.color = Color.white;
             }
 
-            _jailText.text = $"\ud83d\udd12 B\u1ea1n \u0111\u00e3 b\u1ecb b\u1eaft v\u00e0o t\u00f9!\nN\u1ea1n nh\u00e2n \u0111ang v\u00e0o th\u0103m b\u1ea1n... \ud83d\ude45\nCh\u1edd {duration:0} gi\u00e2y...";
+            _jailText.text = $"[Nhà Tù] Bạn đã bị bắt vào tù!\nNạn nhân đang vào thăm bạn...\nChờ {duration:0} giây...";
             _jailPanel.SetActive(true);
             HideInteractionPrompt();
 
@@ -333,7 +325,7 @@ namespace RangerCity.Lobby
             {
                 remaining -= Time.deltaTime;
                 if (_jailText != null)
-                    _jailText.text = $"\ud83d\udd12 B\u1ea1n \u0111\u00e3 b\u1ecb b\u1eaft v\u00e0o t\u00f9!\nN\u1ea1n nh\u00e2n \u0111ang v\u00e0o th\u0103m b\u1ea1n... \ud83d\ude45\nCh\u1edd {Mathf.Ceil(remaining):0} gi\u00e2y...";
+                    _jailText.text = $"[Nhà Tù] Bạn đã bị bắt vào tù!\nNạn nhân đang vào thăm bạn...\nChờ {Mathf.Ceil(remaining):0} giây...";
                 yield return null;
             }
         }
@@ -371,7 +363,7 @@ namespace RangerCity.Lobby
         {
             if (_coinText != null)
             {
-                _coinText.text = $"💰 Coins: {coins}";
+                _coinText.text = $"$ Coins: {coins}";
             }
         }
 

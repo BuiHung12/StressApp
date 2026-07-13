@@ -13,10 +13,10 @@ namespace RangerCity.Lobby
     public class LobbySetup : MonoBehaviour
     {
         [Header("Lobby Settings")]
-        [SerializeField] private float _lobbySize = 30f;
+        private float _lobbySize = 30f;
 
         [Header("Character Scale")]
-        [SerializeField] private float _characterScale = 3.0f;
+        private float _characterScale = 0.45f;
 
         [Header("Colors")]
         [SerializeField] private Color _grassColor = new Color(0.45f, 0.78f, 0.22f);
@@ -424,7 +424,7 @@ namespace RangerCity.Lobby
             }
         }
 
-        private void CreateFenceSegment(Vector3 start, Vector3 end, Color color, bool rotate90 = false)
+        private GameObject CreateFenceSegment(Vector3 start, Vector3 end, Color color, bool rotate90 = false)
         {
             var segment = new GameObject("FenceSegment");
             segment.transform.position = start;
@@ -503,6 +503,8 @@ namespace RangerCity.Lobby
             {
                 segment.transform.rotation = Quaternion.Euler(0, 90f, 0);
             }
+
+            return segment;
         }
 
         private void CreateBuildings()
@@ -526,14 +528,14 @@ namespace RangerCity.Lobby
                 new Color(0.92f, 0.8f, 0.6f), // orange-wood wall
                 new Color(0.25f, 0.6f, 0.22f), // green roof
                 new Vector3(3.2f, 2.5f, 2.5f),
-                "🍎 Market", new Color(0.2f, 0.7f, 0.3f)); // green stripes
+                "Market", new Color(0.2f, 0.7f, 0.3f)); // green stripes
 
             // 4. Bakery / Sweet Shop (bottom-right area)
             CreateBuilding("SweetShop", new Vector3(5, 0, -8),
                 new Color(0.96f, 0.8f, 0.85f), // soft pink wall
                 new Color(0.85f, 0.45f, 0.6f), // deep pink roof
                 new Vector3(3.2f, 2.5f, 2.5f),
-                "🍰 Sweets", new Color(1.0f, 0.5f, 0.75f)); // pink stripes
+                "Sweets", new Color(1.0f, 0.5f, 0.75f)); // pink stripes
         }
 
         private void CreateBuilding(string name, Vector3 pos, Color wallColor, Color roofColor, Vector3 size, string signText, Color stripeColor)
@@ -792,25 +794,25 @@ namespace RangerCity.Lobby
             CreatePortal("GardenPortal", new Vector3(0, 0, pathEnd), 0f,
                 new Color(0.3f, 0.35f, 0.4f),    // stone ring
                 new Color(0.15f, 0.85f, 0.3f, 0.7f), // green energy
-                "🌿 Vườn Trên Cao");
+                "Vuon Tren Cao");
 
             // South → Prison (red energy)
             CreatePortal("PrisonPortal", new Vector3(0, 0, -pathEnd), 0f,
                 new Color(0.25f, 0.25f, 0.3f),    // dark stone ring
                 new Color(0.85f, 0.15f, 0.15f, 0.7f), // red energy
-                "🔒 Nhà Tù");
+                "Nhà Tù");
 
             // East → Fishing (blue energy)
             CreatePortal("FishingPortal", new Vector3(pathEnd, 0, 0), 90f,
                 new Color(0.3f, 0.35f, 0.4f),    // stone ring
                 new Color(0.2f, 0.5f, 0.95f, 0.7f), // blue energy
-                "🎣 Khu Câu Cá");
+                "Khu Cau Ca");
 
             // West → Study (gold energy)
             CreatePortal("StudyPortal", new Vector3(-pathEnd, 0, 0), 90f,
                 new Color(0.4f, 0.32f, 0.22f),    // warm stone ring
                 new Color(0.95f, 0.75f, 0.15f, 0.7f), // gold energy
-                "📚 Khu Học Tập");
+                "Khu Hoc Tap");
         }
 
         private void CreatePortal(string name, Vector3 pos, float rotY, Color ringColor, Color energyColor, string label)
@@ -824,11 +826,12 @@ namespace RangerCity.Lobby
 
             // 1. Sleek Outer Metallic Base Ring
             var basePad = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            basePad.name = "BasePad_Collider"; // KEEP COLLIDER to block players walking directly through it, forcing them to stand on/near it or walk around
+            basePad.name = "TeleportPad"; 
             basePad.transform.SetParent(portal.transform, false);
             basePad.transform.localPosition = new Vector3(0, 0.02f, 0);
             basePad.transform.localScale = new Vector3(padRadius * 2, 0.02f, padRadius * 2);
             basePad.GetComponent<Renderer>().material = CreateMat(new Color(0.12f, 0.14f, 0.18f)); // Dark carbon gray
+            DestroyImmediate(basePad.GetComponent<Collider>());
 
             // 2. Glowing Neon Border Ring
             var neonBorder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -935,10 +938,10 @@ namespace RangerCity.Lobby
 
         private void CreateZones()
         {
-            CreateGardenZone();
-            CreatePrisonZone();
-            CreateFishingZone();
-            CreateStudyZone();
+            GardenZoneBuilder.Build();
+            PrisonZoneBuilder.Build();
+            FishingZoneBuilder.Build();
+            StudyZoneBuilder.Build();
         }
 
         private void CreateGardenZone()
@@ -957,14 +960,14 @@ namespace RangerCity.Lobby
             // North & South edges
             for (float x = -limit; x < limit; x += step)
             {
-                CreateFenceSegment(new Vector3(x, 0, limit), new Vector3(x + step, 0, limit), whiteColor).transform.SetParent(zone.transform, true);
-                CreateFenceSegment(new Vector3(x, 0, -limit), new Vector3(x + step, 0, -limit), whiteColor).transform.SetParent(zone.transform, true);
+                CreateFenceSegment(new Vector3(x, 0, limit), new Vector3(x + step, 0, limit), whiteColor).transform.SetParent(zone.transform, false);
+                CreateFenceSegment(new Vector3(x, 0, -limit), new Vector3(x + step, 0, -limit), whiteColor).transform.SetParent(zone.transform, false);
             }
             // East & West edges
             for (float z = -limit; z < limit; z += step)
             {
-                CreateFenceSegment(new Vector3(limit, 0, z), new Vector3(limit, 0, z + step), whiteColor, true).transform.SetParent(zone.transform, true);
-                CreateFenceSegment(new Vector3(-limit, 0, z), new Vector3(-limit, 0, z + step), whiteColor, true).transform.SetParent(zone.transform, true);
+                CreateFenceSegment(new Vector3(limit, 0, z), new Vector3(limit, 0, z + step), whiteColor, true).transform.SetParent(zone.transform, false);
+                CreateFenceSegment(new Vector3(-limit, 0, z), new Vector3(-limit, 0, z + step), whiteColor, true).transform.SetParent(zone.transform, false);
             }
 
             // --- Construct Floating Clouds ---
@@ -1201,7 +1204,7 @@ namespace RangerCity.Lobby
             title.transform.SetParent(zone.transform, false);
             title.transform.localPosition = new Vector3(0, 3f, -5f);
             var tmp = title.AddComponent<TextMeshPro>();
-            tmp.text = "🔒 Nhà Tù Thành Phố";
+            tmp.text = "Nhà Tù Thành Phố";
             tmp.fontSize = 6f;
             tmp.alignment = TextAlignmentOptions.Center;
             title.AddComponent<BillboardText>();
@@ -1941,7 +1944,7 @@ namespace RangerCity.Lobby
             shadow.GetComponent<Renderer>().material = CreateMat(new Color(0, 0, 0, 0.2f));
             Destroy(shadow.GetComponent<Collider>());
 
-            character.transform.localScale = Vector3.one * _characterScale;
+            character.transform.localScale = Vector3.one * 0.45f;
             character.AddComponent<CharacterAnimator>();
             return character;
         }

@@ -178,13 +178,13 @@ namespace RangerCity.Lobby
             switch (_state)
             {
                 case PlotState.Empty:
-                    _billboardText.text = "🌱 Gieo Hạt\n(Phím E)";
+                    _billboardText.text = "[+] Gieo Hạt\n(Phím E)";
                     break;
                 case PlotState.Growing:
-                    _billboardText.text = $"⏳ Đang Lớn\n({Mathf.Ceil(_growthTimer):0}s)";
+                    _billboardText.text = $"Đang Lớn\n({Mathf.Ceil(_growthTimer):0}s)";
                     break;
                 case PlotState.Ripe:
-                    _billboardText.text = "🍎 Thu Hoạch\n(Phím E)";
+                    _billboardText.text = "[*] Thu Hoạch\n(Phím E)";
                     break;
             }
         }

@@ -77,7 +77,7 @@ namespace RangerCity.Lobby
 
             if (_isLocked && _billboardText != null)
             {
-                _billboardText.text = $"🔒 Mở Khóa\n{_unlockCost} Coins (Phím E)";
+                _billboardText.text = $"Mở Khóa\n{_unlockCost} Coins (Phím E)";
             }
         }
 

@@ -374,53 +374,51 @@ namespace RangerCity.Lobby
         {
             if (_teleportCooldownTimer > 0f) return;
 
-            float portalRadius = 0.8f;
-
-            // Lobby portal coordinates
-            Vector3 lobbyGarden = new Vector3(0, 0, 11.5f);
-            Vector3 lobbyPrison = new Vector3(0, 0, -11.5f);
-            Vector3 lobbyFishing = new Vector3(11.5f, 0, 0);
-            Vector3 lobbyStudy = new Vector3(-11.5f, 0, 0);
-
-            // Return portal coordinates
-            Vector3 retGarden = new Vector3(0, 0, 66f);
-            Vector3 retPrison = new Vector3(0, 0, -66f);
-            Vector3 retFishing = new Vector3(66f, 0, 0);
-            Vector3 retStudy = new Vector3(-66f, 0, 0);
-
+            float portalRadius = 1.0f; // Bán kính nhạy hơn để kích hoạt mượt mà
             Vector3 currentPos = transform.position;
 
-            // Lobby to Zones
-            if (Vector3.Distance(currentPos, lobbyGarden) < portalRadius)
+            // Tìm các cổng dịch chuyển tại sảnh
+            GameObject gardenPortal = GameObject.Find("GardenPortal");
+            GameObject prisonPortal = GameObject.Find("PrisonPortal");
+            GameObject fishingPortal = GameObject.Find("FishingPortal");
+            GameObject studyPortal = GameObject.Find("StudyPortal");
+
+            // Tìm các cổng quay lại tại các Zone
+            GameObject gardenRet = GameObject.Find("GardenReturnPortal");
+            GameObject prisonRet = GameObject.Find("PrisonReturnPortal");
+            GameObject fishingRet = GameObject.Find("FishingReturnPortal");
+            GameObject studyRet = GameObject.Find("StudyReturnPortal");
+
+            // Kiểm tra khoảng cách để dịch chuyển
+            if (gardenPortal != null && Vector3.Distance(currentPos, gardenPortal.transform.position) < portalRadius)
             {
                 Teleport(new Vector3(0, 0.05f, 54f));
             }
-            else if (Vector3.Distance(currentPos, lobbyPrison) < portalRadius)
+            else if (prisonPortal != null && Vector3.Distance(currentPos, prisonPortal.transform.position) < portalRadius)
             {
                 Teleport(new Vector3(0, 0.05f, -54f));
             }
-            else if (Vector3.Distance(currentPos, lobbyFishing) < portalRadius)
+            else if (fishingPortal != null && Vector3.Distance(currentPos, fishingPortal.transform.position) < portalRadius)
             {
                 Teleport(new Vector3(54f, 0.05f, 0));
             }
-            else if (Vector3.Distance(currentPos, lobbyStudy) < portalRadius)
+            else if (studyPortal != null && Vector3.Distance(currentPos, studyPortal.transform.position) < portalRadius)
             {
                 Teleport(new Vector3(-54f, 0.05f, 0));
             }
-            // Zones to Lobby
-            else if (Vector3.Distance(currentPos, retGarden) < portalRadius)
+            else if (gardenRet != null && Vector3.Distance(currentPos, gardenRet.transform.position) < portalRadius)
             {
                 Teleport(new Vector3(0, 0.05f, 9.5f));
             }
-            else if (Vector3.Distance(currentPos, retPrison) < portalRadius)
+            else if (prisonRet != null && Vector3.Distance(currentPos, prisonRet.transform.position) < portalRadius)
             {
                 Teleport(new Vector3(0, 0.05f, -9.5f));
             }
-            else if (Vector3.Distance(currentPos, retFishing) < portalRadius)
+            else if (fishingRet != null && Vector3.Distance(currentPos, fishingRet.transform.position) < portalRadius)
             {
                 Teleport(new Vector3(9.5f, 0.05f, 0));
             }
-            else if (Vector3.Distance(currentPos, retStudy) < portalRadius)
+            else if (studyRet != null && Vector3.Distance(currentPos, studyRet.transform.position) < portalRadius)
             {
                 Teleport(new Vector3(-9.5f, 0.05f, 0));
             }
