@@ -58,6 +58,10 @@ namespace RangerCity.Lobby
         private GameObject _connectionPanel;
         private TMP_InputField _addressInput;
         private TMP_InputField _portInput;
+        private TMP_InputField _nameInput;
+        private int _selectedColorIndex = 0;
+        private Image[] _colorSwatches;
+        private GameObject _colorIndicator;
 
         private void Start()
         {
@@ -520,7 +524,11 @@ namespace RangerCity.Lobby
             if (canvas == null) canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null) return;
 
-            // Connection Panel (overlay background)
+            // Load saved preferences
+            _selectedColorIndex = PlayerPrefs.GetInt("PlayerColorIndex", 0);
+            string savedName = PlayerPrefs.GetString("PlayerName", "");
+
+            // Connection Panel (full-screen overlay)
             _connectionPanel = new GameObject("ConnectionPanel");
             _connectionPanel.transform.SetParent(canvas.transform, false);
 
@@ -530,145 +538,262 @@ namespace RangerCity.Lobby
             panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
 
             var panelImg = _connectionPanel.AddComponent<Image>();
-            panelImg.color = new Color(0.12f, 0.12f, 0.18f, 0.95f);
+            panelImg.color = new Color(0.08f, 0.08f, 0.14f, 0.97f);
 
-            // Card Container
+            // Card Container (bigger to fit customization)
             var card = new GameObject("Card");
             card.transform.SetParent(_connectionPanel.transform, false);
             var cardRt = card.AddComponent<RectTransform>();
-            cardRt.sizeDelta = new Vector3(450, 400);
+            cardRt.sizeDelta = new Vector2(480, 580);
             var cardImg = card.AddComponent<Image>();
-            cardImg.color = new Color(0.18f, 0.18f, 0.25f, 1f);
+            cardImg.color = new Color(0.16f, 0.16f, 0.22f, 1f);
 
-            // Title Text
-            var titleObj = new GameObject("Title");
-            titleObj.transform.SetParent(card.transform, false);
-            var titleRt = titleObj.AddComponent<RectTransform>();
-            titleRt.anchoredPosition = new Vector2(0, 140);
-            titleRt.sizeDelta = new Vector2(400, 50);
-            var titleTxt = titleObj.AddComponent<TextMeshProUGUI>();
-            titleTxt.text = "MULTIPLAYER CHOOSE MODE";
-            titleTxt.fontSize = 24;
-            titleTxt.alignment = TextAlignmentOptions.Center;
-            titleTxt.color = Color.white;
+            float y = 250f; // Start from top
 
-            // Host Button
-            var hostBtnObj = new GameObject("HostButton");
-            hostBtnObj.transform.SetParent(card.transform, false);
-            var hostRt = hostBtnObj.AddComponent<RectTransform>();
-            hostRt.anchoredPosition = new Vector2(0, 70);
-            hostRt.sizeDelta = new Vector2(300, 50);
-            var hostImg = hostBtnObj.AddComponent<Image>();
-            hostImg.color = new Color(0.2f, 0.6f, 0.3f, 1f);
-            var hostBtn = hostBtnObj.AddComponent<Button>();
-            hostBtn.onClick.AddListener(OnHostServerClicked);
+            // ── Title ──
+            var titleObj = CreateUIText(card.transform, "RANGER CITY LOBBY", 26, new Vector2(0, y), new Vector2(420, 40));
+            titleObj.GetComponent<TextMeshProUGUI>().color = new Color(0.4f, 0.85f, 1f);
+            y -= 50f;
 
-            var hostTextObj = new GameObject("Text");
-            hostTextObj.transform.SetParent(hostBtnObj.transform, false);
-            var hostTxtRt = hostTextObj.AddComponent<RectTransform>();
-            hostTxtRt.anchorMin = Vector2.zero;
-            hostTxtRt.anchorMax = Vector2.one;
-            hostTxtRt.offsetMin = hostTxtRt.offsetMax = Vector2.zero;
-            var hostTxt = hostTextObj.AddComponent<TextMeshProUGUI>();
-            hostTxt.text = "Host Server (Cho máy chủ)";
-            hostTxt.fontSize = 18;
-            hostTxt.alignment = TextAlignmentOptions.Center;
+            // ── Tên nhân vật ──
+            CreateUIText(card.transform, "Tên nhân vật:", 15, new Vector2(-120, y), new Vector2(200, 24), TextAlignmentOptions.Left, new Color(0.75f, 0.75f, 0.85f));
+            y -= 30f;
 
-            // Address Input
-            var addressObj = new GameObject("AddressInput");
-            addressObj.transform.SetParent(card.transform, false);
-            var addrRt = addressObj.AddComponent<RectTransform>();
-            addrRt.anchoredPosition = new Vector2(-60, -10);
-            addrRt.sizeDelta = new Vector2(180, 40);
-            var addrImg = addressObj.AddComponent<Image>();
-            addrImg.color = new Color(0.1f, 0.1f, 0.15f, 1f);
+            var nameObj = new GameObject("NameInput");
+            nameObj.transform.SetParent(card.transform, false);
+            var nameRt = nameObj.AddComponent<RectTransform>();
+            nameRt.anchoredPosition = new Vector2(0, y);
+            nameRt.sizeDelta = new Vector2(380, 40);
+            var nameImg = nameObj.AddComponent<Image>();
+            nameImg.color = new Color(0.1f, 0.1f, 0.15f, 1f);
 
-            var addrTextObj = new GameObject("TextArea");
-            addrTextObj.transform.SetParent(addressObj.transform, false);
-            var addrTextRt = addrTextObj.AddComponent<RectTransform>();
-            addrTextRt.anchorMin = Vector2.zero;
-            addrTextRt.anchorMax = Vector2.one;
-            addrTextRt.offsetMin = new Vector2(8, 0);
-            addrTextRt.offsetMax = new Vector2(-8, 0);
+            var nameTextArea = new GameObject("Text");
+            nameTextArea.transform.SetParent(nameObj.transform, false);
+            var nrt = nameTextArea.AddComponent<RectTransform>();
+            nrt.anchorMin = Vector2.zero;
+            nrt.anchorMax = Vector2.one;
+            nrt.offsetMin = new Vector2(10, 0);
+            nrt.offsetMax = new Vector2(-10, 0);
+            var nameTxt = nameTextArea.AddComponent<TextMeshProUGUI>();
+            nameTxt.fontSize = 18;
+            nameTxt.color = Color.white;
 
-            var addrTxt = addrTextObj.AddComponent<TextMeshProUGUI>();
-            addrTxt.fontSize = 16;
-            addrTxt.alignment = TextAlignmentOptions.Left;
-            addrTxt.color = Color.white;
+            // Placeholder
+            var placeholderObj = new GameObject("Placeholder");
+            placeholderObj.transform.SetParent(nameObj.transform, false);
+            var phRt = placeholderObj.AddComponent<RectTransform>();
+            phRt.anchorMin = Vector2.zero;
+            phRt.anchorMax = Vector2.one;
+            phRt.offsetMin = new Vector2(10, 0);
+            phRt.offsetMax = new Vector2(-10, 0);
+            var phTxt = placeholderObj.AddComponent<TextMeshProUGUI>();
+            phTxt.text = "Nhập tên của bạn...";
+            phTxt.fontSize = 18;
+            phTxt.fontStyle = FontStyles.Italic;
+            phTxt.color = new Color(0.5f, 0.5f, 0.55f);
 
-            _addressInput = addressObj.AddComponent<TMP_InputField>();
-            _addressInput.textComponent = addrTxt;
-            _addressInput.text = "wool-delivery.gl.at.ply.gg";
+            _nameInput = nameObj.AddComponent<TMP_InputField>();
+            _nameInput.textComponent = nameTxt;
+            _nameInput.placeholder = phTxt;
+            _nameInput.text = savedName;
+            _nameInput.characterLimit = 16;
 
-            // Port Input
-            var portObj = new GameObject("PortInput");
-            portObj.transform.SetParent(card.transform, false);
-            var portRt = portObj.AddComponent<RectTransform>();
-            portRt.anchoredPosition = new Vector2(110, -10);
-            portRt.sizeDelta = new Vector2(100, 40);
-            var portImg = portObj.AddComponent<Image>();
-            portImg.color = new Color(0.1f, 0.1f, 0.15f, 1f);
+            y -= 45f;
 
-            var portTextObj = new GameObject("TextArea");
-            portTextObj.transform.SetParent(portObj.transform, false);
-            var portTextRt = portTextObj.AddComponent<RectTransform>();
-            portTextRt.anchorMin = Vector2.zero;
-            portTextRt.anchorMax = Vector2.one;
-            portTextRt.offsetMin = new Vector2(8, 0);
-            portTextRt.offsetMax = new Vector2(-8, 0);
+            // ── Chọn màu nhân vật ──
+            CreateUIText(card.transform, "Chọn màu nhân vật:", 15, new Vector2(-100, y), new Vector2(240, 24), TextAlignmentOptions.Left, new Color(0.75f, 0.75f, 0.85f));
+            y -= 35f;
 
-            var portTxt = portTextObj.AddComponent<TextMeshProUGUI>();
-            portTxt.fontSize = 16;
-            portTxt.alignment = TextAlignmentOptions.Left;
-            portTxt.color = Color.white;
+            // Color swatch grid
+            var colorGrid = new GameObject("ColorGrid");
+            colorGrid.transform.SetParent(card.transform, false);
+            var gridRt = colorGrid.AddComponent<RectTransform>();
+            gridRt.anchoredPosition = new Vector2(0, y);
+            gridRt.sizeDelta = new Vector2(380, 45);
 
-            _portInput = portObj.AddComponent<TMP_InputField>();
-            _portInput.textComponent = portTxt;
-            _portInput.text = "30645";
+            _colorSwatches = new Image[NetworkPlayer.ColorPalette.Length];
+            float swatchSize = 36f;
+            float spacing = 2f;
+            float totalWidth = NetworkPlayer.ColorPalette.Length * (swatchSize + spacing) - spacing;
+            float startX = -totalWidth / 2f + swatchSize / 2f;
 
-            // Labels
-            CreateLabel(card.transform, "IP / Domain:", new Vector2(-60, 20));
-            CreateLabel(card.transform, "Port:", new Vector2(110, 20));
+            for (int i = 0; i < NetworkPlayer.ColorPalette.Length; i++)
+            {
+                int idx = i;
+                var swatch = new GameObject($"Color_{i}");
+                swatch.transform.SetParent(colorGrid.transform, false);
+                var swRt = swatch.AddComponent<RectTransform>();
+                swRt.anchoredPosition = new Vector2(startX + i * (swatchSize + spacing), 0);
+                swRt.sizeDelta = new Vector2(swatchSize, swatchSize);
 
-            // Join Client Button
-            var joinBtnObj = new GameObject("JoinButton");
-            joinBtnObj.transform.SetParent(card.transform, false);
-            var joinRt = joinBtnObj.AddComponent<RectTransform>();
-            joinRt.anchoredPosition = new Vector2(0, -90);
-            joinRt.sizeDelta = new Vector2(300, 50);
-            var joinImg = joinBtnObj.AddComponent<Image>();
-            joinImg.color = new Color(0.2f, 0.5f, 0.8f, 1f);
-            var joinBtn = joinBtnObj.AddComponent<Button>();
-            joinBtn.onClick.AddListener(OnJoinServerClicked);
+                var swImg = swatch.AddComponent<Image>();
+                swImg.color = NetworkPlayer.ColorPalette[i];
+                _colorSwatches[i] = swImg;
 
-            var joinTextObj = new GameObject("Text");
-            joinTextObj.transform.SetParent(joinBtnObj.transform, false);
-            var joinTxtRt = joinTextObj.AddComponent<RectTransform>();
-            joinTxtRt.anchorMin = Vector2.zero;
-            joinTxtRt.anchorMax = Vector2.one;
-            joinTxtRt.offsetMin = joinTxtRt.offsetMax = Vector2.zero;
-            var joinTxt = joinTextObj.AddComponent<TextMeshProUGUI>();
-            joinTxt.text = "Join Lobby (Cho người chơi)";
-            joinTxt.fontSize = 18;
-            joinTxt.alignment = TextAlignmentOptions.Center;
+                var swBtn = swatch.AddComponent<Button>();
+                swBtn.onClick.AddListener(() => SelectColor(idx));
+            }
+
+            // Selection indicator border
+            _colorIndicator = new GameObject("Indicator");
+            _colorIndicator.transform.SetParent(colorGrid.transform, false);
+            var indRt = _colorIndicator.AddComponent<RectTransform>();
+            indRt.sizeDelta = new Vector2(swatchSize + 6, swatchSize + 6);
+            var indImg = _colorIndicator.AddComponent<Image>();
+            indImg.color = Color.clear;
+            var outline = _colorIndicator.AddComponent<Outline>();
+            outline.effectColor = Color.white;
+            outline.effectDistance = new Vector2(3, -3);
+
+            // Position indicator on default color
+            UpdateColorIndicator();
+
+            y -= 50f;
+
+            // ── Device ID ──
+            string deviceId = SystemInfo.deviceUniqueIdentifier;
+            string shortId = deviceId.Length > 12 ? deviceId.Substring(0, 12) + "..." : deviceId;
+            CreateUIText(card.transform, $"ID Thiết bị: {shortId}", 12, new Vector2(0, y), new Vector2(380, 20), TextAlignmentOptions.Center, new Color(0.5f, 0.5f, 0.6f));
+
+            y -= 40f;
+
+            // ── Separator ──
+            var sep = new GameObject("Separator");
+            sep.transform.SetParent(card.transform, false);
+            var sepRt = sep.AddComponent<RectTransform>();
+            sepRt.anchoredPosition = new Vector2(0, y);
+            sepRt.sizeDelta = new Vector2(380, 1);
+            var sepImg = sep.AddComponent<Image>();
+            sepImg.color = new Color(0.3f, 0.3f, 0.4f);
+
+            y -= 30f;
+
+            // ── Host Button ──
+            CreateActionButton(card.transform, "▶ Host Server (Cho máy chủ)", new Color(0.18f, 0.62f, 0.34f), new Vector2(0, y), OnHostServerClicked);
+
+            y -= 60f;
+
+            // ── IP / Port Inputs ──
+            CreateUIText(card.transform, "IP / Domain:", 13, new Vector2(-80, y + 18), new Vector2(160, 20), TextAlignmentOptions.Left, new Color(0.65f, 0.65f, 0.75f));
+            CreateUIText(card.transform, "Port:", 13, new Vector2(125, y + 18), new Vector2(80, 20), TextAlignmentOptions.Left, new Color(0.65f, 0.65f, 0.75f));
+
+            // Address
+            _addressInput = CreateInputField(card.transform, "wool-delivery.gl.at.ply.gg", new Vector2(-55, y), new Vector2(230, 36));
+
+            // Port
+            _portInput = CreateInputField(card.transform, "30645", new Vector2(140, y), new Vector2(80, 36));
+
+            y -= 50f;
+
+            // ── Join Button ──
+            CreateActionButton(card.transform, "🌐 Join Lobby (Cho người chơi)", new Color(0.2f, 0.48f, 0.82f), new Vector2(0, y), OnJoinServerClicked);
         }
 
-        private void CreateLabel(Transform parent, string text, Vector2 pos)
+        // ── Helper: Create text element ──
+        private GameObject CreateUIText(Transform parent, string text, float fontSize, Vector2 pos, Vector2 size,
+            TextAlignmentOptions align = TextAlignmentOptions.Center, Color? color = null)
         {
-            var labelObj = new GameObject("Label_" + text);
-            labelObj.transform.SetParent(parent, false);
-            var rt = labelObj.AddComponent<RectTransform>();
+            var obj = new GameObject("Text_" + text.Substring(0, Mathf.Min(10, text.Length)));
+            obj.transform.SetParent(parent, false);
+            var rt = obj.AddComponent<RectTransform>();
             rt.anchoredPosition = pos;
-            rt.sizeDelta = new Vector2(120, 20);
-            var txt = labelObj.AddComponent<TextMeshProUGUI>();
-            txt.text = text;
+            rt.sizeDelta = size;
+            var tmp = obj.AddComponent<TextMeshProUGUI>();
+            tmp.text = text;
+            tmp.fontSize = fontSize;
+            tmp.alignment = align;
+            tmp.color = color ?? Color.white;
+            return obj;
+        }
+
+        // ── Helper: Create input field ──
+        private TMP_InputField CreateInputField(Transform parent, string defaultText, Vector2 pos, Vector2 size)
+        {
+            var obj = new GameObject("Input");
+            obj.transform.SetParent(parent, false);
+            var rt = obj.AddComponent<RectTransform>();
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = size;
+            var img = obj.AddComponent<Image>();
+            img.color = new Color(0.08f, 0.08f, 0.12f, 1f);
+
+            var textObj = new GameObject("Text");
+            textObj.transform.SetParent(obj.transform, false);
+            var trt = textObj.AddComponent<RectTransform>();
+            trt.anchorMin = Vector2.zero;
+            trt.anchorMax = Vector2.one;
+            trt.offsetMin = new Vector2(8, 0);
+            trt.offsetMax = new Vector2(-8, 0);
+            var txt = textObj.AddComponent<TextMeshProUGUI>();
             txt.fontSize = 14;
-            txt.color = new Color(0.8f, 0.8f, 0.8f);
-            txt.alignment = TextAlignmentOptions.Left;
+            txt.color = Color.white;
+
+            var input = obj.AddComponent<TMP_InputField>();
+            input.textComponent = txt;
+            input.text = defaultText;
+            return input;
+        }
+
+        // ── Helper: Create action button ──
+        private void CreateActionButton(Transform parent, string text, Color bgColor, Vector2 pos, UnityEngine.Events.UnityAction action)
+        {
+            var btnObj = new GameObject("Btn_" + text.Substring(0, Mathf.Min(8, text.Length)));
+            btnObj.transform.SetParent(parent, false);
+            var rt = btnObj.AddComponent<RectTransform>();
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = new Vector2(340, 48);
+            var img = btnObj.AddComponent<Image>();
+            img.color = bgColor;
+
+            var btn = btnObj.AddComponent<Button>();
+            btn.onClick.AddListener(action);
+
+            // Hover effects
+            var colors = btn.colors;
+            colors.highlightedColor = bgColor * 1.2f;
+            colors.pressedColor = bgColor * 0.8f;
+            btn.colors = colors;
+
+            var textObj = new GameObject("Text");
+            textObj.transform.SetParent(btnObj.transform, false);
+            var trt = textObj.AddComponent<RectTransform>();
+            trt.anchorMin = Vector2.zero;
+            trt.anchorMax = Vector2.one;
+            trt.offsetMin = trt.offsetMax = Vector2.zero;
+            var tmp = textObj.AddComponent<TextMeshProUGUI>();
+            tmp.text = text;
+            tmp.fontSize = 18;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = Color.white;
+        }
+
+        private void SelectColor(int index)
+        {
+            _selectedColorIndex = index;
+            UpdateColorIndicator();
+        }
+
+        private void UpdateColorIndicator()
+        {
+            if (_colorIndicator == null || _colorSwatches == null) return;
+            if (_selectedColorIndex >= 0 && _selectedColorIndex < _colorSwatches.Length)
+            {
+                _colorIndicator.transform.position = _colorSwatches[_selectedColorIndex].transform.position;
+            }
+        }
+
+        private void SavePlayerPrefs()
+        {
+            // Lưu tên và màu vào PlayerPrefs để NetworkPlayer đọc khi connect
+            if (_nameInput != null)
+                PlayerPrefs.SetString("PlayerName", _nameInput.text);
+            PlayerPrefs.SetInt("PlayerColorIndex", _selectedColorIndex);
+            PlayerPrefs.Save();
         }
 
         private void OnHostServerClicked()
         {
+            SavePlayerPrefs();
             var setup = FindAnyObjectByType<NetworkSetup>();
             if (setup != null)
             {
@@ -679,6 +804,7 @@ namespace RangerCity.Lobby
 
         private void OnJoinServerClicked()
         {
+            SavePlayerPrefs();
             var setup = FindAnyObjectByType<NetworkSetup>();
             if (setup != null)
             {
@@ -687,7 +813,6 @@ namespace RangerCity.Lobby
 
                 if (ushort.TryParse(portStr, out ushort port))
                 {
-                    // Mirror uses transport to set port
                     var transport = Mirror.NetworkManager.singleton.transport as kcp2k.KcpTransport;
                     if (transport != null)
                     {

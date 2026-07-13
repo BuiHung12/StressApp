@@ -25,6 +25,12 @@ namespace RangerCity.Lobby
         [SyncVar(hook = nameof(OnBodyColorChanged))]
         public Color BodyColor = new Color(0.26f, 0.65f, 0.96f);
 
+        /// <summary>
+        /// Mã định danh thiết bị — duy nhất và bền vững cho mỗi máy.
+        /// </summary>
+        [SyncVar]
+        public string DeviceId = "";
+
         // Sync vị trí mượt mà
         [SyncVar] private Vector3 _syncPosition;
         [SyncVar] private float _syncRotationY;
@@ -33,6 +39,21 @@ namespace RangerCity.Lobby
         private PlayerController _playerController;
         private float _syncTimer;
         private Vector3 _smoothVelocity;
+
+        // Preset color palette cho player chọn
+        public static readonly Color[] ColorPalette = new Color[]
+        {
+            new Color(0.26f, 0.65f, 0.96f),  // Xanh dương
+            new Color(0.94f, 0.33f, 0.31f),  // Đỏ
+            new Color(0.4f, 0.73f, 0.42f),   // Xanh lá
+            new Color(1f, 0.72f, 0.3f),      // Cam
+            new Color(0.49f, 0.34f, 0.76f),  // Tím
+            new Color(1f, 0.84f, 0f),        // Vàng
+            new Color(0.36f, 0.42f, 0.75f),  // Chàm
+            new Color(0.94f, 0.47f, 0.76f),  // Hồng
+            new Color(0.3f, 0.8f, 0.8f),     // Cyan
+            new Color(0.85f, 0.85f, 0.85f),  // Trắng bạc
+        };
 
         public override void OnStartLocalPlayer()
         {
@@ -45,16 +66,29 @@ namespace RangerCity.Lobby
                 _playerController.enabled = true;
             }
 
-            // Đặt tên ngẫu nhiên
-            string[] names = { "Ranger", "Scout", "Explorer", "Hero", "Knight", "Mage", "Archer" };
-            string randomName = names[Random.Range(0, names.Length)] + Random.Range(100, 999);
-            CmdSetDisplayName(randomName);
+            // Đọc tên và màu từ PlayerPrefs (đã lưu bởi Connection UI)
+            string savedName = PlayerPrefs.GetString("PlayerName", "");
+            if (string.IsNullOrEmpty(savedName))
+            {
+                string[] names = { "Ranger", "Scout", "Explorer", "Hero", "Knight" };
+                savedName = names[Random.Range(0, names.Length)] + Random.Range(100, 999);
+            }
+            CmdSetDisplayName(savedName);
 
-            // Đặt màu ngẫu nhiên
-            Color randomColor = Color.HSVToRGB(Random.value, 0.6f, 0.9f);
-            CmdSetBodyColor(randomColor);
+            // Đọc màu đã chọn từ PlayerPrefs
+            int colorIndex = PlayerPrefs.GetInt("PlayerColorIndex", -1);
+            Color chosenColor;
+            if (colorIndex >= 0 && colorIndex < ColorPalette.Length)
+                chosenColor = ColorPalette[colorIndex];
+            else
+                chosenColor = Color.HSVToRGB(Random.value, 0.6f, 0.9f);
+            CmdSetBodyColor(chosenColor);
 
-            Debug.Log($"[NetworkPlayer] Local player started: {randomName}");
+            // Gửi Device ID
+            string deviceId = SystemInfo.deviceUniqueIdentifier;
+            CmdSetDeviceId(deviceId);
+
+            Debug.Log($"[NetworkPlayer] Local player: {savedName}, DeviceID: {deviceId.Substring(0, 8)}...");
         }
 
         public override void OnStartClient()
@@ -132,6 +166,12 @@ namespace RangerCity.Lobby
         private void CmdSetBodyColor(Color color)
         {
             BodyColor = color;
+        }
+
+        [Command]
+        private void CmdSetDeviceId(string id)
+        {
+            DeviceId = id;
         }
 
         // ── Punch sync ──
