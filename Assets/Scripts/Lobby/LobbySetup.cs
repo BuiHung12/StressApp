@@ -816,92 +816,116 @@ namespace RangerCity.Lobby
             portal.transform.position = pos;
             portal.transform.rotation = Quaternion.Euler(0, rotY, 0);
 
-            float ringRadius = 1.4f;
-            int segments = 24;
+            // Smaller diameter (radius = 0.7f, total diameter 1.4f fits perfectly in the 2.0f wide path)
+            float padRadius = 0.7f;
 
-            // Base pedestal (stone platform)
-            var basePedestal = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            basePedestal.name = "Pedestal";
-            basePedestal.transform.SetParent(portal.transform, false);
-            basePedestal.transform.localPosition = new Vector3(0, 0.08f, 0);
-            basePedestal.transform.localScale = new Vector3(ringRadius * 2 + 0.4f, 0.08f, 0.6f);
-            basePedestal.GetComponent<Renderer>().material = CreateMat(ringColor * 0.7f);
-            Destroy(basePedestal.GetComponent<Collider>());
+            // 1. Sleek Outer Metallic Base Ring
+            var basePad = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            basePad.name = "BasePad_Collider"; // KEEP COLLIDER to block players walking directly through it, forcing them to stand on/near it or walk around
+            basePad.transform.SetParent(portal.transform, false);
+            basePad.transform.localPosition = new Vector3(0, 0.02f, 0);
+            basePad.transform.localScale = new Vector3(padRadius * 2, 0.02f, padRadius * 2);
+            basePad.GetComponent<Renderer>().material = CreateMat(new Color(0.12f, 0.14f, 0.18f)); // Dark carbon gray
 
-            // Ring frame (spheres arranged in a circle, standing upright on XY plane)
-            for (int i = 0; i < segments; i++)
+            // 2. Glowing Neon Border Ring
+            var neonBorder = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            neonBorder.name = "NeonBorder";
+            neonBorder.transform.SetParent(portal.transform, false);
+            neonBorder.transform.localPosition = new Vector3(0, 0.03f, 0);
+            neonBorder.transform.localScale = new Vector3(padRadius * 1.85f, 0.022f, padRadius * 1.85f);
+            neonBorder.GetComponent<Renderer>().material = CreateMat(energyColor);
+            Destroy(neonBorder.GetComponent<Collider>());
+
+            // 3. Central Teleport Deck (Inner Dark Plate)
+            var innerPlate = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            innerPlate.name = "InnerPlate";
+            innerPlate.transform.SetParent(portal.transform, false);
+            innerPlate.transform.localPosition = new Vector3(0, 0.04f, 0);
+            innerPlate.transform.localScale = new Vector3(padRadius * 1.5f, 0.024f, padRadius * 1.5f);
+            innerPlate.GetComponent<Renderer>().material = CreateMat(new Color(0.08f, 0.09f, 0.11f));
+            Destroy(innerPlate.GetComponent<Collider>());
+
+            // 4. Glowing Vortex Center Core
+            var coreGlow = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            coreGlow.name = "CoreGlow";
+            coreGlow.transform.SetParent(portal.transform, false);
+            coreGlow.transform.localPosition = new Vector3(0, 0.05f, 0);
+            coreGlow.transform.localScale = new Vector3(padRadius * 1.1f, 0.026f, padRadius * 1.1f);
+            Color intenseEnergy = new Color(energyColor.r * 1.2f, energyColor.g * 1.2f, energyColor.b * 1.2f, 0.9f);
+            coreGlow.GetComponent<Renderer>().material = CreateMat(intenseEnergy);
+            Destroy(coreGlow.GetComponent<Collider>());
+
+            // 5. Holographic Vertical Beam (Rising column of light)
+            var holoBeam = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            holoBeam.name = "HoloBeam";
+            holoBeam.transform.SetParent(portal.transform, false);
+            holoBeam.transform.localPosition = new Vector3(0, 0.6f, 0);
+            holoBeam.transform.localScale = new Vector3(padRadius * 1.1f, 0.6f, padRadius * 1.1f);
+            Color beamColor = new Color(energyColor.r, energyColor.g, energyColor.b, 0.22f); // Semi-transparent
+            holoBeam.GetComponent<Renderer>().material = CreateMat(beamColor);
+            Destroy(holoBeam.GetComponent<Collider>());
+
+            // 6. Corner Hologram Emitter Beacons (4 studs at corners)
+            float dist = padRadius * 0.8f;
+            Vector3[] beaconOffsets = {
+                new Vector3(dist, 0.05f, dist),
+                new Vector3(-dist, 0.05f, dist),
+                new Vector3(dist, 0.05f, -dist),
+                new Vector3(-dist, 0.05f, -dist)
+            };
+
+            foreach (var offset in beaconOffsets)
             {
-                float angle = i * 360f / segments * Mathf.Deg2Rad;
-                float lx = Mathf.Cos(angle) * ringRadius;
-                float ly = Mathf.Sin(angle) * ringRadius + ringRadius + 0.2f; // offset up so bottom sits on ground
+                // Metallic Stud Emitter
+                var beacon = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                beacon.name = "BeaconStud";
+                beacon.transform.SetParent(portal.transform, false);
+                beacon.transform.localPosition = offset;
+                beacon.transform.localScale = new Vector3(0.08f, 0.05f, 0.08f);
+                beacon.GetComponent<Renderer>().material = CreateMat(new Color(0.25f, 0.28f, 0.32f));
+                Destroy(beacon.GetComponent<Collider>());
 
-                var piece = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                piece.name = $"Ring_{i}";
-                piece.transform.SetParent(portal.transform, false);
-                piece.transform.localPosition = new Vector3(lx, ly, 0);
-                piece.transform.localScale = Vector3.one * 0.32f;
-                // Alternate ring colors for carved-stone look
-                Color pieceColor = (i % 3 == 0) ? ringColor * 1.15f : ringColor;
-                piece.GetComponent<Renderer>().material = CreateMat(pieceColor);
-                Destroy(piece.GetComponent<Collider>());
+                // Thin laser field/emitter line
+                var laserLine = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                laserLine.name = "LaserLine";
+                laserLine.transform.SetParent(portal.transform, false);
+                laserLine.transform.localPosition = offset + new Vector3(0, 0.5f, 0);
+                laserLine.transform.localScale = new Vector3(0.02f, 0.5f, 0.02f);
+                Color laserColor = new Color(energyColor.r * 1.5f, energyColor.g * 1.5f, energyColor.b * 1.5f, 0.4f);
+                laserLine.GetComponent<Renderer>().material = CreateMat(laserColor);
+                Destroy(laserLine.GetComponent<Collider>());
             }
 
-            // Inner glow ring (smaller ring of glowing orbs inside)
-            int innerSegments = 16;
-            float innerRadius = ringRadius * 0.75f;
-            for (int i = 0; i < innerSegments; i++)
-            {
-                float angle = i * 360f / innerSegments * Mathf.Deg2Rad;
-                float lx = Mathf.Cos(angle) * innerRadius;
-                float ly = Mathf.Sin(angle) * innerRadius + ringRadius + 0.2f;
-
-                var glow = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                glow.name = $"InnerGlow_{i}";
-                glow.transform.SetParent(portal.transform, false);
-                glow.transform.localPosition = new Vector3(lx, ly, 0);
-                glow.transform.localScale = Vector3.one * 0.15f;
-                glow.GetComponent<Renderer>().material = CreateMat(energyColor);
-                Destroy(glow.GetComponent<Collider>());
-            }
-
-            // Central energy field (flattened semi-transparent sphere)
-            var energy = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            energy.name = "EnergyField";
-            energy.transform.SetParent(portal.transform, false);
-            energy.transform.localPosition = new Vector3(0, ringRadius + 0.2f, 0);
-            energy.transform.localScale = new Vector3(ringRadius * 1.5f, ringRadius * 1.5f, 0.15f);
-            energy.GetComponent<Renderer>().material = CreateMat(energyColor * 0.6f);
-            Destroy(energy.GetComponent<Collider>());
-
-            // Bright core (smaller, more opaque sphere in center)
-            var core = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            core.name = "Core";
-            core.transform.SetParent(portal.transform, false);
-            core.transform.localPosition = new Vector3(0, ringRadius + 0.2f, 0);
-            core.transform.localScale = new Vector3(ringRadius * 0.7f, ringRadius * 0.7f, 0.08f);
-            Color coreColor = new Color(energyColor.r * 1.3f, energyColor.g * 1.3f, energyColor.b * 1.3f, 0.9f);
-            core.GetComponent<Renderer>().material = CreateMat(coreColor);
-            Destroy(core.GetComponent<Collider>());
-
-            // Sign board (TextMeshPro billboard above portal)
+            // 7. Floating Holographic Sign (Much smaller & modern glass style)
             var signObj = new GameObject("PortalSign");
             signObj.transform.SetParent(portal.transform, false);
-            signObj.transform.localPosition = new Vector3(0, ringRadius * 2 + 1.0f, 0);
+            signObj.transform.localPosition = new Vector3(0, 1.8f, 0); // Floats at a nice readable height
+
             var signTmp = signObj.AddComponent<TextMeshPro>();
             signTmp.text = label;
-            signTmp.fontSize = 5;
+            signTmp.fontSize = 3.2f; // Clean, readable and smaller size
             signTmp.alignment = TextAlignmentOptions.Center;
             signTmp.color = Color.white;
             signObj.AddComponent<BillboardText>();
 
-            // Sign background
+            // Glass background plank (semi-transparent neon matching border)
             var signBg = GameObject.CreatePrimitive(PrimitiveType.Cube);
             signBg.name = "SignBg";
             signBg.transform.SetParent(signObj.transform, false);
-            signBg.transform.localPosition = new Vector3(0, 0, 0.02f);
-            signBg.transform.localScale = new Vector3(2.8f, 0.7f, 0.06f);
-            signBg.GetComponent<Renderer>().material = CreateMat(new Color(0.1f, 0.08f, 0.06f, 0.85f));
+            signBg.transform.localPosition = new Vector3(0, 0, 0.01f);
+            signBg.transform.localScale = new Vector3(1.6f, 0.45f, 0.005f);
+            Color glassColor = new Color(energyColor.r * 0.2f, energyColor.g * 0.2f, energyColor.b * 0.2f, 0.45f);
+            signBg.GetComponent<Renderer>().material = CreateMat(glassColor);
             Destroy(signBg.GetComponent<Collider>());
+
+            // Slim neon border frame for the sign
+            var neonFrame = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            neonFrame.name = "SignNeonFrame";
+            neonFrame.transform.SetParent(signObj.transform, false);
+            neonFrame.transform.localPosition = new Vector3(0, 0, 0.005f);
+            neonFrame.transform.localScale = new Vector3(1.62f, 0.47f, 0.002f);
+            neonFrame.GetComponent<Renderer>().material = CreateMat(energyColor * 0.8f);
+            Destroy(neonFrame.GetComponent<Collider>());
         }
 
         // ── Lighting ──
