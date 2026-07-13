@@ -175,6 +175,12 @@ namespace RangerCity.Lobby
                 {
                     _syncTimer = 0f;
                     CmdSyncPosition(transform.position, transform.eulerAngles.y, IsMoving());
+
+                    // If we are the Host (Server), also broadcast the positions of all NPCs!
+                    if (isServer)
+                    {
+                        SyncNPCsToServer();
+                    }
                 }
             }
             else
@@ -261,6 +267,49 @@ namespace RangerCity.Lobby
         private void OnAppearanceChanged(Color oldVal, Color newVal)
         {
             LobbySetup.ApplyCustomization(gameObject, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+        }
+
+        // ── NPC Position/State Synchronizer ──
+
+        private void SyncNPCsToServer()
+        {
+            var npcs = FindObjectsByType<NPCController>(FindObjectsSortMode.None);
+            if (npcs == null || npcs.Length == 0) return;
+
+            string[] names = new string[npcs.Length];
+            Vector3[] positions = new Vector3[npcs.Length];
+            float[] rotationsY = new float[npcs.Length];
+            bool[] isHurts = new bool[npcs.Length];
+
+            for (int i = 0; i < npcs.Length; i++)
+            {
+                names[i] = npcs[i].DisplayName;
+                positions[i] = npcs[i].transform.position;
+                rotationsY[i] = npcs[i].transform.eulerAngles.y;
+                isHurts[i] = npcs[i].IsHurt;
+            }
+
+            RpcSyncNPCs(names, positions, rotationsY, isHurts);
+        }
+
+        [ClientRpc]
+        private void RpcSyncNPCs(string[] names, Vector3[] positions, float[] rotationsY, bool[] isHurts)
+        {
+            // Clients (excluding Server/Host, who already runs the simulation locally) apply sync data
+            if (isServer) return;
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                var npcObj = GameObject.Find(names[i]);
+                if (npcObj != null)
+                {
+                    var npcCtrl = npcObj.GetComponent<NPCController>();
+                    if (npcCtrl != null)
+                    {
+                        npcCtrl.SetSyncData(positions[i], rotationsY[i], isHurts[i]);
+                    }
+                }
+            }
         }
     }
 }

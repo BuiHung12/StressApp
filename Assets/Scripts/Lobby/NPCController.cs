@@ -1,4 +1,4 @@
-using UnityEngine;
+using Mirror;
 
 namespace RangerCity.Lobby
 {
@@ -41,12 +41,20 @@ namespace RangerCity.Lobby
         private float _hurtTimer;
         private Vector3 _knockbackVelocity;
 
+        // Sync variables for client
+        private Vector3 _syncPosition;
+        private Quaternion _syncRotation;
+        private bool _hasSyncData;
+        private Vector3 _smoothVelocity;
+
         // IInteractable
         public string DisplayName => _displayName;
         public string AvatarEmoji => _avatarEmoji;
         public bool CanTalk => true;
         public bool CanBePunched => true;
         public InteractableType Type => _type;
+
+        public bool IsHurt => _isHurt;
 
         private void Start()
         {
@@ -56,12 +64,40 @@ namespace RangerCity.Lobby
 
         private void Update()
         {
-            if (_isHurt)
+            // Only the server/host simulates the NPC AI and movement
+            if (NetworkServer.active)
             {
-                UpdateHurt();
-                return;
+                if (_isHurt)
+                {
+                    UpdateHurt();
+                    return;
+                }
+                UpdateWander();
             }
-            UpdateWander();
+            else
+            {
+                // Clients interpolate position and rotation
+                if (_hasSyncData)
+                {
+                    transform.position = Vector3.SmoothDamp(transform.position, _syncPosition, ref _smoothVelocity, 0.1f);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, _syncRotation, Time.deltaTime * 10f);
+                }
+            }
+        }
+
+        public void SetSyncData(Vector3 position, float rotationY, bool isHurt)
+        {
+            _syncPosition = position;
+            _syncRotation = Quaternion.Euler(0, rotationY, 0);
+            _hasSyncData = true;
+
+            // Apply hurt effects visually on clients
+            if (_isHurt != isHurt)
+            {
+                _isHurt = isHurt;
+                if (_swollenFaceEffect != null) _swollenFaceEffect.SetActive(isHurt);
+                if (_punchStarsEffect != null) _punchStarsEffect.SetActive(isHurt);
+            }
         }
 
         // ── Wandering ──
