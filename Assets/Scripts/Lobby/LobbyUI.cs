@@ -46,6 +46,9 @@ namespace RangerCity.Lobby
         private GameObject _jailPanel;
         private TextMeshProUGUI _jailText;
 
+        // Coins UI (created dynamically)
+        private TextMeshProUGUI _coinText;
+
         private void Start()
         {
             _player = FindAnyObjectByType<PlayerController>();
@@ -67,6 +70,7 @@ namespace RangerCity.Lobby
                 _player.OnLeaveInteractable += HideInteractionPrompt;
                 _player.OnJailStart += ShowJailNotification;
                 _player.OnJailEnd += HideJailNotification;
+                _player.OnCoinsChanged += UpdateCoinUI;
 
                 // Proactively check if player is already near someone
                 var currentNear = _player.GetNearestInteractable();
@@ -74,6 +78,9 @@ namespace RangerCity.Lobby
                 {
                     ShowInteractionPrompt(currentNear);
                 }
+
+                // Create dynamic Coin UI in screen corner
+                CreateCoinUI();
             }
             else
             {
@@ -93,6 +100,7 @@ namespace RangerCity.Lobby
                 _player.OnLeaveInteractable -= HideInteractionPrompt;
                 _player.OnJailStart -= ShowJailNotification;
                 _player.OnJailEnd -= HideJailNotification;
+                _player.OnCoinsChanged -= UpdateCoinUI;
             }
         }
 
@@ -310,7 +318,7 @@ namespace RangerCity.Lobby
                 _jailText.color = Color.white;
             }
 
-            _jailText.text = $"\ud83d\udd12 B\u1ea1n \u0111\u00e3 b\u1ecb b\u1eaft v\u00e0o t\u00f9!\nB\u1ea1o l\u1ef1c l\u00e0 x\u1ea5u! \ud83d\ude45\nCh\u1edd {duration:0} gi\u00e2y...";
+            _jailText.text = $"\ud83d\udd12 B\u1ea1n \u0111\u00e3 b\u1ecb b\u1eaft v\u00e0o t\u00f9!\nN\u1ea1n nh\u00e2n \u0111ang v\u00e0o th\u0103m b\u1ea1n... \ud83d\ude45\nCh\u1edd {duration:0} gi\u00e2y...";
             _jailPanel.SetActive(true);
             HideInteractionPrompt();
 
@@ -325,8 +333,45 @@ namespace RangerCity.Lobby
             {
                 remaining -= Time.deltaTime;
                 if (_jailText != null)
-                    _jailText.text = $"\ud83d\udd12 B\u1ea1n \u0111\u00e3 b\u1ecb b\u1eaft v\u00e0o t\u00f9!\nB\u1ea1o l\u1ef1c l\u00e0 x\u1ea5u! \ud83d\ude45\nCh\u1edd {Mathf.Ceil(remaining):0} gi\u00e2y...";
+                    _jailText.text = $"\ud83d\udd12 B\u1ea1n \u0111\u00e3 b\u1ecb b\u1eaft v\u00e0o t\u00f9!\nN\u1ea1n nh\u00e2n \u0111ang v\u00e0o th\u0103m b\u1ea1n... \ud83d\ude45\nCh\u1edd {Mathf.Ceil(remaining):0} gi\u00e2y...";
                 yield return null;
+            }
+        }
+
+        // ── Coins UI ─────────────────────────────────────────
+
+        private void CreateCoinUI()
+        {
+            var canvas = GetComponentInParent<Canvas>();
+            if (canvas == null) canvas = FindAnyObjectByType<Canvas>();
+            if (canvas == null) return;
+
+            var coinObj = new GameObject("CoinUI");
+            coinObj.transform.SetParent(canvas.transform, false);
+
+            var rt = coinObj.AddComponent<RectTransform>();
+            rt.anchorMin = new Vector2(0.8f, 0.9f);
+            rt.anchorMax = new Vector2(0.98f, 0.98f);
+            rt.offsetMin = rt.offsetMax = Vector2.zero;
+
+            _coinText = coinObj.AddComponent<TextMeshProUGUI>();
+            _coinText.fontSize = 20;
+            _coinText.alignment = TextAlignmentOptions.Right;
+            _coinText.color = new Color(1f, 0.84f, 0f); // Gold color
+            
+            // Add a clean dropshadow effect
+            var shadow = coinObj.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0, 0, 0, 0.5f);
+            shadow.effectDistance = new Vector2(2, -2);
+
+            UpdateCoinUI(_player.RangerCoins);
+        }
+
+        private void UpdateCoinUI(int coins)
+        {
+            if (_coinText != null)
+            {
+                _coinText.text = $"💰 Coins: {coins}";
             }
         }
 

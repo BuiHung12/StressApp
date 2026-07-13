@@ -52,17 +52,38 @@ namespace RangerCity.Lobby
         {
             if (_target == null) return;
 
-            // Zoom with scroll wheel
-            float scroll = Input.GetAxis("Mouse ScrollWheel");
-            if (scroll != 0f)
+            // Check if target is player and is jailed
+            var playerCtrl = _target.GetComponent<PlayerController>();
+            bool isJailed = (playerCtrl != null && playerCtrl.IsJailed);
+
+            // Zoom with scroll wheel (only if not jailed, to prevent user disrupting framing)
+            if (!isJailed)
             {
-                _orthoSize -= scroll * _zoomSpeed;
-                _orthoSize = Mathf.Clamp(_orthoSize, _minZoom, _maxZoom);
-                _cam.orthographicSize = _orthoSize;
+                float scroll = Input.GetAxis("Mouse ScrollWheel");
+                if (scroll != 0f)
+                {
+                    _orthoSize -= scroll * _zoomSpeed;
+                    _orthoSize = Mathf.Clamp(_orthoSize, _minZoom, _maxZoom);
+                }
+                // Smoothly lerp camera ortho size to target size
+                _cam.orthographicSize = Mathf.Lerp(_cam.orthographicSize, _orthoSize, _smoothSpeed * Time.deltaTime);
+            }
+            else
+            {
+                // Smoothly zoom out to frame both prisoner and visiting bot
+                _cam.orthographicSize = Mathf.Lerp(_cam.orthographicSize, 4.5f, _smoothSpeed * Time.deltaTime);
             }
 
-            // Smooth follow target
-            Vector3 desiredPos = _target.position + _offset;
+            // Decide focus position
+            Vector3 focusPos = _target.position;
+            if (isJailed)
+            {
+                // Shift focus to the midpoint between the cell and visiting desk (approx Z=-59.5f)
+                focusPos = new Vector3(0f, 0f, -59.5f);
+            }
+
+            // Smooth follow focus point
+            Vector3 desiredPos = focusPos + _offset;
             transform.position = Vector3.Lerp(transform.position, desiredPos, _smoothSpeed * Time.deltaTime);
 
             // Keep looking at target with isometric angle

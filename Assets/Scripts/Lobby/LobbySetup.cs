@@ -85,6 +85,9 @@ namespace RangerCity.Lobby
 
             // Teleportation Portals at the 4 path endpoints
             CreatePortals();
+
+            // Construct the 4 detailed remote zones
+            CreateZones();
         }
 
         private void CreateTrees3D()
@@ -926,6 +929,466 @@ namespace RangerCity.Lobby
             neonFrame.transform.localScale = new Vector3(1.62f, 0.47f, 0.002f);
             neonFrame.GetComponent<Renderer>().material = CreateMat(energyColor * 0.8f);
             Destroy(neonFrame.GetComponent<Collider>());
+        }
+
+        // ── Zone Construction ──
+
+        private void CreateZones()
+        {
+            CreateGardenZone();
+            CreatePrisonZone();
+            CreateFishingZone();
+            CreateStudyZone();
+        }
+
+        private void CreateGardenZone()
+        {
+            var zone = new GameObject("GardenZone");
+            zone.transform.position = new Vector3(0, 0, 60f);
+
+            // Ground base (Grass, size 16x16)
+            var ground = CreateFlat("GardenGround", Vector3.zero, new Vector2(16f, 16f), new Color(0.35f, 0.68f, 0.18f));
+            ground.transform.SetParent(zone.transform, false);
+
+            // Decorative White Fences around the 16x16 perimeter
+            Color whiteColor = new Color(0.95f, 0.95f, 0.95f);
+            float limit = 8f;
+            float step = 1.6f;
+            // North & South edges
+            for (float x = -limit; x < limit; x += step)
+            {
+                CreateFenceSegment(new Vector3(x, 0, limit), new Vector3(x + step, 0, limit), whiteColor).transform.SetParent(zone.transform, true);
+                CreateFenceSegment(new Vector3(x, 0, -limit), new Vector3(x + step, 0, -limit), whiteColor).transform.SetParent(zone.transform, true);
+            }
+            // East & West edges
+            for (float z = -limit; z < limit; z += step)
+            {
+                CreateFenceSegment(new Vector3(limit, 0, z), new Vector3(limit, 0, z + step), whiteColor, true).transform.SetParent(zone.transform, true);
+                CreateFenceSegment(new Vector3(-limit, 0, z), new Vector3(-limit, 0, z + step), whiteColor, true).transform.SetParent(zone.transform, true);
+            }
+
+            // --- Construct Floating Clouds ---
+            // Tầng 2 (Medium, y=0.6f) at (0, 0.6f, 0) relative to zone
+            var cloudL2 = new GameObject("Cloud_L2");
+            cloudL2.transform.SetParent(zone.transform, false);
+            cloudL2.transform.localPosition = new Vector3(0, 0.6f, 0);
+            CreateCloudVisual(cloudL2, 2.8f);
+
+            // Tầng 3 (High, y=1.2f) at (0, 1.2f, 4f) relative to zone
+            var cloudL3 = new GameObject("Cloud_L3");
+            cloudL3.transform.SetParent(zone.transform, false);
+            cloudL3.transform.localPosition = new Vector3(0, 1.2f, 4f);
+            CreateCloudVisual(cloudL3, 2.4f);
+
+            // Cloud stairs (connecting pads)
+            // Stair 1 (L1 to L2)
+            var stair1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            stair1.name = "CloudStair_1";
+            stair1.transform.SetParent(zone.transform, false);
+            stair1.transform.localPosition = new Vector3(0, 0.28f, -2.5f);
+            stair1.transform.localScale = new Vector3(2f, 0.5f, 2.5f);
+            stair1.transform.localRotation = Quaternion.Euler(14f, 0, 0); // smooth ramp
+            stair1.GetComponent<Renderer>().material = CreateMat(Color.white);
+
+            // Stair 2 (L2 to L3)
+            var stair2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            stair2.name = "CloudStair_2";
+            stair2.transform.SetParent(zone.transform, false);
+            stair2.transform.localPosition = new Vector3(0, 0.88f, 2f);
+            stair2.transform.localScale = new Vector3(2f, 0.5f, 2f);
+            stair2.transform.localRotation = Quaternion.Euler(14f, 0, 0);
+            stair2.GetComponent<Renderer>().material = CreateMat(Color.white);
+
+            // --- Clouds Lock Barriers & Scripts ---
+            // Lock Tầng 2 (on Stair 1)
+            var barrier2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            barrier2.name = "Stair1_Barrier_Collider";
+            barrier2.transform.SetParent(zone.transform, false);
+            barrier2.transform.localPosition = new Vector3(0, 0.6f, -1.8f);
+            barrier2.transform.localScale = new Vector3(2f, 1f, 0.2f);
+            barrier2.GetComponent<Renderer>().material = CreateMat(new Color(0.9f, 0.1f, 0.1f, 0.3f));
+            // Add script
+            var lock2 = barrier2.AddComponent<CloudLayer>();
+            SetField(lock2, "_unlockCost", 10);
+            SetField(lock2, "_barrierObj", barrier2);
+
+            // Lock Tầng 3 (on Stair 2)
+            var barrier3 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            barrier3.name = "Stair2_Barrier_Collider";
+            barrier3.transform.SetParent(zone.transform, false);
+            barrier3.transform.localPosition = new Vector3(0, 1.2f, 1.4f);
+            barrier3.transform.localScale = new Vector3(2f, 1f, 0.2f);
+            barrier3.GetComponent<Renderer>().material = CreateMat(new Color(0.9f, 0.1f, 0.1f, 0.3f));
+            // Add script
+            var lock3 = barrier3.AddComponent<CloudLayer>();
+            SetField(lock3, "_unlockCost", 25);
+            SetField(lock3, "_barrierObj", barrier3);
+
+            // --- Planting Pots (Plots) ---
+            // Pots on Tầng 1: (Low, y=0.05f)
+            CreateGardenPlotObj(zone, new Vector3(-2f, 0.05f, -4f), 10f, 10);
+            CreateGardenPlotObj(zone, new Vector3(2f, 0.05f, -4f), 10f, 10);
+
+            // Pots on Tầng 2: (Medium, y=0.65f)
+            CreateGardenPlotObj(zone, new Vector3(-1.5f, 0.65f, 0f), 15f, 25);
+            CreateGardenPlotObj(zone, new Vector3(1.5f, 0.65f, 0f), 15f, 25);
+
+            // Pots on Tầng 3: (High, y=1.25f)
+            CreateGardenPlotObj(zone, new Vector3(-1.2f, 1.25f, 4f), 20f, 50);
+            CreateGardenPlotObj(zone, new Vector3(1.2f, 1.25f, 4f), 20f, 50);
+
+            // Central golden tree on Cloud 2
+            var goldTree = new GameObject("GoldenCloudTree");
+            goldTree.transform.SetParent(zone.transform, false);
+            goldTree.transform.localPosition = new Vector3(0, 0.6f, 0);
+            var trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            trunk.name = "Trunk_Collider";
+            trunk.transform.SetParent(goldTree.transform, false);
+            trunk.transform.localPosition = new Vector3(0, 0.5f, 0);
+            trunk.transform.localScale = new Vector3(0.15f, 0.5f, 0.15f);
+            trunk.GetComponent<Renderer>().material = CreateMat(new Color(0.5f, 0.35f, 0.2f));
+            var leaves = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            leaves.transform.SetParent(goldTree.transform, false);
+            leaves.transform.localPosition = new Vector3(0, 1.1f, 0);
+            leaves.transform.localScale = Vector3.one * 0.7f;
+            leaves.GetComponent<Renderer>().material = CreateMat(new Color(1f, 0.85f, 0.2f));
+            Destroy(leaves.GetComponent<Collider>());
+
+            // Floating Label "Khu Vườn Của Bạn"
+            var title = new GameObject("GardenTitle");
+            title.transform.SetParent(zone.transform, false);
+            title.transform.localPosition = new Vector3(0, 3f, -5f);
+            var tmp = title.AddComponent<TextMeshPro>();
+            tmp.text = "🌿 Khu Vườn Của Bạn (Tư Nhân)";
+            tmp.fontSize = 6f;
+            tmp.alignment = TextAlignmentOptions.Center;
+            title.AddComponent<BillboardText>();
+
+            // Return Portal to Lobby
+            CreatePortal("GardenReturnPortal", new Vector3(0, 0.05f, 66f), 180f,
+                new Color(0.3f, 0.35f, 0.4f),
+                new Color(0.15f, 0.85f, 0.3f, 0.7f),
+                "🔙 Về Sảnh Chờ");
+        }
+
+        private void CreateCloudVisual(GameObject parent, float radius)
+        {
+            // Cartoon cloud style: overlapping flat spheres
+            Color cloudColor = new Color(1f, 1f, 1f, 0.95f);
+            float thickness = 0.18f;
+
+            var c1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            c1.transform.SetParent(parent.transform, false);
+            c1.transform.localPosition = Vector3.zero;
+            c1.transform.localScale = new Vector3(radius * 2, thickness, radius * 2);
+            c1.GetComponent<Renderer>().material = CreateMat(cloudColor);
+
+            var c2 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            c2.transform.SetParent(parent.transform, false);
+            c2.transform.localPosition = new Vector3(radius * 0.3f, 0.01f, radius * 0.2f);
+            c2.transform.localScale = new Vector3(radius * 1.2f, thickness * 1.1f, radius * 1.2f);
+            c2.GetComponent<Renderer>().material = CreateMat(cloudColor);
+
+            var c3 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            c3.transform.SetParent(parent.transform, false);
+            c3.transform.localPosition = new Vector3(-radius * 0.3f, 0.01f, -radius * 0.2f);
+            c3.transform.localScale = new Vector3(radius * 1.2f, thickness * 1.1f, radius * 1.2f);
+            c3.GetComponent<Renderer>().material = CreateMat(cloudColor);
+        }
+
+        private void CreateGardenPlotObj(GameObject parent, Vector3 localPos, float duration, int reward)
+        {
+            var plotObj = new GameObject("PlanterPlot");
+            plotObj.transform.SetParent(parent.transform, false);
+            plotObj.transform.localPosition = localPos;
+            var plot = plotObj.AddComponent<GardenPlot>();
+            SetField(plot, "_growthDuration", duration);
+            SetField(plot, "_harvestReward", reward);
+        }
+
+        private void CreatePrisonZone()
+        {
+            var zone = new GameObject("PrisonZone");
+            zone.transform.position = new Vector3(0, 0, -60f);
+
+            // Ground base (Concrete gray, size 16x16)
+            var ground = CreateFlat("PrisonGround", Vector3.zero, new Vector2(16f, 16f), new Color(0.3f, 0.3f, 0.33f));
+            ground.transform.SetParent(zone.transform, false);
+
+            // High dark brick walls enclosing it
+            Color wallColor = new Color(0.18f, 0.18f, 0.2f);
+            float limit = 8f;
+            // North wall
+            var wallN = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            wallN.name = "WallN_Collider";
+            wallN.transform.SetParent(zone.transform, false);
+            wallN.transform.localPosition = new Vector3(0, 1.5f, limit);
+            wallN.transform.localScale = new Vector3(16f, 3f, 0.5f);
+            wallN.GetComponent<Renderer>().material = CreateMat(wallColor);
+
+            // South wall
+            var wallS = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            wallS.name = "WallS_Collider";
+            wallS.transform.SetParent(zone.transform, false);
+            wallS.transform.localPosition = new Vector3(0, 1.5f, -limit);
+            wallS.transform.localScale = new Vector3(16f, 3f, 0.5f);
+            wallS.GetComponent<Renderer>().material = CreateMat(wallColor);
+
+            // East & West walls
+            var wallE = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            wallE.name = "WallE_Collider";
+            wallE.transform.SetParent(zone.transform, false);
+            wallE.transform.localPosition = new Vector3(limit, 1.5f, 0);
+            wallE.transform.localScale = new Vector3(0.5f, 3f, 16f);
+            wallE.GetComponent<Renderer>().material = CreateMat(wallColor);
+
+            var wallW = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            wallW.name = "WallW_Collider";
+            wallW.transform.SetParent(zone.transform, false);
+            wallW.transform.localPosition = new Vector3(-limit, 1.5f, 0);
+            wallW.transform.localScale = new Vector3(0.5f, 3f, 16f);
+            wallW.GetComponent<Renderer>().material = CreateMat(wallColor);
+
+            // --- Construct Prison Cells (Z = [-64, -60] or local Z = [-4, 0]) ---
+            // Metal Bars Partition at local z = 0 (separates Cell and Visitor)
+            Color barsColor = new Color(0.2f, 0.2f, 0.22f);
+            float startX = -6f, endX = 6f, stepX = 0.4f;
+            for (float x = startX; x <= endX; x += stepX)
+            {
+                // Iron bar (thin Cylinder)
+                var bar = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                bar.name = "JailBar_Collider";
+                bar.transform.SetParent(zone.transform, false);
+                bar.transform.localPosition = new Vector3(x, 1.5f, 0);
+                bar.transform.localScale = new Vector3(0.06f, 1.5f, 0.06f);
+                bar.GetComponent<Renderer>().material = CreateMat(barsColor);
+            }
+
+            // Cell Dividers (vertical stone slabs inside cell area)
+            var div1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            div1.name = "CellDivider_Collider";
+            div1.transform.SetParent(zone.transform, false);
+            div1.transform.localPosition = new Vector3(-2f, 1.5f, -2f);
+            div1.transform.localScale = new Vector3(0.2f, 3f, 4f);
+            div1.GetComponent<Renderer>().material = CreateMat(wallColor * 0.8f);
+
+            var div2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            div2.name = "CellDivider_Collider";
+            div2.transform.SetParent(zone.transform, false);
+            div2.transform.localPosition = new Vector3(2f, 1.5f, -2f);
+            div2.transform.localScale = new Vector3(0.2f, 3f, 4f);
+            div2.GetComponent<Renderer>().material = CreateMat(wallColor * 0.8f);
+
+            // Inside Cell wood bench (prison bed)
+            var bed = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            bed.name = "PrisonBed_Collider";
+            bed.transform.SetParent(zone.transform, false);
+            bed.transform.localPosition = new Vector3(0, 0.25f, -3f);
+            bed.transform.localScale = new Vector3(1.8f, 0.3f, 0.8f);
+            bed.GetComponent<Renderer>().material = CreateMat(new Color(0.5f, 0.35f, 0.2f));
+
+            // --- Construct Visiting Area (Z = [-59, -56] or local Z = [1, 4]) ---
+            // Long solid wood table counter in front of bars
+            var visitDesk = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            visitDesk.name = "VisitingDesk_Collider";
+            visitDesk.transform.SetParent(zone.transform, false);
+            visitDesk.transform.localPosition = new Vector3(0, 0.45f, 0.5f);
+            visitDesk.transform.localScale = new Vector3(6f, 0.9f, 0.6f);
+            visitDesk.GetComponent<Renderer>().material = CreateMat(new Color(0.4f, 0.25f, 0.15f));
+
+            // Floating Label "🔒 Nhà Tù Thành Phố"
+            var title = new GameObject("PrisonTitle");
+            title.transform.SetParent(zone.transform, false);
+            title.transform.localPosition = new Vector3(0, 3f, -5f);
+            var tmp = title.AddComponent<TextMeshPro>();
+            tmp.text = "🔒 Nhà Tù Thành Phố";
+            tmp.fontSize = 6f;
+            tmp.alignment = TextAlignmentOptions.Center;
+            title.AddComponent<BillboardText>();
+
+            // Return Portal
+            CreatePortal("PrisonReturnPortal", new Vector3(0, 0.05f, -66f), 0f,
+                new Color(0.25f, 0.25f, 0.3f),
+                new Color(0.85f, 0.15f, 0.15f, 0.7f),
+                "🔙 Về Sảnh Chờ");
+        }
+
+        private void CreateFishingZone()
+        {
+            var zone = new GameObject("FishingZone");
+            zone.transform.position = new Vector3(60f, 0, 0f);
+
+            // Ground base (Sand yellow, size 16x16)
+            var ground = CreateFlat("FishingGround", Vector3.zero, new Vector2(16f, 16f), new Color(0.92f, 0.82f, 0.62f));
+            ground.transform.SetParent(zone.transform, false);
+
+            // Central large blue water pond (flat cylinder)
+            var pond = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            pond.name = "WaterPond";
+            pond.transform.SetParent(zone.transform, false);
+            pond.transform.localPosition = new Vector3(0, 0.01f, 0f);
+            pond.transform.localScale = new Vector3(12f, 0.01f, 12f);
+            pond.GetComponent<Renderer>().material = CreateMat(new Color(0.2f, 0.55f, 0.9f, 0.85f));
+            Destroy(pond.GetComponent<Collider>()); // players walk through water/pier
+
+            // Wooden Pier extending into pond (from south edge)
+            var pier = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            pier.name = "WoodenPier_Collider"; // player stands on this
+            pier.transform.SetParent(zone.transform, false);
+            pier.transform.localPosition = new Vector3(0, 0.06f, -4f);
+            pier.transform.localScale = new Vector3(2f, 0.1f, 5f);
+            pier.GetComponent<Renderer>().material = CreateMat(new Color(0.55f, 0.38f, 0.22f));
+
+            // Support pillars for pier (small Cylinders under wood dock)
+            for (int i = 0; i < 4; i++)
+            {
+                float px = (i % 2 == 0) ? -0.9f : 0.9f;
+                float pz = (i < 2) ? -2.5f : -5f;
+                var pil = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                pil.name = "PierSupport_Collider";
+                pil.transform.SetParent(zone.transform, false);
+                pil.transform.localPosition = new Vector3(px, 0.03f, pz);
+                pil.transform.localScale = new Vector3(0.12f, 0.03f, 0.12f);
+                pil.GetComponent<Renderer>().material = CreateMat(new Color(0.35f, 0.25f, 0.15f));
+            }
+
+            // Small details: fish barrel & fishing rod on pier
+            var barrel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            barrel.name = "FishBarrel_Collider";
+            barrel.transform.SetParent(zone.transform, false);
+            barrel.transform.localPosition = new Vector3(-0.6f, 0.3f, -2f);
+            barrel.transform.localScale = new Vector3(0.35f, 0.3f, 0.35f);
+            barrel.GetComponent<Renderer>().material = CreateMat(new Color(0.5f, 0.35f, 0.2f));
+
+            var rod = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            rod.name = "FishingRod";
+            rod.transform.SetParent(zone.transform, false);
+            rod.transform.localPosition = new Vector3(0.6f, 0.4f, -2.8f);
+            rod.transform.localScale = new Vector3(0.04f, 0.8f, 0.04f);
+            rod.transform.localRotation = Quaternion.Euler(-45f, 45f, 0f);
+            rod.GetComponent<Renderer>().material = CreateMat(new Color(0.8f, 0.7f, 0.5f));
+            Destroy(rod.GetComponent<Collider>());
+
+            // Floating Label "🎣 Khu Câu Cá"
+            var title = new GameObject("FishingTitle");
+            title.transform.SetParent(zone.transform, false);
+            title.transform.localPosition = new Vector3(0, 3f, -5f);
+            var tmp = title.AddComponent<TextMeshPro>();
+            tmp.text = "🎣 Hồ Câu Cá Thư Giãn";
+            tmp.fontSize = 6f;
+            tmp.alignment = TextAlignmentOptions.Center;
+            title.AddComponent<BillboardText>();
+
+            // Return Portal
+            CreatePortal("FishingReturnPortal", new Vector3(66f, 0.05f, 0), -90f,
+                new Color(0.3f, 0.35f, 0.4f),
+                new Color(0.2f, 0.5f, 0.95f, 0.7f),
+                "🔙 Về Sảnh Chờ");
+        }
+
+        private void CreateStudyZone()
+        {
+            var zone = new GameObject("StudyZone");
+            zone.transform.position = new Vector3(-60f, 0, 0f);
+
+            // Ground base (Wood panel floor, size 16x16)
+            var ground = CreateFlat("StudyGround", Vector3.zero, new Vector2(16f, 16f), new Color(0.72f, 0.58f, 0.42f));
+            ground.transform.SetParent(zone.transform, false);
+
+            // Row of desks (3 desks, size 1.8x0.6x0.7) and seats
+            for (int i = 0; i < 3; i++)
+            {
+                float dz = 3f - i * 2.8f;
+                // Student desk
+                var desk = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                desk.name = "StudyDesk_Collider";
+                desk.transform.SetParent(zone.transform, false);
+                desk.transform.localPosition = new Vector3(1.5f, 0.35f, dz);
+                desk.transform.localScale = new Vector3(1.8f, 0.7f, 0.6f);
+                desk.GetComponent<Renderer>().material = CreateMat(new Color(0.5f, 0.35f, 0.22f));
+
+                // Student seat
+                var seat = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                seat.name = "StudySeat_Collider";
+                seat.transform.SetParent(zone.transform, false);
+                seat.transform.localPosition = new Vector3(2.8f, 0.25f, dz);
+                seat.transform.localScale = new Vector3(0.5f, 0.5f, 0.5f);
+                seat.GetComponent<Renderer>().material = CreateMat(new Color(0.35f, 0.22f, 0.15f));
+            }
+
+            // Teacher desk & Blackboard standing upright
+            var teacherDesk = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            teacherDesk.name = "TeacherDesk_Collider";
+            teacherDesk.transform.SetParent(zone.transform, false);
+            teacherDesk.transform.localPosition = new Vector3(-2.8f, 0.35f, 0);
+            teacherDesk.transform.localScale = new Vector3(2f, 0.7f, 0.8f);
+            teacherDesk.GetComponent<Renderer>().material = CreateMat(new Color(0.45f, 0.3f, 0.18f));
+
+            // Blackboard base stands
+            var frameL = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            frameL.name = "BoardStand_Collider";
+            frameL.transform.SetParent(zone.transform, false);
+            frameL.transform.localPosition = new Vector3(-5f, 1f, -1.5f);
+            frameL.transform.localScale = new Vector3(0.08f, 1f, 0.08f);
+            frameL.GetComponent<Renderer>().material = CreateMat(new Color(0.2f, 0.2f, 0.2f));
+
+            var frameR = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            frameR.name = "BoardStand_Collider";
+            frameR.transform.SetParent(zone.transform, false);
+            frameR.transform.localPosition = new Vector3(-5f, 1f, 1.5f);
+            frameR.transform.localScale = new Vector3(0.08f, 1f, 0.08f);
+            frameR.GetComponent<Renderer>().material = CreateMat(new Color(0.2f, 0.2f, 0.2f));
+
+            // Blackboard panel
+            var board = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            board.name = "Blackboard_Collider";
+            board.transform.SetParent(zone.transform, false);
+            board.transform.localPosition = new Vector3(-5f, 1.6f, 0f);
+            board.transform.localScale = new Vector3(0.1f, 1.4f, 2.8f);
+            board.GetComponent<Renderer>().material = CreateMat(new Color(0.12f, 0.25f, 0.18f)); // School green
+
+            // Bookshelf with book stacks (cubes)
+            var shelf = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            shelf.name = "Bookshelf_Collider";
+            shelf.transform.SetParent(zone.transform, false);
+            shelf.transform.localPosition = new Vector3(0f, 1.2f, 7f);
+            shelf.transform.localScale = new Vector3(4f, 2.4f, 0.8f);
+            shelf.GetComponent<Renderer>().material = CreateMat(new Color(0.5f, 0.35f, 0.2f));
+
+            // Add books
+            Color[] bookColors = { Color.red, Color.blue, Color.yellow, Color.green };
+            for (int k = 0; k < 6; k++)
+            {
+                var book = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                book.name = "Book";
+                book.transform.SetParent(shelf.transform, false);
+                book.transform.localPosition = new Vector3(-0.35f + k * 0.15f, 0.1f, 0);
+                book.transform.localScale = new Vector3(0.08f, 0.35f, 0.6f);
+                book.GetComponent<Renderer>().material = CreateMat(bookColors[k % bookColors.Length]);
+                Destroy(book.GetComponent<Collider>());
+            }
+
+            // Floating Label "📚 Khu Học Tập"
+            var title = new GameObject("StudyTitle");
+            title.transform.SetParent(zone.transform, false);
+            title.transform.localPosition = new Vector3(0, 3f, -5f);
+            var tmp = title.AddComponent<TextMeshPro>();
+            tmp.text = "📚 Học Viện Tri Thức";
+            tmp.fontSize = 6f;
+            tmp.alignment = TextAlignmentOptions.Center;
+            title.AddComponent<BillboardText>();
+
+            // Return Portal
+            CreatePortal("StudyReturnPortal", new Vector3(-66f, 0.05f, 0), 90f,
+                new Color(0.4f, 0.32f, 0.22f),
+                new Color(0.95f, 0.75f, 0.15f, 0.7f),
+                "🔙 Về Sảnh Chờ");
+        }
+
+        private void SetField(object target, string fieldName, object value)
+        {
+            var field = target.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            if (field != null) field.SetValue(target, value);
         }
 
         // ── Lighting ──

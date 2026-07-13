@@ -45,14 +45,24 @@ namespace RangerCity.Lobby
         public System.Action OnPunchHit;
         public System.Action<float> OnJailStart;  // param = jail duration
         public System.Action OnJailEnd;
+        public System.Action<int> OnCoinsChanged; // param = current coin count
 
         // Jail state
         private bool _isJailed;
         private float _jailTimer;
+        private MonoBehaviour _jailVisitorTarget;
+        private Vector3 _jailVisitorOrigPos;
+
+        // Ranger Coins Economy
+        private int _rangerCoins = 50;
+
+        // Teleport cooldown
+        private float _teleportCooldownTimer;
 
         public float InteractionRange => _interactionRange;
         public bool IsPunching => _isPunching;
         public bool IsJailed => _isJailed;
+        public int RangerCoins => _rangerCoins;
 
         private void Start()
         {
@@ -62,14 +72,16 @@ namespace RangerCity.Lobby
 
         private void Update()
         {
+            // Teleport cooldown countdown
+            if (_teleportCooldownTimer > 0f) _teleportCooldownTimer -= Time.deltaTime;
+
             // Jail freeze
             if (_isJailed)
             {
                 _jailTimer -= Time.deltaTime;
                 if (_jailTimer <= 0f)
                 {
-                    _isJailed = false;
-                    OnJailEnd?.Invoke();
+                    ReleaseFromJail();
                 }
                 return; // Block all input while jailed
             }
@@ -79,6 +91,8 @@ namespace RangerCity.Lobby
             HandleKeyboardMovement();
             HandleClickMovement();
             HandlePunch();
+            HandleInteractionKey();
+            CheckPortals();
             DetectNearbyInteractables();
         }
 
@@ -240,6 +254,11 @@ namespace RangerCity.Lobby
                 // Trigger Cartoon Fight Cloud!
                 FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
                 OnPunchHit?.Invoke();
+                
+                // Store victim info for prison visit
+                _jailVisitorTarget = closestTarget;
+                _jailVisitorOrigPos = closestTarget.transform.position;
+
                 // Send to jail after fight cloud ends
                 Invoke(nameof(GoToJail), 1.6f);
             }
@@ -250,15 +269,179 @@ namespace RangerCity.Lobby
         private void GoToJail()
         {
             float jailDuration = 3f;
-            // Teleport to in front of Prison Gate (South, Z-)
-            transform.position = new Vector3(0, 0, -11f);
+            // Teleport Attacker (Player) inside the jail cell (Z = -62)
+            transform.position = new Vector3(0, 0, -62f);
             _isJailed = true;
             _jailTimer = jailDuration;
             _isClickMoving = false;
+
+            // Teleport Victim (Bot/NPC) to the visiting area (Z = -56) facing South (Z-)
+            if (_jailVisitorTarget != null)
+            {
+                _jailVisitorTarget.transform.position = new Vector3(0, 0, -56f);
+                _jailVisitorTarget.transform.rotation = Quaternion.LookRotation(new Vector3(0, 0, -1f));
+
+                // Disable behavior controllers so they stand still
+                var fp = _jailVisitorTarget.GetComponent<FakePlayerController>();
+                if (fp != null) fp.enabled = false;
+                var npc = _jailVisitorTarget.GetComponent<NPCController>();
+                if (npc != null) npc.enabled = false;
+            }
+
             OnJailStart?.Invoke(jailDuration);
         }
 
         private void EndPunch() => _isPunching = false;
+
+        private void ReleaseFromJail()
+        {
+            _isJailed = false;
+
+            // Teleport Attacker (Player) back to Lobby near Prison Portal
+            transform.position = new Vector3(0, 0, -9.5f);
+
+            // Teleport Victim (Bot/NPC) back to their original position and re-enable movement
+            if (_jailVisitorTarget != null)
+            {
+                _jailVisitorTarget.transform.position = _jailVisitorOrigPos;
+
+                var fp = _jailVisitorTarget.GetComponent<FakePlayerController>();
+                if (fp != null) fp.enabled = true;
+                var npc = _jailVisitorTarget.GetComponent<NPCController>();
+                if (npc != null) npc.enabled = true;
+
+                _jailVisitorTarget = null;
+            }
+
+            _teleportCooldownTimer = 1.0f; // Prevent re-triggering portal immediately
+            OnJailEnd?.Invoke();
+        }
+
+        public void AddCoins(int amount)
+        {
+            _rangerCoins = Mathf.Max(0, _rangerCoins + amount);
+            OnCoinsChanged?.Invoke(_rangerCoins);
+        }
+
+        private void HandleInteractionKey()
+        {
+            if (Input.GetKeyDown(KeyCode.E))
+            {
+                // Find nearest GardenPlot or CloudLayer
+                float interactDist = 2.0f;
+                
+                // Check Garden Plots
+                var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
+                GardenPlot closestPlot = null;
+                float minPlotDist = interactDist;
+                foreach (var plot in plots)
+                {
+                    float dist = Vector3.Distance(transform.position, plot.transform.position);
+                    if (dist < minPlotDist)
+                    {
+                        minPlotDist = dist;
+                        closestPlot = plot;
+                    }
+                }
+                if (closestPlot != null)
+                {
+                    closestPlot.TryInteract(this);
+                    return;
+                }
+
+                // Check Cloud Layers
+                var clouds = FindObjectsByType<CloudLayer>(FindObjectsSortMode.None);
+                CloudLayer closestCloud = null;
+                float minCloudDist = interactDist;
+                foreach (var cloud in clouds)
+                {
+                    float dist = Vector3.Distance(transform.position, cloud.transform.position);
+                    if (dist < minCloudDist)
+                    {
+                        minCloudDist = dist;
+                        closestCloud = cloud;
+                    }
+                }
+                if (closestCloud != null)
+                {
+                    closestCloud.TryInteract(this);
+                    return;
+                }
+            }
+        }
+
+        private void CheckPortals()
+        {
+            if (_teleportCooldownTimer > 0f) return;
+
+            float portalRadius = 0.8f;
+
+            // Lobby portal coordinates
+            Vector3 lobbyGarden = new Vector3(0, 0, 11.5f);
+            Vector3 lobbyPrison = new Vector3(0, 0, -11.5f);
+            Vector3 lobbyFishing = new Vector3(11.5f, 0, 0);
+            Vector3 lobbyStudy = new Vector3(-11.5f, 0, 0);
+
+            // Return portal coordinates
+            Vector3 retGarden = new Vector3(0, 0, 66f);
+            Vector3 retPrison = new Vector3(0, 0, -66f);
+            Vector3 retFishing = new Vector3(66f, 0, 0);
+            Vector3 retStudy = new Vector3(-66f, 0, 0);
+
+            Vector3 currentPos = transform.position;
+
+            // Lobby to Zones
+            if (Vector3.Distance(currentPos, lobbyGarden) < portalRadius)
+            {
+                Teleport(new Vector3(0, 0.05f, 54f));
+            }
+            else if (Vector3.Distance(currentPos, lobbyPrison) < portalRadius)
+            {
+                Teleport(new Vector3(0, 0.05f, -54f));
+            }
+            else if (Vector3.Distance(currentPos, lobbyFishing) < portalRadius)
+            {
+                Teleport(new Vector3(54f, 0.05f, 0));
+            }
+            else if (Vector3.Distance(currentPos, lobbyStudy) < portalRadius)
+            {
+                Teleport(new Vector3(-54f, 0.05f, 0));
+            }
+            // Zones to Lobby
+            else if (Vector3.Distance(currentPos, retGarden) < portalRadius)
+            {
+                Teleport(new Vector3(0, 0.05f, 9.5f));
+            }
+            else if (Vector3.Distance(currentPos, retPrison) < portalRadius)
+            {
+                Teleport(new Vector3(0, 0.05f, -9.5f));
+            }
+            else if (Vector3.Distance(currentPos, retFishing) < portalRadius)
+            {
+                Teleport(new Vector3(9.5f, 0.05f, 0));
+            }
+            else if (Vector3.Distance(currentPos, retStudy) < portalRadius)
+            {
+                Teleport(new Vector3(-9.5f, 0.05f, 0));
+            }
+        }
+
+        private void Teleport(Vector3 destination)
+        {
+            transform.position = destination;
+            _isClickMoving = false;
+            _teleportCooldownTimer = 1.0f; // 1 second cooldown
+            
+            // Trigger teleporter UI flash or visual feedback
+            var flash = new GameObject("TeleportFlash");
+            flash.transform.position = destination + Vector3.up * 0.5f;
+            var light = flash.AddComponent<Light>();
+            light.color = Color.cyan;
+            light.range = 8f;
+            light.intensity = 3f;
+            Destroy(flash, 0.25f);
+        }
+
 
         // ── Interaction Detection ──
 
@@ -321,9 +504,43 @@ namespace RangerCity.Lobby
 
         private Vector3 ClampToWorld(Vector3 pos)
         {
-            pos.x = Mathf.Clamp(pos.x, _worldMinX, _worldMaxX);
-            pos.z = Mathf.Clamp(pos.z, _worldMinZ, _worldMaxZ);
-            pos.y = 0f;
+            // Dynamic Clamping based on current region
+            float z = pos.z;
+            float x = pos.x;
+
+            if (z > 40f)
+            {
+                // Garden Zone (supports cloud heights and stairs)
+                pos.x = Mathf.Clamp(x, -8f, 8f);
+                pos.z = Mathf.Clamp(z, 52f, 68f);
+            }
+            else if (z < -40f)
+            {
+                // Prison Zone
+                pos.x = Mathf.Clamp(x, -8f, 8f);
+                pos.z = Mathf.Clamp(z, -68f, -52f);
+            }
+            else if (x > 40f)
+            {
+                // Fishing Zone
+                pos.x = Mathf.Clamp(x, 52f, 68f);
+                pos.z = Mathf.Clamp(z, -8f, 8f);
+            }
+            else if (x < -40f)
+            {
+                // Study Zone
+                pos.x = Mathf.Clamp(x, -68f, -52f);
+                pos.z = Mathf.Clamp(z, -8f, 8f);
+            }
+            else
+            {
+                // Main Lobby
+                pos.x = Mathf.Clamp(x, _worldMinX, _worldMaxX);
+                pos.z = Mathf.Clamp(z, _worldMinZ, _worldMaxZ);
+            }
+
+            // Keep vertical position flat relative to ground, but allow stair heights
+            // We clamp y inside the movement code naturally, or let pos.y stay as is
             return pos;
         }
 
