@@ -46,7 +46,7 @@ namespace RangerCity.Lobby
             // Create 3D text (visible in world)
             _text = gameObject.AddComponent<TextMeshPro>();
             _text.text = word;
-            _text.fontSize = 8;
+            _text.fontSize = 2.5f;
             _text.alignment = TextAlignmentOptions.Center;
             _text.color = color;
             _text.fontStyle = FontStyles.Bold;
@@ -55,7 +55,7 @@ namespace RangerCity.Lobby
             rt.sizeDelta = new Vector2(5, 2);
 
             // Start small, scale up
-            _startScale = Vector3.one * 0.3f;
+            _startScale = Vector3.one * 0.2f;
             transform.localScale = _startScale;
             _startPos = transform.position;
 
@@ -76,7 +76,7 @@ namespace RangerCity.Lobby
 
             // Scale: pop up quickly then stay
             float scaleT = Mathf.Min(t * 4f, 1f); // Quick pop in first 25% of lifetime
-            float scale = Mathf.Lerp(0.3f, 1.5f, Mathf.SmoothStep(0, 1, scaleT));
+            float scale = Mathf.Lerp(0.2f, 1.0f, Mathf.SmoothStep(0, 1, scaleT));
             // Then slight shrink at end
             if (t > 0.7f) scale *= Mathf.Lerp(1f, 0.5f, (t - 0.7f) / 0.3f);
             transform.localScale = Vector3.one * scale;
