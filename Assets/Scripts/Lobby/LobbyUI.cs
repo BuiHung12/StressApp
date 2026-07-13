@@ -54,6 +54,11 @@ namespace RangerCity.Lobby
         private GameObject _emojiPanel;
         private bool _emojiPanelOpen;
 
+        // Connection UI (created dynamically)
+        private GameObject _connectionPanel;
+        private TMP_InputField _addressInput;
+        private TMP_InputField _portInput;
+
         private void Start()
         {
             _player = FindAnyObjectByType<PlayerController>();
@@ -98,6 +103,12 @@ namespace RangerCity.Lobby
             if (_talkButton != null) _talkButton.onClick.AddListener(OnTalkClicked);
             if (_punchButton != null) _punchButton.onClick.AddListener(OnPunchClicked);
             if (_dialogueNextButton != null) _dialogueNextButton.onClick.AddListener(OnDialogueAdvance);
+
+            // Create dynamic connection UI panel if not headless
+            if (!NetworkSetup.IsHeadlessServer())
+            {
+                CreateConnectionUI();
+            }
         }
 
         private void OnDestroy()
@@ -499,6 +510,194 @@ namespace RangerCity.Lobby
             _emojiPanelOpen = false;
             if (_emojiPanel != null)
                 _emojiPanel.SetActive(false);
+        }
+
+        // ── Connection Panel UI ──
+
+        private void CreateConnectionUI()
+        {
+            var canvas = GetComponentInParent<Canvas>();
+            if (canvas == null) canvas = FindAnyObjectByType<Canvas>();
+            if (canvas == null) return;
+
+            // Connection Panel (overlay background)
+            _connectionPanel = new GameObject("ConnectionPanel");
+            _connectionPanel.transform.SetParent(canvas.transform, false);
+
+            var panelRt = _connectionPanel.AddComponent<RectTransform>();
+            panelRt.anchorMin = Vector2.zero;
+            panelRt.anchorMax = Vector2.one;
+            panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
+
+            var panelImg = _connectionPanel.AddComponent<Image>();
+            panelImg.color = new Color(0.12f, 0.12f, 0.18f, 0.95f);
+
+            // Card Container
+            var card = new GameObject("Card");
+            card.transform.SetParent(_connectionPanel.transform, false);
+            var cardRt = card.AddComponent<RectTransform>();
+            cardRt.sizeDelta = new Vector3(450, 400);
+            var cardImg = card.AddComponent<Image>();
+            cardImg.color = new Color(0.18f, 0.18f, 0.25f, 1f);
+
+            // Title Text
+            var titleObj = new GameObject("Title");
+            titleObj.transform.SetParent(card.transform, false);
+            var titleRt = titleObj.AddComponent<RectTransform>();
+            titleRt.anchoredPosition = new Vector2(0, 140);
+            titleRt.sizeDelta = new Vector2(400, 50);
+            var titleTxt = titleObj.AddComponent<TextMeshProUGUI>();
+            titleTxt.text = "MULTIPLAYER CHOOSE MODE";
+            titleTxt.fontSize = 24;
+            titleTxt.alignment = TextAlignmentOptions.Center;
+            titleTxt.color = Color.white;
+
+            // Host Button
+            var hostBtnObj = new GameObject("HostButton");
+            hostBtnObj.transform.SetParent(card.transform, false);
+            var hostRt = hostBtnObj.AddComponent<RectTransform>();
+            hostRt.anchoredPosition = new Vector2(0, 70);
+            hostRt.sizeDelta = new Vector2(300, 50);
+            var hostImg = hostBtnObj.AddComponent<Image>();
+            hostImg.color = new Color(0.2f, 0.6f, 0.3f, 1f);
+            var hostBtn = hostBtnObj.AddComponent<Button>();
+            hostBtn.onClick.AddListener(OnHostServerClicked);
+
+            var hostTextObj = new GameObject("Text");
+            hostTextObj.transform.SetParent(hostBtnObj.transform, false);
+            var hostTxtRt = hostTextObj.AddComponent<RectTransform>();
+            hostTxtRt.anchorMin = Vector2.zero;
+            hostTxtRt.anchorMax = Vector2.one;
+            hostTxtRt.offsetMin = hostTxtRt.offsetMax = Vector2.zero;
+            var hostTxt = hostTextObj.AddComponent<TextMeshProUGUI>();
+            hostTxt.text = "Host Server (Cho máy chủ)";
+            hostTxt.fontSize = 18;
+            hostTxt.alignment = TextAlignmentOptions.Center;
+
+            // Address Input
+            var addressObj = new GameObject("AddressInput");
+            addressObj.transform.SetParent(card.transform, false);
+            var addrRt = addressObj.AddComponent<RectTransform>();
+            addrRt.anchoredPosition = new Vector2(-60, -10);
+            addrRt.sizeDelta = new Vector2(180, 40);
+            var addrImg = addressObj.AddComponent<Image>();
+            addrImg.color = new Color(0.1f, 0.1f, 0.15f, 1f);
+
+            var addrTextObj = new GameObject("TextArea");
+            addrTextObj.transform.SetParent(addressObj.transform, false);
+            var addrTextRt = addrTextObj.AddComponent<RectTransform>();
+            addrTextRt.anchorMin = Vector2.zero;
+            addrTextRt.anchorMax = Vector2.one;
+            addrTextRt.offsetMin = new Vector2(8, 0);
+            addrTextRt.offsetMax = new Vector2(-8, 0);
+
+            var addrTxt = addrTextObj.AddComponent<TextMeshProUGUI>();
+            addrTxt.fontSize = 16;
+            addrTxt.alignment = TextAlignmentOptions.Left;
+            addrTxt.color = Color.white;
+
+            _addressInput = addressObj.AddComponent<TMP_InputField>();
+            _addressInput.textComponent = addrTxt;
+            _addressInput.text = "wool-delivery.gl.at.ply.gg";
+
+            // Port Input
+            var portObj = new GameObject("PortInput");
+            portObj.transform.SetParent(card.transform, false);
+            var portRt = portObj.AddComponent<RectTransform>();
+            portRt.anchoredPosition = new Vector2(110, -10);
+            portRt.sizeDelta = new Vector2(100, 40);
+            var portImg = portObj.AddComponent<Image>();
+            portImg.color = new Color(0.1f, 0.1f, 0.15f, 1f);
+
+            var portTextObj = new GameObject("TextArea");
+            portTextObj.transform.SetParent(portObj.transform, false);
+            var portTextRt = portTextObj.AddComponent<RectTransform>();
+            portTextRt.anchorMin = Vector2.zero;
+            portTextRt.anchorMax = Vector2.one;
+            portTextRt.offsetMin = new Vector2(8, 0);
+            portTextRt.offsetMax = new Vector2(-8, 0);
+
+            var portTxt = portTextObj.AddComponent<TextMeshProUGUI>();
+            portTxt.fontSize = 16;
+            portTxt.alignment = TextAlignmentOptions.Left;
+            portTxt.color = Color.white;
+
+            _portInput = portObj.AddComponent<TMP_InputField>();
+            _portInput.textComponent = portTxt;
+            _portInput.text = "30645";
+
+            // Labels
+            CreateLabel(card.transform, "IP / Domain:", new Vector2(-60, 20));
+            CreateLabel(card.transform, "Port:", new Vector2(110, 20));
+
+            // Join Client Button
+            var joinBtnObj = new GameObject("JoinButton");
+            joinBtnObj.transform.SetParent(card.transform, false);
+            var joinRt = joinBtnObj.AddComponent<RectTransform>();
+            joinRt.anchoredPosition = new Vector2(0, -90);
+            joinRt.sizeDelta = new Vector2(300, 50);
+            var joinImg = joinBtnObj.AddComponent<Image>();
+            joinImg.color = new Color(0.2f, 0.5f, 0.8f, 1f);
+            var joinBtn = joinBtnObj.AddComponent<Button>();
+            joinBtn.onClick.AddListener(OnJoinServerClicked);
+
+            var joinTextObj = new GameObject("Text");
+            joinTextObj.transform.SetParent(joinBtnObj.transform, false);
+            var joinTxtRt = joinTextObj.AddComponent<RectTransform>();
+            joinTxtRt.anchorMin = Vector2.zero;
+            joinTxtRt.anchorMax = Vector2.one;
+            joinTxtRt.offsetMin = joinTxtRt.offsetMax = Vector2.zero;
+            var joinTxt = joinTextObj.AddComponent<TextMeshProUGUI>();
+            joinTxt.text = "Join Lobby (Cho người chơi)";
+            joinTxt.fontSize = 18;
+            joinTxt.alignment = TextAlignmentOptions.Center;
+        }
+
+        private void CreateLabel(Transform parent, string text, Vector2 pos)
+        {
+            var labelObj = new GameObject("Label_" + text);
+            labelObj.transform.SetParent(parent, false);
+            var rt = labelObj.AddComponent<RectTransform>();
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = new Vector2(120, 20);
+            var txt = labelObj.AddComponent<TextMeshProUGUI>();
+            txt.text = text;
+            txt.fontSize = 14;
+            txt.color = new Color(0.8f, 0.8f, 0.8f);
+            txt.alignment = TextAlignmentOptions.Left;
+        }
+
+        private void OnHostServerClicked()
+        {
+            var setup = FindAnyObjectByType<NetworkSetup>();
+            if (setup != null)
+            {
+                setup.StartAsHost();
+                if (_connectionPanel != null) _connectionPanel.SetActive(false);
+            }
+        }
+
+        private void OnJoinServerClicked()
+        {
+            var setup = FindAnyObjectByType<NetworkSetup>();
+            if (setup != null)
+            {
+                string address = _addressInput.text;
+                string portStr = _portInput.text;
+
+                if (ushort.TryParse(portStr, out ushort port))
+                {
+                    // Mirror uses transport to set port
+                    var transport = Mirror.NetworkManager.singleton.transport as kcp2k.KcpTransport;
+                    if (transport != null)
+                    {
+                        transport.port = port;
+                    }
+                }
+
+                setup.StartAsClient(address);
+                if (_connectionPanel != null) _connectionPanel.SetActive(false);
+            }
         }
     }
 }

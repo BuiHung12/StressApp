@@ -62,9 +62,12 @@ namespace RangerCity.Lobby
             if (player.GetComponent<EmojiSystem>() == null)
                 player.AddComponent<EmojiSystem>();
 
-            // Đăng ký player prefab và tự động start host
+            // Đăng ký player prefab
             networkSetup.RegisterPlayerPrefab(player);
-            networkSetup.StartAsHost();
+            if (NetworkSetup.IsHeadlessServer())
+            {
+                networkSetup.StartAsHost();
+            }
         }
 
         // ── Environment (flat 2D top-down) ──
