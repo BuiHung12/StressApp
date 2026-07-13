@@ -729,6 +729,17 @@ namespace RangerCity.Lobby
                     Texture2D customTex = new Texture2D(2, 2);
                     if (customTex.LoadImage(data))
                     {
+                        Color[] pixels = customTex.GetPixels();
+                        for (int i = 0; i < pixels.Length; i++)
+                        {
+                            if (pixels[i].r > 0.99f && pixels[i].g > 0.99f && pixels[i].b > 0.99f)
+                            {
+                                pixels[i] = new Color(0, 0, 0, 0);
+                            }
+                        }
+                        customTex.SetPixels(pixels);
+                        customTex.Apply();
+
                         customTex.filterMode = FilterMode.Bilinear;
                         return Sprite.Create(
                             customTex,

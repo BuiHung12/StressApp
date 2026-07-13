@@ -12,12 +12,12 @@ namespace RangerCity.Lobby
         [SerializeField] private float _moveSpeed = 4f;
 
         [Header("Punch")]
-        [SerializeField] private float _punchRange = 3.5f;
+        [SerializeField] private float _punchRange = 2.2f;
         [SerializeField] private float _punchCooldown = 0.5f;
         [SerializeField] private float _punchKnockbackForce = 6f;
 
         [Header("Interaction")]
-        [SerializeField] private float _interactionRange = 4.0f;
+        [SerializeField] private float _interactionRange = 2.5f;
 
         [Header("World Bounds")]
         [SerializeField] private float _worldMinX = -14f;
