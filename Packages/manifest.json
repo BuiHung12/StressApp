@@ -15,7 +15,7 @@
     "com.unity.modules.physics2d": "1.0.0",
     "com.unity.modules.ui": "1.0.0",
     "com.unity.modules.uielements": "1.0.0",
-    "com.mirror.mirror": "https://github.com/MirrorNetworking/Mirror.git",
+    "com.mirror.mirror": "https://github.com/MirrorNetworking/Mirror.git?path=/Assets/Mirror",
     "com.unity.modules.unitywebrequest": "1.0.0"
   }
 }
