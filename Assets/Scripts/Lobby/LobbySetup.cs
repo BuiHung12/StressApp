@@ -86,41 +86,119 @@ namespace RangerCity.Lobby
             };
 
             Color[] greens = {
-                new(0.16f, 0.5f, 0.18f),
-                new(0.22f, 0.56f, 0.24f),
-                new(0.13f, 0.44f, 0.16f),
+                new(0.18f, 0.54f, 0.20f),
+                new(0.24f, 0.60f, 0.26f),
+                new(0.15f, 0.48f, 0.18f),
             };
 
             foreach (var pos in positions)
             {
-                float scale = Random.Range(0.8f, 1.3f);
+                float scale = Random.Range(0.85f, 1.25f);
                 var tree = new GameObject("Tree");
 
-                // Trunk (cylinder)
+                Color baseGreen = greens[Random.Range(0, greens.Length)];
+                Color lightGreen = new Color(
+                    Mathf.Min(baseGreen.r * 1.2f, 1f),
+                    Mathf.Min(baseGreen.g * 1.2f, 1f),
+                    Mathf.Min(baseGreen.b * 1.2f, 1f)
+                );
+                Color darkGreen = baseGreen * 0.8f;
+                Color trunkColor = new Color(0.48f, 0.31f, 0.18f);
+
+                // --- Trunk ---
                 var trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 trunk.name = "Trunk";
-                trunk.transform.SetParent(tree.transform);
-                trunk.transform.localPosition = new Vector3(0, 1.2f * scale, 0);
-                trunk.transform.localScale = new Vector3(0.25f * scale, 1.2f * scale, 0.25f * scale);
-                trunk.GetComponent<Renderer>().material = CreateMat(new Color(0.47f, 0.33f, 0.22f));
+                trunk.transform.SetParent(tree.transform, false);
+                trunk.transform.localPosition = new Vector3(0, 1.0f * scale, 0);
+                trunk.transform.localScale = new Vector3(0.25f * scale, 1.0f * scale, 0.25f * scale);
+                trunk.GetComponent<Renderer>().material = CreateMat(trunkColor);
                 Destroy(trunk.GetComponent<Collider>());
 
-                // Canopy (sphere)
-                var canopy = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                canopy.name = "Canopy";
-                canopy.transform.SetParent(tree.transform);
-                canopy.transform.localPosition = new Vector3(0, 2.8f * scale, 0);
-                canopy.transform.localScale = new Vector3(2f * scale, 1.8f * scale, 2f * scale);
-                canopy.GetComponent<Renderer>().material = CreateMat(greens[Random.Range(0, greens.Length)]);
-                Destroy(canopy.GetComponent<Collider>());
+                // --- Branches ---
+                // Left branch
+                var leftBranch = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                leftBranch.name = "LeftBranch";
+                leftBranch.transform.SetParent(tree.transform, false);
+                leftBranch.transform.localPosition = new Vector3(-0.25f * scale, 1.3f * scale, 0);
+                leftBranch.transform.localScale = new Vector3(0.10f * scale, 0.35f * scale, 0.10f * scale);
+                leftBranch.transform.localRotation = Quaternion.Euler(0, 0, 45f);
+                leftBranch.GetComponent<Renderer>().material = CreateMat(trunkColor);
+                Destroy(leftBranch.GetComponent<Collider>());
 
-                // Shadow (flat circle)
+                // Right branch
+                var rightBranch = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                rightBranch.name = "RightBranch";
+                rightBranch.transform.SetParent(tree.transform, false);
+                rightBranch.transform.localPosition = new Vector3(0.2f * scale, 1.5f * scale, 0.1f * scale);
+                rightBranch.transform.localScale = new Vector3(0.08f * scale, 0.3f * scale, 0.08f * scale);
+                rightBranch.transform.localRotation = Quaternion.Euler(-30f, 0, -45f);
+                rightBranch.GetComponent<Renderer>().material = CreateMat(trunkColor);
+                Destroy(rightBranch.GetComponent<Collider>());
+
+                // --- Canopy Layers (Overlapping Spheres) ---
+                // 1. Center / Main Canopy
+                var canopyMain = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                canopyMain.name = "CanopyMain";
+                canopyMain.transform.SetParent(tree.transform, false);
+                canopyMain.transform.localPosition = new Vector3(0, 2.3f * scale, 0);
+                canopyMain.transform.localScale = new Vector3(1.8f * scale, 1.6f * scale, 1.8f * scale);
+                canopyMain.GetComponent<Renderer>().material = CreateMat(baseGreen);
+                Destroy(canopyMain.GetComponent<Collider>());
+
+                // 2. Left Puff
+                var canopyLeft = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                canopyLeft.name = "CanopyLeft";
+                canopyLeft.transform.SetParent(tree.transform, false);
+                canopyLeft.transform.localPosition = new Vector3(-0.75f * scale, 2.0f * scale, -0.1f * scale);
+                canopyLeft.transform.localScale = new Vector3(1.2f * scale, 1.1f * scale, 1.2f * scale);
+                canopyLeft.GetComponent<Renderer>().material = CreateMat(darkGreen);
+                Destroy(canopyLeft.GetComponent<Collider>());
+
+                // 3. Right Puff
+                var canopyRight = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                canopyRight.name = "CanopyRight";
+                canopyRight.transform.SetParent(tree.transform, false);
+                canopyRight.transform.localPosition = new Vector3(0.7f * scale, 2.2f * scale, 0.2f * scale);
+                canopyRight.transform.localScale = new Vector3(1.1f * scale, 1.0f * scale, 1.1f * scale);
+                canopyRight.GetComponent<Renderer>().material = CreateMat(darkGreen);
+                Destroy(canopyRight.GetComponent<Collider>());
+
+                // 4. Top Puff
+                var canopyTop = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                canopyTop.name = "CanopyTop";
+                canopyTop.transform.SetParent(tree.transform, false);
+                canopyTop.transform.localPosition = new Vector3(0.05f * scale, 2.9f * scale, -0.05f * scale);
+                canopyTop.transform.localScale = new Vector3(1.3f * scale, 1.1f * scale, 1.3f * scale);
+                canopyTop.GetComponent<Renderer>().material = CreateMat(lightGreen);
+                Destroy(canopyTop.GetComponent<Collider>());
+
+                // --- Apples / Fruits ---
+                Vector3[] appleOffsets = {
+                    new(-0.4f, 1.9f, 0.5f),
+                    new(0.45f, 1.8f, -0.4f),
+                    new(-0.2f, 2.6f, 0.6f),
+                    new(0.55f, 2.4f, 0.1f)
+                };
+                Color appleColor = new Color(0.95f, 0.15f, 0.15f);
+
+                for (int i = 0; i < appleOffsets.Length; i++)
+                {
+                    var apple = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    apple.name = $"Apple_{i}";
+                    apple.transform.SetParent(tree.transform, false);
+                    apple.transform.localPosition = appleOffsets[i] * scale;
+                    apple.transform.localScale = Vector3.one * 0.15f * scale;
+                    apple.GetComponent<Renderer>().material = CreateMat(appleColor);
+                    Destroy(apple.GetComponent<Collider>());
+                }
+
+                // --- Shadow ---
                 var shadow = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 shadow.name = "Shadow";
-                shadow.transform.SetParent(tree.transform);
-                shadow.transform.localPosition = new Vector3(0.3f, 0.005f, -0.3f);
-                shadow.transform.localScale = new Vector3(1.8f * scale, 0.005f, 1.8f * scale);
-                shadow.GetComponent<Renderer>().material = CreateMat(new Color(0, 0, 0, 0.12f));
+                shadow.transform.SetParent(tree.transform, false);
+                shadow.transform.localPosition = new Vector3(0.2f * scale, 0.005f, -0.2f * scale);
+                shadow.transform.localScale = new Vector3(2.2f * scale, 0.005f, 2.2f * scale);
+                shadow.GetComponent<Renderer>().material = CreateMat(new Color(0.15f, 0.35f, 0.1f, 0.35f)); // Soft dark green transparent shadow
                 Destroy(shadow.GetComponent<Collider>());
 
                 tree.transform.position = pos;
@@ -254,38 +332,98 @@ namespace RangerCity.Lobby
 
         private void CreateFences()
         {
-            Color fenceColor = new Color(0.95f, 0.92f, 0.85f); // White picket fence
+            Color fenceColor = new Color(0.96f, 0.94f, 0.90f); // Warm creamy white
             float half = _lobbySize * 0.45f;
+            float step = 1.6f;
 
-            // Create fence posts along edges
-            for (float x = -half; x <= half; x += 1.5f)
+            // Fences along the 4 edges
+            // Horizontal fences
+            for (float x = -half; x < half; x += step)
             {
-                CreateFencePost(new Vector3(x, 0, half), fenceColor);
-                CreateFencePost(new Vector3(x, 0, -half), fenceColor);
+                CreateFenceSegment(new Vector3(x, 0, half), new Vector3(x + step, 0, half), fenceColor);
+                CreateFenceSegment(new Vector3(x, 0, -half), new Vector3(x + step, 0, -half), fenceColor);
             }
-            for (float z = -half; z <= half; z += 1.5f)
+            // Vertical fences
+            for (float z = -half; z < half; z += step)
             {
-                CreateFencePost(new Vector3(half, 0, z), fenceColor);
-                CreateFencePost(new Vector3(-half, 0, z), fenceColor);
+                CreateFenceSegment(new Vector3(half, 0, z), new Vector3(half, 0, z + step), fenceColor, rotate90: true);
+                CreateFenceSegment(new Vector3(-half, 0, z), new Vector3(-half, 0, z + step), fenceColor, rotate90: true);
             }
         }
 
-        private void CreateFencePost(Vector3 pos, Color color)
+        private void CreateFenceSegment(Vector3 start, Vector3 end, Color color, bool rotate90 = false)
         {
+            var segment = new GameObject("FenceSegment");
+            segment.transform.position = start;
+
+            // Main posts at start and end
             var post = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            post.name = "FencePost";
-            post.transform.position = pos + new Vector3(0, 0.4f, 0);
-            post.transform.localScale = new Vector3(0.08f, 0.8f, 0.08f);
+            post.name = "Post";
+            post.transform.SetParent(segment.transform, false);
+            post.transform.localPosition = new Vector3(0, 0.5f, 0);
+            post.transform.localScale = new Vector3(0.12f, 1.0f, 0.12f);
             post.GetComponent<Renderer>().material = CreateMat(color);
             Destroy(post.GetComponent<Collider>());
 
-            // Cross bar
-            var bar = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            bar.name = "FenceBar";
-            bar.transform.position = pos + new Vector3(0.65f, 0.45f, 0);
-            bar.transform.localScale = new Vector3(1.3f, 0.06f, 0.04f);
-            bar.GetComponent<Renderer>().material = CreateMat(color);
-            Destroy(bar.GetComponent<Collider>());
+            // Post cap (small diamond on top of the post)
+            var cap = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            cap.name = "PostCap";
+            cap.transform.SetParent(segment.transform, false);
+            cap.transform.localPosition = new Vector3(0, 1.04f, 0);
+            cap.transform.localScale = new Vector3(0.15f, 0.1f, 0.15f);
+            cap.transform.localRotation = Quaternion.Euler(45, 45, 0);
+            cap.GetComponent<Renderer>().material = CreateMat(color * 0.9f);
+            Destroy(cap.GetComponent<Collider>());
+
+            // Top and Bottom horizontal rails
+            float length = Vector3.Distance(start, end);
+            for (int i = 0; i < 2; i++)
+            {
+                float y = i == 0 ? 0.3f : 0.7f;
+                var rail = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                rail.name = $"Rail_{i}";
+                rail.transform.SetParent(segment.transform, false);
+                rail.transform.localPosition = new Vector3(length * 0.5f, y, 0);
+                rail.transform.localScale = new Vector3(length, 0.06f, 0.05f);
+                rail.GetComponent<Renderer>().material = CreateMat(color * 0.95f);
+                Destroy(rail.GetComponent<Collider>());
+            }
+
+            // Vertical pickets (3 pickets between main posts)
+            int picketsCount = 3;
+            for (int i = 1; i <= picketsCount; i++)
+            {
+                float t = (float)i / (picketsCount + 1);
+                float x = length * t;
+
+                var picket = new GameObject($"Picket_{i}");
+                picket.transform.SetParent(segment.transform, false);
+                picket.transform.localPosition = new Vector3(x, 0, 0);
+
+                // Picket body
+                var body = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                body.name = "Body";
+                body.transform.SetParent(picket.transform, false);
+                body.transform.localPosition = new Vector3(0, 0.45f, 0);
+                body.transform.localScale = new Vector3(0.08f, 0.9f, 0.03f);
+                body.GetComponent<Renderer>().material = CreateMat(color);
+                Destroy(body.GetComponent<Collider>());
+
+                // Pointy top (rotated cube to make it look like a fence picket tip)
+                var tip = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                tip.name = "Tip";
+                tip.transform.SetParent(picket.transform, false);
+                tip.transform.localPosition = new Vector3(0, 0.93f, 0);
+                tip.transform.localScale = new Vector3(0.08f, 0.08f, 0.03f);
+                tip.transform.localRotation = Quaternion.Euler(0, 0, 45f);
+                tip.GetComponent<Renderer>().material = CreateMat(color);
+                Destroy(tip.GetComponent<Collider>());
+            }
+
+            if (rotate90)
+            {
+                segment.transform.rotation = Quaternion.Euler(0, 90f, 0);
+            }
         }
 
         private void CreateBuildings()
