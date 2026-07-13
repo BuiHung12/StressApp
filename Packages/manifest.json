@@ -1,4 +1,13 @@
 {
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "com.mirrornetworking.mirror"
+      ]
+    }
+  ],
   "dependencies": {
     "com.unity.2d.sprite": "1.0.0",
     "com.unity.2d.tilemap": "1.0.0",
@@ -15,7 +24,7 @@
     "com.unity.modules.physics2d": "1.0.0",
     "com.unity.modules.ui": "1.0.0",
     "com.unity.modules.uielements": "1.0.0",
-    "com.mirrornetworking.mirror": "https://github.com/MirrorNetworking/Mirror.git?path=/Assets/Mirror",
+    "com.mirrornetworking.mirror": "96.6.4",
     "com.unity.nuget.newtonsoft-json": "3.0.2",
     "com.unity.modules.unitywebrequest": "1.0.0"
   }
