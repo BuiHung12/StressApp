@@ -37,12 +37,19 @@ namespace RangerCity.Lobby
             CreateCamera(player.transform);
             CreateUI();
 
-            // Setup networking
-            SetupNetworking(player);
-
             Debug.Log("🎮 Ranger City Lobby (2D Top-Down) loaded!");
             Debug.Log("📋 WASD to move, Space to punch, Click to move");
-            Debug.Log("🌐 Multiplayer: Mirror networking enabled!");
+        }
+
+        private void Start()
+        {
+            var player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                // Setup networking
+                SetupNetworking(player);
+                Debug.Log("🌐 Multiplayer: Mirror networking enabled!");
+            }
         }
 
         private void SetupNetworking(GameObject player)
