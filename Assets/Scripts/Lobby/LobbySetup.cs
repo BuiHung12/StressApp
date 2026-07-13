@@ -726,41 +726,52 @@ namespace RangerCity.Lobby
             tex.filterMode = FilterMode.Point;
             
             Color transparent = new Color(0, 0, 0, 0);
-            Color white = Color.white;
-            Color outlineColor = new Color(0.9f, 0.25f, 0.15f); // Red/orange outline
+            Color fistYellow = new Color(1f, 0.85f, 0.05f); // Beautiful bright yellow
+            Color outlineColor = new Color(0.7f, 0.15f, 0.05f); // Bold dark red/orange outline
             
             for (int y = 0; y < h; y++)
                 for (int x = 0; x < w; x++)
                     tex.SetPixel(x, y, transparent);
 
-            // 1. Draw outline (slightly larger shape)
-            // Wrist outline
-            DrawRect(tex, 12, 0, 8, 9, outlineColor);
-            // Palm outline
-            DrawRect(tex, 9, 7, 14, 16, outlineColor);
-            // Fingers outline
-            DrawRect(tex, 9, 21, 5, 6, outlineColor);
-            DrawRect(tex, 12, 21, 5, 7, outlineColor);
-            DrawRect(tex, 15, 21, 5, 7, outlineColor);
-            DrawRect(tex, 18, 21, 5, 6, outlineColor);
-            // Thumb outline
-            DrawRect(tex, 7, 11, 12, 6, outlineColor);
+            // 1. Draw outline (slightly larger shapes)
+            DrawRect(tex, 11, 0, 10, 10, outlineColor); // Wrist outline
+            DrawCircle(tex, 16, 14, 8.2f, outlineColor); // Palm outline
+            DrawCircle(tex, 10, 18, 4.2f, outlineColor); // Pinky outline
+            DrawCircle(tex, 13, 22, 4.2f, outlineColor); // Ring outline
+            DrawCircle(tex, 16, 23, 4.2f, outlineColor); // Middle outline
+            DrawCircle(tex, 19, 21, 4.2f, outlineColor); // Index outline
+            DrawCircle(tex, 22, 12, 4.7f, outlineColor); // Thumb outline
 
-            // 2. Draw inner white fist
-            // Wrist
-            DrawRect(tex, 13, 0, 6, 8, white);
-            // Palm
-            DrawRect(tex, 10, 8, 12, 14, white);
-            // Folded fingers (Pinky to Index)
-            DrawRect(tex, 10, 22, 3, 4, white);
-            DrawRect(tex, 13, 22, 3, 5, white);
-            DrawRect(tex, 16, 22, 3, 5, white);
-            DrawRect(tex, 19, 22, 3, 4, white);
-            // Thumb folded horizontally
-            DrawRect(tex, 8, 12, 10, 4, white);
+            // 2. Draw inner yellow fist
+            DrawRect(tex, 13, 0, 6, 8, fistYellow); // Wrist
+            DrawCircle(tex, 16, 14, 7.0f, fistYellow); // Palm
+            DrawCircle(tex, 10, 18, 3.0f, fistYellow); // Pinky
+            DrawCircle(tex, 13, 22, 3.0f, fistYellow); // Ring
+            DrawCircle(tex, 16, 23, 3.0f, fistYellow); // Middle
+            DrawCircle(tex, 19, 21, 3.0f, fistYellow); // Index
+            DrawCircle(tex, 22, 12, 3.5f, fistYellow); // Thumb
 
             tex.Apply();
             return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f));
+        }
+
+        private void DrawCircle(Texture2D tex, int cx, int cy, float r, Color color)
+        {
+            int rInt = Mathf.CeilingToInt(r);
+            for (int x = cx - rInt; x <= cx + rInt; x++)
+            {
+                for (int y = cy - rInt; y <= cy + rInt; y++)
+                {
+                    if (x >= 0 && x < tex.width && y >= 0 && y < tex.height)
+                    {
+                        float distSqr = (x - cx) * (x - cx) + (y - cy) * (y - cy);
+                        if (distSqr <= r * r)
+                        {
+                            tex.SetPixel(x, y, color);
+                        }
+                    }
+                }
+            }
         }
 
         private void DrawRect(Texture2D tex, int x, int y, int width, int height, Color color)
