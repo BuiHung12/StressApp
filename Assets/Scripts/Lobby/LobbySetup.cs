@@ -725,77 +725,56 @@ namespace RangerCity.Lobby
             var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
             tex.filterMode = FilterMode.Point;
 
-            // 👊 Front-facing fist pixel bitmap (y=0 is BOTTOM, y=31 is TOP)
-            // '.' = transparent, 'O' = outline, 'Y' = yellow fill, 'T' = thumb crease
-            string[] bitmap = new string[]
-            {
-                "................................", // 0  bottom
-                "................................", // 1
-                "...........OOOOOOOOOO...........", // 2  wrist bottom
-                "..........OYYYYYYYYYYO..........", // 3
-                "..........OYYYYYYYYYYO..........", // 4
-                "..........OYYYYYYYYYYO..........", // 5
-                ".........OYYYYYYYYYYYYO.........", // 6
-                ".........OYYYYYYYYYYYYO.........", // 7
-                "........OYYYYYYYYYYYYYYO........", // 8
-                ".......OYYYYYYYYYYYYYYYYO.......", // 9
-                "......OYYYYYYYYYYYYYYYYYYO......", // 10
-                ".....OYYYYYYYYYYYYYYYYYYYYO.....", // 11
-                "....OYYYYYYYYYYYYYYYYYYYYYYO....", // 12
-                "....OYYYYYYYYYYYYYYYYYYYYYYO....", // 13
-                "....OYYYYYYYYYYYYYYYYYYYYYYO....", // 14
-                "...OYYYYYYYYYYYYYYYYYYYYYYYYO...", // 15
-                "...OYYYYYYYYYYYYYYYYYYYYYYYYO...", // 16
-                "...OTTTTTTTTTTTTTTTTTTTTTTTTO...", // 17 thumb crease
-                "...OYYYYYYYYYYYYYYYYYYYYYYYYO...", // 18
-                "...OYYYYYYYYYYYYYYYYYYYYYYYYO...", // 19
-                "..OYYYYYYYYYYYYYYYYYYYYYYYYYYO..", // 20
-                "..OYYYYYYYYYYYYYYYYYYYYYYYYYYO..", // 21
-                "..OYYYYYYYYYYYYYYYYYYYYYYYYYYO..", // 22
-                "..OYYYYYYYYYYYYYYYYYYYYYYYYYYO..", // 23
-                "..OYYYYOYYYYOYYYYOYYYYOYYYYYO...", // 24 knuckle creases
-                "..OYYO.OYYO.OYYO.OYYO.OYYYYO...", // 25 knuckle gaps
-                "..OYO..OYO..OYO..OYO..OYYYO....", // 26 knuckle tips
-                "..OO...OO...OO...OO...OYYYO....", // 27 knuckle round tops
-                ".........................OYO....", // 28 thumb tip
-                "..........................O.....", // 29
-                "................................", // 30
-                "................................", // 31 top
-            };
-
             Color transparent = new Color(0, 0, 0, 0);
-            Color outlineColor = new Color(0.45f, 0.18f, 0.02f);
+            Color outline = new Color(0.55f, 0.22f, 0.0f);
 
+            // Clear
             for (int y = 0; y < h; y++)
-            {
-                string row = bitmap[y];
                 for (int x = 0; x < w; x++)
-                {
-                    char c = (x < row.Length) ? row[x] : '.';
-                    if (c == 'O')
-                    {
-                        tex.SetPixel(x, y, outlineColor);
-                    }
-                    else if (c == 'Y')
+                    tex.SetPixel(x, y, transparent);
+
+            // Pass 1: Outline (slightly larger shape)
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                    if (FistHit(x, y, 1.3f))
+                        tex.SetPixel(x, y, outline);
+
+            // Pass 2: Yellow-to-orange gradient fill
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                    if (FistHit(x, y, 0f))
                     {
                         float t = (float)y / h;
-                        Color yellow = new Color(1.0f, 0.92f, 0.23f);
-                        Color orange = new Color(0.96f, 0.62f, 0.07f);
-                        tex.SetPixel(x, y, Color.Lerp(orange, yellow, t));
+                        tex.SetPixel(x, y, Color.Lerp(
+                            new Color(0.95f, 0.55f, 0.05f),
+                            new Color(1f, 0.92f, 0.22f),
+                            t));
                     }
-                    else if (c == 'T')
-                    {
-                        tex.SetPixel(x, y, outlineColor);
-                    }
-                    else
-                    {
-                        tex.SetPixel(x, y, transparent);
-                    }
-                }
-            }
+
+            // Pass 3: Thumb crease (thin dark horizontal line)
+            for (int x = 0; x < w; x++)
+                if (FistHit(x, 9, 0f))
+                    tex.SetPixel(x, 9, outline);
 
             tex.Apply();
             return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f));
+        }
+
+        private bool FistHit(int x, int y, float pad)
+        {
+            // Main body: big round circle filling most of the 32x32 (NO wrist)
+            float cx = 16f, cy = 15f, r = 13f + pad;
+            if ((x - cx) * (x - cx) + (y - cy) * (y - cy) <= r * r)
+                return true;
+
+            // 4 knuckle bumps at top
+            float kr = 2.5f + pad;
+            if ((x - 8f) * (x - 8f) + (y - 28f) * (y - 28f) <= kr * kr) return true;
+            if ((x - 13f) * (x - 13f) + (y - 29f) * (y - 29f) <= kr * kr) return true;
+            if ((x - 19f) * (x - 19f) + (y - 29f) * (y - 29f) <= kr * kr) return true;
+            if ((x - 24f) * (x - 24f) + (y - 28f) * (y - 28f) <= kr * kr) return true;
+
+            return false;
         }
 
         private GameObject CreateDialoguePanel(Transform parent)
