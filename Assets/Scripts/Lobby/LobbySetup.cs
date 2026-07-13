@@ -690,17 +690,18 @@ namespace RangerCity.Lobby
             var borderBg = panel.AddComponent<Image>();
             borderBg.color = Color.white;
 
-            // Punch button (red/orange fill)
+            // Punch button (red/orange fill, label is empty)
             var punchBtnObj = CreateUIButton("PunchButton", panel.transform, Vector2.zero,
-                "👊", new Color(0.9f, 0.25f, 0.15f), new Vector2(46, 46));
+                "", new Color(0.9f, 0.25f, 0.15f), new Vector2(46, 46));
             
-            // Adjust the emoji text size and center it
-            var textComp = punchBtnObj.GetComponentInChildren<TextMeshProUGUI>();
-            if (textComp != null)
-            {
-                textComp.fontSize = 24;
-                textComp.alignment = TextAlignmentOptions.Center;
-            }
+            // Procedural fist icon inside the button
+            var fistIcon = new GameObject("FistIcon");
+            fistIcon.transform.SetParent(punchBtnObj.transform, false);
+            var fistRT = fistIcon.AddComponent<RectTransform>();
+            fistRT.sizeDelta = new Vector2(28, 28);
+            var fistImg = fistIcon.AddComponent<Image>();
+            fistImg.sprite = CreateFistSprite();
+            fistImg.color = Color.white;
 
             // Dummy components to satisfy LobbyUI.cs references
             var talkBtnObj = CreateUIButton("TalkButton", panel.transform, new Vector2(9999f, 9999f), 
@@ -715,6 +716,50 @@ namespace RangerCity.Lobby
 
             panel.SetActive(false);
             return panel;
+        }
+
+        private Sprite CreateFistSprite()
+        {
+            int w = 32;
+            int h = 32;
+            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
+            tex.filterMode = FilterMode.Point;
+            
+            Color transparent = new Color(0, 0, 0, 0);
+            Color white = Color.white;
+            
+            for (int y = 0; y < h; y++)
+                for (int x = 0; x < w; x++)
+                    tex.SetPixel(x, y, transparent);
+
+            // Draw wrist
+            DrawRect(tex, 13, 0, 6, 8, white);
+            // Draw palm
+            DrawRect(tex, 10, 8, 12, 14, white);
+            // Folded fingers (Pinky to Index)
+            DrawRect(tex, 10, 22, 3, 4, white);
+            DrawRect(tex, 13, 22, 3, 5, white);
+            DrawRect(tex, 16, 22, 3, 5, white);
+            DrawRect(tex, 19, 22, 3, 4, white);
+            // Thumb folded horizontally
+            DrawRect(tex, 8, 12, 10, 4, white);
+
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f));
+        }
+
+        private void DrawRect(Texture2D tex, int x, int y, int width, int height, Color color)
+        {
+            for (int i = x; i < x + width; i++)
+            {
+                for (int j = y; j < y + height; j++)
+                {
+                    if (i >= 0 && i < tex.width && j >= 0 && j < tex.height)
+                    {
+                        tex.SetPixel(i, j, color);
+                    }
+                }
+            }
         }
 
         private GameObject CreateDialoguePanel(Transform parent)

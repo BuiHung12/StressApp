@@ -12,12 +12,12 @@ namespace RangerCity.Lobby
         [SerializeField] private float _moveSpeed = 4f;
 
         [Header("Punch")]
-        [SerializeField] private float _punchRange = 1.2f;
+        [SerializeField] private float _punchRange = 3.5f;
         [SerializeField] private float _punchCooldown = 0.5f;
         [SerializeField] private float _punchKnockbackForce = 6f;
 
         [Header("Interaction")]
-        [SerializeField] private float _interactionRange = 1.5f;
+        [SerializeField] private float _interactionRange = 4.0f;
 
         [Header("World Bounds")]
         [SerializeField] private float _worldMinX = -14f;
@@ -216,7 +216,11 @@ namespace RangerCity.Lobby
             {
                 if (_nearestInteractable != null) OnLeaveInteractable?.Invoke();
                 _nearestInteractable = closest;
-                if (closest != null) OnNearInteractable?.Invoke(closest);
+                if (closest != null)
+                {
+                    Debug.Log($"[Player] Near: {closest.DisplayName} dist={closestDist:F1} range={_interactionRange}");
+                    OnNearInteractable?.Invoke(closest);
+                }
             }
         }
 

@@ -7,9 +7,8 @@ namespace RangerCity.Lobby
 {
     /// <summary>
     /// UI quản lý tương tác trong sảnh chờ:
-    /// - Nút Talk / Punch khi vào phạm vi
+    /// - Nút Punch khi vào phạm vi (👊 trên đầu nhân vật)
     /// - Dialogue box với typing effect
-    /// - Hiệu ứng đấm
     /// </summary>
     public class LobbyUI : MonoBehaviour
     {
@@ -48,17 +47,36 @@ namespace RangerCity.Lobby
             _player = FindAnyObjectByType<PlayerController>();
             _mainCamera = Camera.main;
 
-            // Hide UI initially
-            _interactionPanel.SetActive(false);
-            _dialoguePanel.SetActive(false);
+            Debug.Log($"[LobbyUI] Start: player={_player != null}, cam={_mainCamera != null}, " +
+                      $"interactionPanel={_interactionPanel != null}, punchBtn={_punchButton != null}, " +
+                      $"talkBtn={_talkButton != null}, targetName={_targetNameText != null}, " +
+                      $"dialoguePanel={_dialoguePanel != null}, dialogueNext={_dialogueNextButton != null}");
+
+            // Hide UI initially (with null checks)
+            if (_interactionPanel != null) _interactionPanel.SetActive(false);
+            if (_dialoguePanel != null) _dialoguePanel.SetActive(false);
 
             // Wire events
-            _player.OnNearInteractable += ShowInteractionPrompt;
-            _player.OnLeaveInteractable += HideInteractionPrompt;
+            if (_player != null)
+            {
+                _player.OnNearInteractable += ShowInteractionPrompt;
+                _player.OnLeaveInteractable += HideInteractionPrompt;
 
-            _talkButton.onClick.AddListener(OnTalkClicked);
-            _punchButton.onClick.AddListener(OnPunchClicked);
-            _dialogueNextButton.onClick.AddListener(OnDialogueAdvance);
+                // Proactively check if player is already near someone
+                var currentNear = _player.GetNearestInteractable();
+                if (currentNear != null)
+                {
+                    ShowInteractionPrompt(currentNear);
+                }
+            }
+            else
+            {
+                Debug.LogError("[LobbyUI] Player not found!");
+            }
+
+            if (_talkButton != null) _talkButton.onClick.AddListener(OnTalkClicked);
+            if (_punchButton != null) _punchButton.onClick.AddListener(OnPunchClicked);
+            if (_dialogueNextButton != null) _dialogueNextButton.onClick.AddListener(OnDialogueAdvance);
         }
 
         private void OnDestroy()
@@ -73,7 +91,7 @@ namespace RangerCity.Lobby
         private void Update()
         {
             // Update interaction prompt position (follow target in world space)
-            if (_currentTarget != null && _interactionPanel.activeSelf)
+            if (_currentTarget != null && _interactionPanel != null && _interactionPanel.activeSelf)
             {
                 UpdatePromptPosition();
             }
@@ -81,8 +99,8 @@ namespace RangerCity.Lobby
             // Advance dialogue with click/tap
             if (_dialogueActive && Input.GetMouseButtonDown(0))
             {
-                // Only if not clicking a button
-                if (!UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
+                var es = UnityEngine.EventSystems.EventSystem.current;
+                if (es != null && !es.IsPointerOverGameObject())
                 {
                     OnDialogueAdvance();
                 }
@@ -94,37 +112,49 @@ namespace RangerCity.Lobby
         private void ShowInteractionPrompt(IInteractable target)
         {
             if (_dialogueActive) return;
+            if (_interactionPanel == null) return;
 
             _currentTarget = target;
             _interactionPanel.SetActive(true);
 
-            _targetNameText.text = target.DisplayName;
-            _talkButton.gameObject.SetActive(target.CanTalk);
-            _punchButton.gameObject.SetActive(target.CanBePunched);
+            if (_targetNameText != null) _targetNameText.text = target.DisplayName;
+            if (_talkButton != null) _talkButton.gameObject.SetActive(target.CanTalk);
+            if (_punchButton != null) _punchButton.gameObject.SetActive(target.CanBePunched);
 
+            Debug.Log($"[LobbyUI] Show prompt for: {target.DisplayName}");
             UpdatePromptPosition();
         }
 
         private void HideInteractionPrompt()
         {
             _currentTarget = null;
-            _interactionPanel.SetActive(false);
+            if (_interactionPanel != null) _interactionPanel.SetActive(false);
         }
 
         private void UpdatePromptPosition()
         {
-            if (_currentTarget == null || _mainCamera == null) return;
+            Debug.Log($"[LobbyUI] UpdatePromptPosition: currentTarget={(_currentTarget != null ? _currentTarget.DisplayName : "null")}, mainCamera={(_mainCamera != null)}, interactionPanel={(_interactionPanel != null)}");
+            if (_currentTarget == null || _mainCamera == null || _interactionPanel == null) return;
 
             MonoBehaviour targetMB = _currentTarget as MonoBehaviour;
+            Debug.Log($"[LobbyUI] targetMB is null: {(targetMB == null)}");
             if (targetMB == null) return;
 
-            // Position just above the character's head
-            Vector3 worldPos = targetMB.transform.position + Vector3.up * 5.5f;
+            // Scale the height offset dynamically according to target character scale.
+            // A local height of 1.75f is just above the head of a standard character.
+            float heightOffset = 1.75f * targetMB.transform.localScale.y;
+            Vector3 worldPos = targetMB.transform.position + Vector3.up * heightOffset;
             Vector3 screenPos = _mainCamera.WorldToScreenPoint(worldPos);
+            Debug.Log($"[LobbyUI] worldPos={worldPos}, screenPos={screenPos}");
 
             if (screenPos.z > 0)
             {
                 _interactionPanel.transform.position = screenPos;
+                Debug.Log($"[LobbyUI] Prompt position successfully set to screenPos={screenPos} (Screen size: {Screen.width}x{Screen.height})");
+            }
+            else
+            {
+                Debug.LogWarning($"[LobbyUI] Target screenPos.z <= 0: {screenPos.z}");
             }
         }
 
@@ -140,9 +170,9 @@ namespace RangerCity.Lobby
             _currentLineIndex = 0;
             _dialogueActive = true;
 
-            _dialogueNameText.text = _currentTarget.DisplayName;
-            _dialoguePanel.SetActive(true);
-            _interactionPanel.SetActive(false);
+            if (_dialogueNameText != null) _dialogueNameText.text = _currentTarget.DisplayName;
+            if (_dialoguePanel != null) _dialoguePanel.SetActive(true);
+            if (_interactionPanel != null) _interactionPanel.SetActive(false);
 
             ShowDialogueLine(_currentDialogueLines[0]);
         }
@@ -153,22 +183,22 @@ namespace RangerCity.Lobby
                 StopCoroutine(_typingCoroutine);
 
             _isTypingComplete = false;
-            _dialogueHintText.text = "";
+            if (_dialogueHintText != null) _dialogueHintText.text = "";
             _typingCoroutine = StartCoroutine(TypeDialogue(text));
         }
 
         private IEnumerator TypeDialogue(string text)
         {
-            _dialogueContentText.text = "";
+            if (_dialogueContentText != null) _dialogueContentText.text = "";
 
             for (int i = 0; i < text.Length; i++)
             {
-                _dialogueContentText.text += text[i];
+                if (_dialogueContentText != null) _dialogueContentText.text += text[i];
                 yield return new WaitForSeconds(1f / _typingSpeed);
             }
 
             _isTypingComplete = true;
-            _dialogueHintText.text = "Nhấn để tiếp tục...";
+            if (_dialogueHintText != null) _dialogueHintText.text = "Nhấn để tiếp tục...";
         }
 
         private void OnDialogueAdvance()
@@ -180,9 +210,10 @@ namespace RangerCity.Lobby
                 // Skip typing - show full text
                 if (_typingCoroutine != null)
                     StopCoroutine(_typingCoroutine);
-                _dialogueContentText.text = _currentDialogueLines[_currentLineIndex];
+                if (_dialogueContentText != null)
+                    _dialogueContentText.text = _currentDialogueLines[_currentLineIndex];
                 _isTypingComplete = true;
-                _dialogueHintText.text = "Nhấn để tiếp tục...";
+                if (_dialogueHintText != null) _dialogueHintText.text = "Nhấn để tiếp tục...";
                 return;
             }
 
@@ -200,13 +231,16 @@ namespace RangerCity.Lobby
         private void CloseDialogue()
         {
             _dialogueActive = false;
-            _dialoguePanel.SetActive(false);
+            if (_dialoguePanel != null) _dialoguePanel.SetActive(false);
 
             // Re-check if still near interactable
-            var nearest = _player.GetNearestInteractable();
-            if (nearest != null)
+            if (_player != null)
             {
-                ShowInteractionPrompt(nearest);
+                var nearest = _player.GetNearestInteractable();
+                if (nearest != null)
+                {
+                    ShowInteractionPrompt(nearest);
+                }
             }
         }
 
