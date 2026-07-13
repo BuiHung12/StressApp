@@ -757,7 +757,7 @@ namespace RangerCity.Lobby
 
         private void DrawCircle(Texture2D tex, int cx, int cy, float r, Color color)
         {
-            int rInt = Mathf.CeilingToInt(r);
+            int rInt = Mathf.CeilToInt(r);
             for (int x = cx - rInt; x <= cx + rInt; x++)
             {
                 for (int y = cy - rInt; y <= cy + rInt; y++)
