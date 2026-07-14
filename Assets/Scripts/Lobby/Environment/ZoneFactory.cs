@@ -161,7 +161,7 @@ namespace RangerCity.Lobby
             basePad.transform.SetParent(portal.transform, false);
             basePad.transform.localPosition = new Vector3(0, 0.02f, 0);
             basePad.transform.localScale = new Vector3(padRadius * 2, 0.02f, padRadius * 2);
-            basePad.GetComponent<Renderer>().material = CreateMat(new Color(0.12f, 0.14f, 0.18f));
+            basePad.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.12f, 0.14f, 0.18f));
             Object.DestroyImmediate(basePad.GetComponent<Collider>());
 
             // 2. Neon Border
@@ -170,7 +170,7 @@ namespace RangerCity.Lobby
             neonBorder.transform.SetParent(portal.transform, false);
             neonBorder.transform.localPosition = new Vector3(0, 0.03f, 0);
             neonBorder.transform.localScale = new Vector3(padRadius * 1.85f, 0.022f, padRadius * 1.85f);
-            neonBorder.GetComponent<Renderer>().material = CreateMat(energyColor);
+            neonBorder.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(energyColor);
             Object.Destroy(neonBorder.GetComponent<Collider>());
 
             // 3. Inner Plate
@@ -179,7 +179,7 @@ namespace RangerCity.Lobby
             innerPlate.transform.SetParent(portal.transform, false);
             innerPlate.transform.localPosition = new Vector3(0, 0.04f, 0);
             innerPlate.transform.localScale = new Vector3(padRadius * 1.5f, 0.024f, padRadius * 1.5f);
-            innerPlate.GetComponent<Renderer>().material = CreateMat(new Color(0.08f, 0.09f, 0.11f));
+            innerPlate.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.08f, 0.09f, 0.11f));
             Object.Destroy(innerPlate.GetComponent<Collider>());
 
             // 4. Core Glow
@@ -189,7 +189,7 @@ namespace RangerCity.Lobby
             coreGlow.transform.localPosition = new Vector3(0, 0.05f, 0);
             coreGlow.transform.localScale = new Vector3(padRadius * 1.1f, 0.026f, padRadius * 1.1f);
             Color intenseEnergy = new Color(energyColor.r * 1.2f, energyColor.g * 1.2f, energyColor.b * 1.2f, 0.9f);
-            coreGlow.GetComponent<Renderer>().material = CreateMat(intenseEnergy);
+            coreGlow.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(intenseEnergy);
             Object.Destroy(coreGlow.GetComponent<Collider>());
 
             // 5. Holo Beam
@@ -199,7 +199,7 @@ namespace RangerCity.Lobby
             holoBeam.transform.localPosition = new Vector3(0, 0.6f, 0);
             holoBeam.transform.localScale = new Vector3(padRadius * 1.1f, 0.6f, padRadius * 1.1f);
             Color beamColor = new Color(energyColor.r, energyColor.g, energyColor.b, 0.22f);
-            holoBeam.GetComponent<Renderer>().material = CreateMat(beamColor);
+            holoBeam.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(beamColor);
             Object.Destroy(holoBeam.GetComponent<Collider>());
 
             // 6. Corner Beacons
@@ -215,7 +215,7 @@ namespace RangerCity.Lobby
                 beacon.transform.SetParent(portal.transform, false);
                 beacon.transform.localPosition = offset;
                 beacon.transform.localScale = new Vector3(0.08f, 0.05f, 0.08f);
-                beacon.GetComponent<Renderer>().material = CreateMat(new Color(0.25f, 0.28f, 0.32f));
+                beacon.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.25f, 0.28f, 0.32f));
                 Object.Destroy(beacon.GetComponent<Collider>());
 
                 var laserLine = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -224,7 +224,7 @@ namespace RangerCity.Lobby
                 laserLine.transform.localPosition = offset + new Vector3(0, 0.5f, 0);
                 laserLine.transform.localScale = new Vector3(0.02f, 0.5f, 0.02f);
                 Color laserColor = new Color(energyColor.r * 1.5f, energyColor.g * 1.5f, energyColor.b * 1.5f, 0.4f);
-                laserLine.GetComponent<Renderer>().material = CreateMat(laserColor);
+                laserLine.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(laserColor);
                 Object.Destroy(laserLine.GetComponent<Collider>());
             }
 
@@ -246,7 +246,7 @@ namespace RangerCity.Lobby
             signBg.transform.localPosition = new Vector3(0, 0, 0.01f);
             signBg.transform.localScale = new Vector3(1.6f, 0.45f, 0.005f);
             Color glassColor = new Color(energyColor.r * 0.2f, energyColor.g * 0.2f, energyColor.b * 0.2f, 0.45f);
-            signBg.GetComponent<Renderer>().material = CreateMat(glassColor);
+            signBg.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(glassColor);
             Object.Destroy(signBg.GetComponent<Collider>());
 
             var neonFrame = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -254,7 +254,7 @@ namespace RangerCity.Lobby
             neonFrame.transform.SetParent(signObj.transform, false);
             neonFrame.transform.localPosition = new Vector3(0, 0, 0.005f);
             neonFrame.transform.localScale = new Vector3(1.62f, 0.47f, 0.002f);
-            neonFrame.GetComponent<Renderer>().material = CreateMat(energyColor * 0.8f);
+            neonFrame.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(energyColor * 0.8f);
             Object.Destroy(neonFrame.GetComponent<Collider>());
         }
 
