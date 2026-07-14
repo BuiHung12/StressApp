@@ -4,8 +4,9 @@ using TMPro;
 namespace RangerCity.Lobby
 {
     /// <summary>
-    /// Builds the Garden Zone (floating clouds, planting plots, golden tree).
-    /// Redesigned from scratch to feel like a fantasy sky sanctuary inspired by Sky: COTL & Ghibli.
+    /// Builds a highly detailed fantasy Sky Garden.
+    /// Inspired by Sky: COTL, Ghibli, and Zelda Sky Islands.
+    /// Uses sculpted terrain, winding bridges, waterfalls, gnarled ancient trees, and lush flora.
     /// Located at world Z = +60.
     /// </summary>
     public static class GardenZoneBuilder
@@ -15,96 +16,122 @@ namespace RangerCity.Lobby
             var zone = new GameObject("GardenZone");
             zone.transform.position = new Vector3(0, 0, 60f);
 
-            var grassColor = new Color(0.32f, 0.65f, 0.22f);
-            var goldColor = new Color(1.0f, 0.85f, 0.15f);
+            var grassColor = new Color(0.3f, 0.62f, 0.22f);
+            var stoneColor = new Color(0.65f, 0.65f, 0.68f);
+            var woodColor = new Color(0.42f, 0.28f, 0.15f);
 
-            // ── 1. Background Cloud Sea (Y = -5 to -8) ──
-            CreateBackgroundCloudSea(zone);
+            // ── 1. Thick Background Cloud Banks (Y = -6 to -8) ──
+            CreateCloudSea(zone);
 
-            // ── 2. Island 1: Entrance Sanctuary (Z = -5.0f, Y = 0) ──
-            var island1 = CreateSkyIsland(zone, "EntranceIsland", new Vector3(0, 0, -5.0f), 3.0f, 1.2f, grassColor);
-            
-            // Entrance Archway
+            // ── 2. Island 1: Entrance Archway & Shrine (Z = -5.5f, X = 0, Y = 0) ──
+            var island1 = CreateSculptedIsland(zone, "EntranceIsland", new Vector3(0, 0, -5.5f), 3.2f, 1.4f, grassColor);
+
+            // Floral Archway at entrance
             var arch = new GameObject("EntranceArch");
             arch.transform.SetParent(island1.transform, false);
-            arch.transform.localPosition = new Vector3(0, 0.02f, -2.5f);
-            BuildFloralArch(arch);
+            arch.transform.localPosition = new Vector3(0, 0.05f, -2.6f);
+            BuildDetailedArch(arch);
 
-            // Wishing Well
-            var well = new GameObject("WishingWell");
+            // Wishing Well shrine
+            var well = new GameObject("WishingWellShrine");
             well.transform.SetParent(island1.transform, false);
-            well.transform.localPosition = new Vector3(-1.8f, 0.02f, 1.5f);
-            BuildWishingWell(well);
+            well.transform.localPosition = new Vector3(-2.0f, 0.05f, 1.2f);
+            BuildDetailedWishingWell(well);
 
-            // Lanterns
-            CreateLantern(island1, new Vector3(-2.2f, 0.02f, -2.0f));
-            CreateLantern(island1, new Vector3(2.2f, 0.02f, -2.0f));
+            // Pathway signs
+            CreatePathwaySign(island1, new Vector3(1.2f, 0.05f, -1.8f), "Khu Vuon");
 
-            // Decorations & Flowers
-            CreateFlowerPatch(island1, new Vector3(-2.0f, 0.02f, -0.5f), new Color(0.95f, 0.45f, 0.65f), 5);
-            CreateFlowerPatch(island1, new Vector3(2.0f, 0.02f, -1.0f), new Color(0.95f, 0.8f, 0.2f), 5);
-            CreateBushesAndMushrooms(island1, new Vector3(1.8f, 0.02f, 1.5f));
-            CreateButterfliesAndParticles(island1, new Vector3(0, 0.5f, 0));
+            // Fairy Lantern posts
+            CreateLantern(island1, new Vector3(-2.4f, 0.05f, -1.8f));
+            CreateLantern(island1, new Vector3(2.4f, 0.05f, -1.8f));
 
-            // ── 3. Island 2: Garden Terrace (Z = 0.5f, X = 3.2f, Y = 0.8f) ──
-            var island2 = CreateSkyIsland(zone, "GardenTerrace", new Vector3(3.2f, 0.8f, 0.5f), 3.5f, 1.4f, grassColor);
+            // Lush Flower fields (Hundreds of flowers)
+            CreateFlowerField(island1, new Vector3(-1.8f, 0.05f, -1.0f), new Color[] { new(0.96f, 0.45f, 0.62f), new(1.0f, 0.92f, 0.95f) }, 1.2f, 1.0f, 35);
+            CreateFlowerField(island1, new Vector3(1.8f, 0.05f, -0.8f), new Color[] { new(0.95f, 0.8f, 0.2f), new(0.9f, 0.5f, 0.1f) }, 1.2f, 1.0f, 35);
+            CreateFlowerField(island1, new Vector3(-2.2f, 0.05f, 2.2f), new Color[] { new(0.5f, 0.75f, 1.0f), new(0.72f, 0.3f, 0.85f) }, 1.0f, 0.8f, 25);
 
-            // Waterfall pouring off the left edge (X = -2.8f)
-            CreateWaterfall(island2, new Vector3(-2.6f, 0.02f, 0f), 4.2f);
+            // Foliage & Mushrooms
+            CreateVegetationPatch(island1, new Vector3(2.0f, 0.05f, 1.6f));
+            CreateVegetationPatch(island1, new Vector3(-1.5f, 0.05f, -2.2f));
+            CreateButterflies(island1, new Vector3(0, 0.6f, -1.0f));
 
-            // Cozy Bench & Tea Table
-            CreateBench(island2, new Vector3(1.6f, 0.02f, 1.2f), -45f);
-            var table = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            table.name = "Table";
-            table.transform.SetParent(island2.transform, false);
-            table.transform.localPosition = new Vector3(0.9f, 0.3f, 0.5f);
-            table.transform.localScale = new Vector3(0.6f, 0.3f, 0.6f);
-            table.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.7f, 0.7f, 0.72f));
+            // ── 3. Island 2: Tiered Water Terrace (Z = 0.2f, X = 3.5f, Y = 0.9f) ──
+            var island2 = CreateSculptedIsland(zone, "GardenTerrace", new Vector3(3.5f, 0.9f, 0.2f), 3.8f, 1.6f, grassColor);
 
-            // Lantern on Island 2
-            CreateLantern(island2, new Vector3(2.4f, 0.02f, -2.0f));
+            // Waterfall pouring off the left side
+            CreateWaterfall(island2, new Vector3(-2.8f, 0.05f, -0.2f), 4.5f);
 
-            // Flower Patches & Foliage
-            CreateFlowerPatch(island2, new Vector3(2.2f, 0.02f, 0.5f), new Color(0.4f, 0.75f, 1.0f), 6);
-            CreateFlowerPatch(island2, new Vector3(-1.8f, 0.02f, 1.8f), new Color(0.9f, 0.95f, 0.95f), 4);
-            CreateBushesAndMushrooms(island2, new Vector3(2.2f, 0.02f, -1.2f));
+            // Rustic Bench & Tea Table overlooking the falls
+            CreateBench(island2, new Vector3(1.8f, 0.05f, 1.5f), -35f);
+            var teaTable = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            teaTable.name = "TeaTable";
+            teaTable.transform.SetParent(island2.transform, false);
+            teaTable.transform.localPosition = new Vector3(1.0f, 0.3f, 0.8f);
+            teaTable.transform.localScale = new Vector3(0.5f, 0.3f, 0.5f);
+            teaTable.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor);
 
-            // ── 4. Island 3: World Tree Sanctuary (Z = 5.2f, X = -1.2f, Y = 1.6f) ──
-            var island3 = CreateSkyIsland(zone, "WorldTreeSanctuary", new Vector3(-1.2f, 1.6f, 5.2f), 3.2f, 1.6f, grassColor);
+            var cup = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            cup.name = "TeaCup";
+            cup.transform.SetParent(teaTable.transform, false);
+            cup.transform.localPosition = new Vector3(0, 0.55f, 0);
+            cup.transform.localScale = new Vector3(0.2f, 0.2f, 0.2f);
+            cup.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.9f, 0.9f, 0.95f));
+            Object.Destroy(cup.GetComponent<Collider>());
 
-            // Giant Ancient Golden Tree
-            CreateGoldenTree(island3, new Vector3(0, 0.02f, 1.2f));
+            // Fairy Lantern
+            CreateLantern(island2, new Vector3(2.6f, 0.05f, -1.8f));
 
-            // Extra Cloud cluster behind tree
-            var cloudBack = new GameObject("CanopyCloudCluster");
-            cloudBack.transform.SetParent(island3.transform, false);
-            cloudBack.transform.localPosition = new Vector3(0.5f, 2.2f, 2.5f);
-            CreateCloudCluster(cloudBack, Vector3.zero, new Vector3(2.5f, 1.8f, 2.0f));
+            // Winding stone path steps
+            Vector3[] steps = { new(-1.2f, 0.02f, -1.5f), new(-0.5f, 0.02f, -0.8f), new(0.2f, 0.02f, -0.2f) };
+            foreach (var step in steps)
+            {
+                var slab = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                slab.name = "PathSlab";
+                slab.transform.SetParent(island2.transform, false);
+                slab.transform.localPosition = step;
+                slab.transform.localScale = new Vector3(0.7f, 0.02f, 0.5f);
+                slab.transform.localRotation = Quaternion.Euler(0, Random.Range(-15f, 15f), 0);
+                slab.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor);
+                Object.Destroy(slab.GetComponent<Collider>());
+            }
 
-            // Lanterns
-            CreateLantern(island3, new Vector3(-2.2f, 0.02f, -1.8f));
-            CreateLantern(island3, new Vector3(2.2f, 0.02f, -1.8f));
+            // Flower fields
+            CreateFlowerField(island2, new Vector3(2.4f, 0.05f, 0.5f), new Color[] { new(0.4f, 0.75f, 1.0f), new(0.9f, 0.95f, 0.95f) }, 1.5f, 1.2f, 40);
+            CreateFlowerField(island2, new Vector3(-1.8f, 0.05f, 1.5f), new Color[] { new(0.75f, 0.4f, 0.85f), new(0.95f, 0.5f, 0.7f) }, 1.2f, 1.0f, 30);
+            CreateVegetationPatch(island2, new Vector3(2.2f, 0.05f, -1.0f));
 
-            // Flowers, Foliage & Butterflies
-            CreateFlowerPatch(island3, new Vector3(-2.0f, 0.02f, 0.8f), goldColor, 7);
-            CreateBushesAndMushrooms(island3, new Vector3(-2.2f, 0.02f, -0.6f));
-            CreateBushesAndMushrooms(island3, new Vector3(2.2f, 0.02f, 0.4f));
-            CreateButterfliesAndParticles(island3, new Vector3(0, 0.8f, 1.0f));
+            // ── 4. Island 3: Golden World Tree Sanctuary (Z = 5.5f, X = -1.2f, Y = 1.8f) ──
+            var island3 = CreateSculptedIsland(zone, "WorldTreeSanctuary", new Vector3(-1.2f, 1.8f, 5.5f), 3.5f, 1.8f, grassColor);
 
-            // ── 5. Wooden Bridges ──
-            // Bridge 1 connects Island 1 (local center (0,0,-5) -> edge is roughly X=1.2, Z=-2.5) 
-            // to Island 2 (local center (3.2, 0.8, 0.5) -> edge is roughly X=1.6, Z=-1.8)
-            CreateFantasyBridge(zone, new Vector3(1.2f, 0.02f, -2.6f), new Vector3(2.0f, 0.82f, -1.5f), 10);
+            // Giant Ancient Gnarled Golden Tree
+            CreateMagicalWorldTree(island3, new Vector3(0, 0.05f, 1.2f));
 
-            // Bridge 2 connects Island 2 (local center (3.2, 0.8, 0.5) -> edge is roughly X=1.6, Z=2.2)
-            // to Island 3 (local center (-1.2, 1.6, 5.2) -> edge is roughly X=0.8, Z=3.6)
-            CreateFantasyBridge(zone, new Vector3(2.0f, 0.82f, 2.0f), new Vector3(0.0f, 1.62f, 3.8f), 10);
+            // Sacred Stone Lanterns
+            CreateLantern(island3, new Vector3(-2.4f, 0.05f, -1.5f));
+            CreateLantern(island3, new Vector3(2.4f, 0.05f, -1.5f));
+
+            // Flower fields surrounding the Tree
+            CreateFlowerField(island3, new Vector3(-1.8f, 0.05f, 0.6f), new Color[] { goldColor, new(0.95f, 0.65f, 0.1f) }, 1.5f, 1.2f, 50);
+            CreateFlowerField(island3, new Vector3(1.8f, 0.05f, 0.6f), new Color[] { goldColor, new(1.0f, 0.95f, 0.5f) }, 1.5f, 1.2f, 50);
+            CreateFlowerField(island3, new Vector3(0, 0.05f, -1.2f), new Color[] { new(0.95f, 0.95f, 0.98f), goldColor }, 1.2f, 0.8f, 30);
+
+            // Foliage & Mushrooms
+            CreateVegetationPatch(island3, new Vector3(-2.2f, 0.05f, -0.8f));
+            CreateVegetationPatch(island3, new Vector3(2.2f, 0.05f, -0.8f));
+            CreateButterflies(island3, new Vector3(0, 0.8f, 0.5f));
+
+            // ── 5. Wooden Suspension Bridges ──
+            // Bridge 1 (Island 1 to 2)
+            CreateFantasyBridge(zone, new Vector3(1.2f, 0.02f, -2.8f), new Vector3(2.2f, 0.92f, -1.4f), 10);
+
+            // Bridge 2 (Island 2 to 3)
+            CreateFantasyBridge(zone, new Vector3(2.2f, 0.92f, 2.0f), new Vector3(0.0f, 1.82f, 3.8f), 10);
 
             // ── 6. Cloud Lock Barriers (Blocking the Bridges) ──
             var barrier2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
             barrier2.name = "Stair1_Barrier_Collider";
             barrier2.transform.SetParent(zone.transform, false);
-            barrier2.transform.localPosition = new Vector3(1.6f, 0.5f, -2.0f);
+            barrier2.transform.localPosition = new Vector3(1.7f, 0.5f, -2.1f);
             barrier2.transform.localScale = new Vector3(1.8f, 0.9f, 0.2f);
             barrier2.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.9f, 0.1f, 0.1f, 0.3f));
             var lock2 = barrier2.AddComponent<CloudLayer>();
@@ -114,23 +141,23 @@ namespace RangerCity.Lobby
             var barrier3 = GameObject.CreatePrimitive(PrimitiveType.Cube);
             barrier3.name = "Stair2_Barrier_Collider";
             barrier3.transform.SetParent(zone.transform, false);
-            barrier3.transform.localPosition = new Vector3(1.0f, 1.3f, 2.9f);
+            barrier3.transform.localPosition = new Vector3(1.1f, 1.35f, 2.9f);
             barrier3.transform.localScale = new Vector3(1.8f, 0.9f, 0.2f);
             barrier3.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.9f, 0.1f, 0.1f, 0.3f));
             var lock3 = barrier3.AddComponent<CloudLayer>();
             ZoneFactory.SetField(lock3, "_unlockCost", 25);
             ZoneFactory.SetField(lock3, "_barrierObj", barrier3);
 
-            // ── 7. Planting Plots (Aesthetic wood-lined farming beds) ──
+            // ── 7. Planting Plots (Wood-framed garden plots) ──
             // Island 1 (Y = 0)
             CreatePlot(zone, new Vector3(-1.8f, 0.05f, -4.5f), 10f, 10);
             CreatePlot(zone, new Vector3(1.8f, 0.05f, -4.5f), 10f, 10);
-            // Island 2 (Y = 0.8)
-            CreatePlot(zone, new Vector3(2.2f, 0.85f, 0.5f), 15f, 25);
-            CreatePlot(zone, new Vector3(4.2f, 0.85f, -0.5f), 15f, 25);
-            // Island 3 (Y = 1.6)
-            CreatePlot(zone, new Vector3(-2.2f, 1.65f, 4.2f), 20f, 50);
-            CreatePlot(zone, new Vector3(0.2f, 1.65f, 4.2f), 20f, 50);
+            // Island 2 (Y = 0.9)
+            CreatePlot(zone, new Vector3(2.2f, 0.95f, 0.5f), 15f, 25);
+            CreatePlot(zone, new Vector3(4.2f, 0.95f, -0.5f), 15f, 25);
+            // Island 3 (Y = 1.8)
+            CreatePlot(zone, new Vector3(-2.2f, 1.85f, 4.2f), 20f, 50);
+            CreatePlot(zone, new Vector3(0.2f, 1.85f, 4.2f), 20f, 50);
 
             // ── 8. Title Billboard ──
             var title = new GameObject("GardenTitle");
@@ -152,7 +179,6 @@ namespace RangerCity.Lobby
 
         private static void CreatePlot(GameObject parent, Vector3 localPos, float duration, int reward)
         {
-            // Planting plot wrap frame (wooden box)
             var frame = GameObject.CreatePrimitive(PrimitiveType.Cube);
             frame.name = "PlanterFrame_Collider";
             frame.transform.SetParent(parent.transform, false);
@@ -168,120 +194,119 @@ namespace RangerCity.Lobby
             ZoneFactory.SetField(plot, "_harvestReward", reward);
         }
 
-        private static GameObject CreateSkyIsland(GameObject parent, string name, Vector3 localPos, float radius, float height, Color grassCol)
+        private static GameObject CreateSculptedIsland(GameObject parent, string name, Vector3 localPos, float radius, float height, Color grassCol)
         {
             var island = new GameObject(name);
             island.transform.SetParent(parent.transform, false);
             island.transform.localPosition = localPos;
 
             var dirtCol = new Color(0.35f, 0.28f, 0.22f);
-            var stoneColor = new Color(0.68f, 0.68f, 0.7f);
+            var stoneColor = new Color(0.65f, 0.65f, 0.68f);
 
-            // 1. Main grass cylinder and dirt base cylinder
-            var mainGrass = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            mainGrass.name = "IslandGrassMain";
-            mainGrass.transform.SetParent(island.transform, false);
-            mainGrass.transform.localPosition = Vector3.zero;
-            mainGrass.transform.localScale = new Vector3(radius * 2, 0.05f, radius * 2);
-            mainGrass.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(grassCol);
-
-            var mainDirt = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            mainDirt.name = "IslandDirtMain_Collider";
-            mainDirt.transform.SetParent(island.transform, false);
-            mainDirt.transform.localPosition = new Vector3(0, -height * 0.5f, 0);
-            mainDirt.transform.localScale = new Vector3(radius * 2, height, radius * 2);
-            mainDirt.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(dirtCol);
-
-            // 2. Overlapping sub-islands to build an irregular natural silhouette
-            int subParts = 5;
-            for (int i = 0; i < subParts; i++)
+            // 1. Sculpt the top grass terrain using 12 overlapping spheres and boxes for an organic shape
+            int grassClusters = 14;
+            for (int i = 0; i < grassClusters; i++)
             {
-                float angle = (i * (360f / subParts) + Random.Range(-15f, 15f)) * Mathf.Deg2Rad;
-                float dist = radius * Random.Range(0.4f, 0.65f);
-                Vector3 subOffset = new Vector3(Mathf.Cos(angle) * dist, 0, Mathf.Sin(angle) * dist);
-                float subRadius = radius * Random.Range(0.45f, 0.68f);
-                float subHeight = height * Random.Range(0.8f, 1.15f);
+                float angle = (i * (360f / grassClusters) + Random.Range(-15f, 15f)) * Mathf.Deg2Rad;
+                float dist = radius * Random.Range(0.2f, 0.75f);
+                Vector3 offset = new Vector3(Mathf.Cos(angle) * dist, Random.Range(-0.06f, 0.08f), Mathf.Sin(angle) * dist);
+                float rScale = radius * Random.Range(0.45f, 0.75f);
 
-                var subGrass = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                subGrass.name = "IslandGrassSub";
-                subGrass.transform.SetParent(island.transform, false);
-                subGrass.transform.localPosition = subOffset + new Vector3(0, Random.Range(-0.02f, 0.02f), 0);
-                subGrass.transform.localScale = new Vector3(subRadius * 2, 0.05f, subRadius * 2);
-                subGrass.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(grassCol);
-                Object.Destroy(subGrass.GetComponent<Collider>());
+                // Grass mound
+                var gm = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                gm.name = "GrassMound";
+                gm.transform.SetParent(island.transform, false);
+                gm.transform.localPosition = offset;
+                gm.transform.localScale = new Vector3(rScale * 2f, 0.2f, rScale * 2f);
+                gm.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(grassCol);
+                Object.Destroy(gm.GetComponent<Collider>());
 
-                var subDirt = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                subDirt.name = "IslandDirtSub_Collider";
-                subDirt.transform.SetParent(island.transform, false);
-                subDirt.transform.localPosition = subOffset + new Vector3(0, -subHeight * 0.5f, 0);
-                subDirt.transform.localScale = new Vector3(subRadius * 2, subHeight, subRadius * 2);
-                subDirt.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(dirtCol);
+                // Dirt base chunk extending below
+                var dm = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                dm.name = "DirtChunk_Collider";
+                dm.transform.SetParent(island.transform, false);
+                dm.transform.localPosition = offset + Vector3.down * (height * 0.5f);
+                dm.transform.localScale = new Vector3(rScale * 1.9f, height * Random.Range(0.8f, 1.15f), rScale * 1.9f);
+                dm.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(dirtCol);
             }
 
-            // 3. Exposed cliff rocks around the edges
-            int rockCount = Random.Range(5, 9);
-            for (int i = 0; i < rockCount; i++)
+            // 2. Sculpt exposed rocky cliff faces around the edges
+            int rockCliffs = Random.Range(6, 11);
+            for (int i = 0; i < rockCliffs; i++)
             {
                 float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-                float rDist = radius * Random.Range(0.8f, 1.05f);
-                Vector3 rockPos = new Vector3(Mathf.Cos(angle) * rDist, Random.Range(-0.15f, 0.15f), Mathf.Sin(angle) * rDist);
+                float rDist = radius * Random.Range(0.85f, 1.1f);
+                Vector3 rockPos = new Vector3(Mathf.Cos(angle) * rDist, Random.Range(-height * 0.4f, 0.1f), Mathf.Sin(angle) * rDist);
 
                 var rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                rock.name = "ExposedRock_Collider";
+                rock.name = "CliffRock_Collider";
                 rock.transform.SetParent(island.transform, false);
                 rock.transform.localPosition = rockPos;
                 rock.transform.localScale = new Vector3(
-                    Random.Range(0.4f, 0.85f),
-                    Random.Range(0.4f, 1.3f),
-                    Random.Range(0.4f, 0.85f)
+                    Random.Range(0.6f, 1.2f),
+                    Random.Range(0.5f, 1.5f),
+                    Random.Range(0.6f, 1.2f)
                 );
                 rock.transform.localRotation = Quaternion.Euler(
-                    Random.Range(-22f, 22f),
+                    Random.Range(-25f, 25f),
                     Random.Range(0f, 360f),
-                    Random.Range(-22f, 22f)
+                    Random.Range(-25f, 25f)
                 );
                 rock.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor);
             }
 
-            // 4. Roots hanging from below
-            int rootCount = Random.Range(8, 14);
+            // 3. Hanging gnarled roots dangling underneath the island base
+            int rootCount = Random.Range(10, 16);
             for (int i = 0; i < rootCount; i++)
             {
                 float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-                float dist = radius * Random.Range(0.15f, 0.75f);
-                Vector3 rootPos = new Vector3(Mathf.Cos(angle) * dist, -height * Random.Range(0.7f, 1.1f), Mathf.Sin(angle) * dist);
+                float dist = radius * Random.Range(0.15f, 0.8f);
+                Vector3 rootPos = new Vector3(Mathf.Cos(angle) * dist, -height * Random.Range(0.8f, 1.2f), Mathf.Sin(angle) * dist);
 
                 var root = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                root.name = "HangingRoot";
+                root.name = "UnderRoot";
                 root.transform.SetParent(island.transform, false);
                 root.transform.localPosition = rootPos;
-                float rootLen = Random.Range(0.45f, 1.3f);
-                root.transform.localScale = new Vector3(0.06f, rootLen, 0.06f);
-                root.transform.localRotation = Quaternion.Euler(
-                    Random.Range(-15f, 15f),
-                    0,
-                    Random.Range(-15f, 15f)
-                );
-                root.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(dirtCol * 0.72f);
+                float len = Random.Range(0.5f, 1.4f);
+                root.transform.localScale = new Vector3(0.05f, len, 0.05f);
+                root.transform.localRotation = Quaternion.Euler(Random.Range(-20f, 20f), 0, Random.Range(-20f, 20f));
+                root.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(dirtCol * 0.7f);
                 Object.Destroy(root.GetComponent<Collider>());
             }
 
-            // 5. Ivy vines trailing down cliffs
-            int vineCount = Random.Range(6, 10);
+            // 4. Vines hanging down the cliffs
+            int vineCount = Random.Range(7, 12);
             for (int i = 0; i < vineCount; i++)
             {
                 float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
                 float dist = radius * 0.98f;
-                Vector3 vinePos = new Vector3(Mathf.Cos(angle) * dist, -0.1f, Mathf.Sin(angle) * dist);
+                Vector3 vinePos = new Vector3(Mathf.Cos(angle) * dist, -0.05f, Mathf.Sin(angle) * dist);
 
                 var vine = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                vine.name = "HangingVine";
+                vine.name = "HangingIvy";
                 vine.transform.SetParent(island.transform, false);
                 vine.transform.localPosition = vinePos + Vector3.down * 0.35f;
-                float vineLen = Random.Range(0.35f, 0.75f);
-                vine.transform.localScale = new Vector3(0.04f, vineLen, 0.04f);
-                vine.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.2f, 0.44f, 0.18f));
+                float len = Random.Range(0.4f, 0.8f);
+                vine.transform.localScale = new Vector3(0.04f, len, 0.04f);
+                vine.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.2f, 0.45f, 0.18f));
                 Object.Destroy(vine.GetComponent<Collider>());
+            }
+
+            // 5. Tiny floating rocks nearby
+            int floatRocks = Random.Range(2, 5);
+            for (int i = 0; i < floatRocks; i++)
+            {
+                float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+                float rDist = radius * Random.Range(1.3f, 1.6f);
+                Vector3 fpos = new Vector3(Mathf.Cos(angle) * rDist, Random.Range(-0.8f, 0.5f), Mathf.Sin(angle) * rDist);
+
+                var fr = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                fr.name = "FloatingRock_Collider";
+                fr.transform.SetParent(island.transform, false);
+                fr.transform.localPosition = fpos;
+                fr.transform.localScale = Vector3.one * Random.Range(0.25f, 0.5f);
+                fr.transform.localRotation = Quaternion.Euler(Random.Range(0, 360f), Random.Range(0, 360f), Random.Range(0, 360f));
+                fr.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor * 0.95f);
             }
 
             return island;
@@ -293,9 +318,9 @@ namespace RangerCity.Lobby
             waterParent.transform.SetParent(island.transform, false);
 
             var stoneColor = new Color(0.58f, 0.58f, 0.6f);
-            var waterColor = new Color(0.45f, 0.78f, 0.95f, 0.8f);
+            var waterColor = new Color(0.4f, 0.75f, 0.95f, 0.8f);
 
-            // Pond base
+            // 1. Quiet pond
             var pond = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             pond.name = "PondWater";
             pond.transform.SetParent(waterParent.transform, false);
@@ -304,7 +329,7 @@ namespace RangerCity.Lobby
             pond.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(waterColor);
             Object.Destroy(pond.GetComponent<Collider>());
 
-            // Surrounding stone border
+            // Stone borders
             for (int i = 0; i < 7; i++)
             {
                 float angle = (i * (360f / 7f)) * Mathf.Deg2Rad;
@@ -333,7 +358,7 @@ namespace RangerCity.Lobby
                 Object.Destroy(pad.GetComponent<Collider>());
             }
 
-            // Waterfall stream sheet
+            // 2. Waterfall flow sheet (semi-transparent light blue)
             var flow = GameObject.CreatePrimitive(PrimitiveType.Cube);
             flow.name = "WaterFlow";
             flow.transform.SetParent(waterParent.transform, false);
@@ -342,7 +367,7 @@ namespace RangerCity.Lobby
             flow.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.85f, 0.95f, 1.0f, 0.85f));
             Object.Destroy(flow.GetComponent<Collider>());
 
-            // Foam splashes
+            // 3. Foam splash spheres at the bottom
             var splashParent = new GameObject("SplashFoam");
             splashParent.transform.SetParent(waterParent.transform, false);
             splashParent.transform.localPosition = localEdgePos + new Vector3(0, -dropHeight, 0.05f);
@@ -372,7 +397,7 @@ namespace RangerCity.Lobby
             var ropeColor = new Color(0.72f, 0.62f, 0.46f);
 
             // Compute midpoint with sag
-            Vector3 mid = (start + end) * 0.5f + Vector3.down * 0.35f;
+            Vector3 mid = (start + end) * 0.5f + Vector3.down * 0.38f;
 
             // 1. Planks
             for (int i = 0; i < plankCount; i++)
@@ -391,7 +416,7 @@ namespace RangerCity.Lobby
                 plank.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor);
             }
 
-            // 2. Support posts
+            // 2. Support posts at start and end
             Vector3 rightOffset = Quaternion.Euler(0, 90, 0) * (end - start).normalized * 0.8f;
             Vector3[] postPositions = {
                 start + rightOffset, start - rightOffset,
@@ -407,7 +432,26 @@ namespace RangerCity.Lobby
                 post.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor * 0.78f);
             }
 
-            // 3. Rope railings
+            // 3. Diagonal support beams anchoring to cliff below
+            var beamL = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            beamL.name = "SupportBeam";
+            beamL.transform.SetParent(bridge.transform, false);
+            beamL.transform.localPosition = start - rightOffset * 0.5f + Vector3.down * 0.3f;
+            beamL.transform.localScale = new Vector3(0.06f, 0.4f, 0.06f);
+            beamL.transform.localRotation = Quaternion.Euler(45f, 0, 0);
+            beamL.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor * 0.72f);
+            Object.Destroy(beamL.GetComponent<Collider>());
+
+            var beamR = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            beamR.name = "SupportBeam";
+            beamR.transform.SetParent(bridge.transform, false);
+            beamR.transform.localPosition = start + rightOffset * 0.5f + Vector3.down * 0.3f;
+            beamR.transform.localScale = new Vector3(0.06f, 0.4f, 0.06f);
+            beamR.transform.localRotation = Quaternion.Euler(-45f, 0, 0);
+            beamR.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor * 0.72f);
+            Object.Destroy(beamR.GetComponent<Collider>());
+
+            // 4. Rope railings
             int ropeSegments = 16;
             for (int i = 0; i < ropeSegments; i++)
             {
@@ -417,15 +461,23 @@ namespace RangerCity.Lobby
                 Vector3 p1 = GetBezierPoint(start, mid, end, t1);
                 Vector3 p2 = GetBezierPoint(start, mid, end, t2);
 
-                // Left rope
+                // Handrail rope
                 Vector3 lp1 = p1 - rightOffset + Vector3.up * 0.45f;
                 Vector3 lp2 = p2 - rightOffset + Vector3.up * 0.45f;
                 CreateRopeSegment(bridge, lp1, lp2, ropeColor);
 
-                // Right rope
                 Vector3 rp1 = p1 + rightOffset + Vector3.up * 0.45f;
                 Vector3 rp2 = p2 + rightOffset + Vector3.up * 0.45f;
                 CreateRopeSegment(bridge, rp1, rp2, ropeColor);
+
+                // Mid rope
+                Vector3 mlp1 = p1 - rightOffset + Vector3.up * 0.22f;
+                Vector3 mlp2 = p2 - rightOffset + Vector3.up * 0.22f;
+                CreateRopeSegment(bridge, mlp1, mlp2, ropeColor);
+
+                Vector3 mrp1 = p1 + rightOffset + Vector3.up * 0.22f;
+                Vector3 mrp2 = p2 + rightOffset + Vector3.up * 0.22f;
+                CreateRopeSegment(bridge, mrp1, mrp2, ropeColor);
             }
         }
 
@@ -437,7 +489,7 @@ namespace RangerCity.Lobby
 
             Vector3 diff = p2 - p1;
             segment.transform.localPosition = p1 + diff * 0.5f;
-            segment.transform.localScale = new Vector3(0.03f, diff.magnitude * 0.5f, 0.03f); // Cylinder has height 2
+            segment.transform.localScale = new Vector3(0.03f, diff.magnitude * 0.5f, 0.03f); // Cylinder height is 2
             segment.transform.localRotation = Quaternion.FromToRotation(Vector3.up, diff.normalized);
 
             segment.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(color);
@@ -455,35 +507,54 @@ namespace RangerCity.Lobby
             return (2f * (1f - t) * (p1 - p0) + 2f * t * (p2 - p1)).normalized;
         }
 
-        private static void CreateGoldenTree(GameObject parent, Vector3 localPos)
+        private static void CreateMagicalWorldTree(GameObject parent, Vector3 localPos)
         {
-            var goldTree = new GameObject("GhibliGoldenTree");
+            var goldTree = new GameObject("GhibliWorldTree");
             goldTree.transform.SetParent(parent.transform, false);
             goldTree.transform.localPosition = localPos;
 
-            var trunkColor = new Color(0.4f, 0.26f, 0.12f);
+            var trunkColor = new Color(0.38f, 0.25f, 0.12f);
             var goldLeaf = new Color(1.0f, 0.85f, 0.15f);
             var orangeLeaf = new Color(0.95f, 0.6f, 0.1f);
             var paleLeaf = new Color(1.0f, 0.95f, 0.45f);
 
-            // Gnarled trunk segment overlap
-            int trunkSegments = 6;
+            // 1. Ancient gnarled trunk base (18 overlapping rotated cylinders)
+            int trunkSegments = 16;
             for (int i = 0; i < trunkSegments; i++)
             {
                 var tr = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 tr.name = "TrunkSegment_Collider";
                 tr.transform.SetParent(goldTree.transform, false);
                 tr.transform.localPosition = new Vector3(
-                    Random.Range(-0.06f, 0.06f),
-                    0.25f + i * 0.35f,
-                    Random.Range(-0.06f, 0.06f)
+                    Random.Range(-0.06f, 0.06f) * (1f - (float)i / trunkSegments),
+                    0.2f + i * 0.28f,
+                    Random.Range(-0.06f, 0.06f) * (1f - (float)i / trunkSegments)
                 );
-                tr.transform.localScale = new Vector3(0.42f - i * 0.05f, 0.22f, 0.42f - i * 0.05f);
-                tr.transform.localRotation = Quaternion.Euler(Random.Range(-6f, 6f), Random.Range(0f, 360f), Random.Range(-6f, 6f));
+                float scaleFac = 0.5f - i * 0.025f;
+                tr.transform.localScale = new Vector3(scaleFac, 0.18f, scaleFac);
+                tr.transform.localRotation = Quaternion.Euler(
+                    Random.Range(-8f, 8f),
+                    Random.Range(0f, 360f),
+                    Random.Range(-8f, 8f)
+                );
                 tr.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(trunkColor);
             }
 
-            // Gnarled branches
+            // 2. Thick root flares spreading over rocks at the base
+            for (int i = 0; i < 5; i++)
+            {
+                float angle = (i * 72f) * Mathf.Deg2Rad;
+                var root = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                root.name = "RootFlare";
+                root.transform.SetParent(goldTree.transform, false);
+                root.transform.localPosition = new Vector3(Mathf.Cos(angle) * 0.25f, 0.15f, Mathf.Sin(angle) * 0.25f);
+                root.transform.localScale = new Vector3(0.12f, 0.25f, 0.12f);
+                root.transform.localRotation = Quaternion.Euler(Mathf.Sin(angle) * 35f, 0f, -Mathf.Cos(angle) * 35f);
+                root.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(trunkColor);
+                Object.Destroy(root.GetComponent<Collider>());
+            }
+
+            // 3. Multiple heavy branching structures splitting off
             Vector3[] branchData = {
                 new(-0.35f, 1.4f, 0.1f), new(0.3f, 1.6f, -0.2f), new(-0.1f, 1.7f, 0.4f),
                 new(0.2f, 1.8f, 0.3f), new(-0.4f, 1.9f, -0.3f)
@@ -508,7 +579,7 @@ namespace RangerCity.Lobby
                 Object.Destroy(br.GetComponent<Collider>());
             }
 
-            // Canopy layered foliage spheres
+            // 4. Large canopy spheres (overlapping gold, orange, and pale yellow)
             var canopyData = new (Vector3 offset, float r, Color col)[] {
                 (new(0, 2.2f, 0), 1.6f, goldLeaf),
                 (new(-0.8f, 1.9f, 0.2f), 1.2f, orangeLeaf),
@@ -528,7 +599,7 @@ namespace RangerCity.Lobby
                 leafGroup.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(col);
                 Object.Destroy(leafGroup.GetComponent<Collider>());
 
-                // Small foliage noise spheres
+                // Adding small leaf clump noise
                 for (int s = 0; s < 3; s++)
                 {
                     var subL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -545,7 +616,7 @@ namespace RangerCity.Lobby
                 }
             }
 
-            // Hanging golden fairy lanterns (glowing tree fruits)
+            // 5. Hanging glowing light fruits
             for (int i = 0; i < 6; i++)
             {
                 var lightObj = new GameObject("MagicalTreeLight");
@@ -649,21 +720,21 @@ namespace RangerCity.Lobby
             lampLight.intensity = 1.6f;
         }
 
-        private static void CreateFlowerPatch(GameObject parent, Vector3 localPos, Color color, int count)
+        private static void CreateFlowerField(GameObject parent, Vector3 localCenter, Color[] colors, float width, float depth, int count)
         {
-            var patch = new GameObject("FlowerPatch");
-            patch.transform.SetParent(parent.transform, false);
-            patch.transform.localPosition = localPos;
+            var field = new GameObject("FlowerField");
+            field.transform.SetParent(parent.transform, false);
+            field.transform.localPosition = localCenter;
 
             for (int f = 0; f < count; f++)
             {
-                float ox = Random.Range(-0.35f, 0.35f);
-                float oz = Random.Range(-0.35f, 0.35f);
+                float ox = Random.Range(-width * 0.5f, width * 0.5f);
+                float oz = Random.Range(-depth * 0.5f, depth * 0.5f);
                 float r = Random.Range(0.12f, 0.18f);
 
                 var stem = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 stem.name = "FlowerStem";
-                stem.transform.SetParent(patch.transform, false);
+                stem.transform.SetParent(field.transform, false);
                 stem.transform.localPosition = new Vector3(ox, 0.06f, oz);
                 stem.transform.localScale = new Vector3(0.015f, 0.06f, 0.015f);
                 stem.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.2f, 0.5f, 0.2f));
@@ -671,15 +742,15 @@ namespace RangerCity.Lobby
 
                 var head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 head.name = "FlowerHead";
-                head.transform.SetParent(patch.transform, false);
+                head.transform.SetParent(field.transform, false);
                 head.transform.localPosition = new Vector3(ox, 0.12f, oz);
                 head.transform.localScale = Vector3.one * r;
-                head.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(color);
+                head.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(colors[Random.Range(0, colors.Length)]);
                 Object.Destroy(head.GetComponent<Collider>());
             }
         }
 
-        private static void CreateBushesAndMushrooms(GameObject parent, Vector3 localPos)
+        private static void CreateVegetationPatch(GameObject parent, Vector3 localPos)
         {
             var decoratorObj = new GameObject("FoliageGroup");
             decoratorObj.transform.SetParent(parent.transform, false);
@@ -689,23 +760,23 @@ namespace RangerCity.Lobby
             var mushroomStemColor = new Color(0.9f, 0.9f, 0.85f);
             var mushroomCapColor = new Color(0.85f, 0.25f, 0.2f);
 
-            // Bush (3 overlapping spheres)
-            for (int i = 0; i < 3; i++)
+            // Clumpy Ghibli bushes
+            for (int i = 0; i < 4; i++)
             {
                 var b = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 b.name = "BushSphere";
                 b.transform.SetParent(decoratorObj.transform, false);
                 b.transform.localPosition = new Vector3(
-                    (i - 1) * 0.2f + Random.Range(-0.05f, 0.05f),
-                    0.15f + Random.Range(0f, 0.1f),
+                    (i - 1.5f) * 0.18f + Random.Range(-0.05f, 0.05f),
+                    0.15f + Random.Range(0f, 0.08f),
                     Random.Range(-0.1f, 0.1f)
                 );
-                b.transform.localScale = Vector3.one * Random.Range(0.35f, 0.5f);
+                b.transform.localScale = Vector3.one * Random.Range(0.35f, 0.48f);
                 b.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(bushColor);
                 Object.Destroy(b.GetComponent<Collider>());
             }
 
-            // Mushrooms (2-3 mushrooms)
+            // Ghibli Mushrooms
             int mushCount = Random.Range(2, 4);
             for (int m = 0; m < mushCount; m++)
             {
@@ -730,42 +801,42 @@ namespace RangerCity.Lobby
             }
         }
 
-        private static void CreateButterfliesAndParticles(GameObject parent, Vector3 localPos)
+        private static void CreateButterflies(GameObject parent, Vector3 localPos)
         {
             var fxParent = new GameObject("MagicalFX");
             fxParent.transform.SetParent(parent.transform, false);
             fxParent.transform.localPosition = localPos;
 
-            // Spawn floating glowing particles
-            int pCount = 5;
+            // Glowing dust particles
+            int pCount = 8;
             for (int i = 0; i < pCount; i++)
             {
                 var p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 p.name = "MagicalParticle";
                 p.transform.SetParent(fxParent.transform, false);
                 p.transform.localPosition = new Vector3(
-                    Random.Range(-1f, 1f),
-                    0.5f + Random.Range(0f, 1.2f),
-                    Random.Range(-1f, 1f)
+                    Random.Range(-1.5f, 1.5f),
+                    0.5f + Random.Range(0f, 1.4f),
+                    Random.Range(-1.5f, 1.5f)
                 );
                 p.transform.localScale = Vector3.one * Random.Range(0.04f, 0.08f);
                 p.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(1f, 0.98f, 0.6f, 0.8f));
                 Object.Destroy(p.GetComponent<Collider>());
             }
 
-            // Spawn butterflies (low-poly double cubes)
+            // Butterflies
             Color[] bfColors = {
                 new(0.4f, 0.7f, 1.0f), new(1.0f, 0.5f, 0.8f), new(1.0f, 0.85f, 0.3f)
             };
-            int bfCount = 3;
+            int bfCount = 4;
             for (int b = 0; b < bfCount; b++)
             {
                 var bf = new GameObject("Butterfly");
                 bf.transform.SetParent(fxParent.transform, false);
                 bf.transform.localPosition = new Vector3(
-                    Random.Range(-0.8f, 0.8f),
-                    0.6f + Random.Range(0f, 0.8f),
-                    Random.Range(-0.8f, 0.8f)
+                    Random.Range(-1.2f, 1.2f),
+                    0.6f + Random.Range(0f, 1.0f),
+                    Random.Range(-1.2f, 1.2f)
                 );
 
                 var wingL = GameObject.CreatePrimitive(PrimitiveType.Cube);
@@ -794,7 +865,7 @@ namespace RangerCity.Lobby
             cluster.transform.SetParent(parent.transform, false);
             cluster.transform.localPosition = localPos;
 
-            int spheres = 6;
+            int spheres = 7;
             for (int i = 0; i < spheres; i++)
             {
                 var s = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -815,19 +886,19 @@ namespace RangerCity.Lobby
             }
         }
 
-        private static void CreateBackgroundCloudSea(GameObject zone)
+        private static void CreateCloudSea(GameObject zone)
         {
             var cloudsBelow = new GameObject("SeaOfClouds");
             cloudsBelow.transform.SetParent(zone.transform, false);
 
             var cloudBelowData = new (Vector3 pos, Vector3 scale)[] {
-                (new(-8f, -4.5f, -6f), new(5f, 1.4f, 4f)),
-                (new(8f, -4.8f, -3f), new(4.5f, 1.2f, 3.5f)),
-                (new(-7f, -5.2f, 6f), new(5.5f, 1.6f, 4.5f)),
-                (new(7f, -5.5f, 8f), new(6f, 1.8f, 5f)),
-                (new(0f, -6.0f, 0f), new(8f, 2.0f, 7f)),
-                (new(-3f, -4.2f, -8f), new(4f, 1.0f, 3.2f)),
-                (new(3f, -4.2f, 8f), new(4f, 1.0f, 3.2f))
+                (new(-8f, -4.5f, -6f), new(5.5f, 1.4f, 4.5f)),
+                (new(8f, -4.8f, -3f), new(5.0f, 1.2f, 4.0f)),
+                (new(-7f, -5.2f, 6f), new(6.0f, 1.6f, 5.0f)),
+                (new(7f, -5.5f, 8f), new(6.5f, 1.8f, 5.5f)),
+                (new(0f, -6.0f, 0f), new(8.5f, 2.0f, 7.5f)),
+                (new(-3f, -4.2f, -8f), new(4.5f, 1.0f, 3.5f)),
+                (new(3f, -4.2f, 8f), new(4.5f, 1.0f, 3.5f))
             };
             foreach (var (pos, scale) in cloudBelowData)
             {
@@ -835,7 +906,7 @@ namespace RangerCity.Lobby
             }
         }
 
-        private static void BuildFloralArch(GameObject arch)
+        private static void BuildDetailedArch(GameObject arch)
         {
             var woodColor = new Color(0.48f, 0.32f, 0.18f);
 
@@ -883,7 +954,7 @@ namespace RangerCity.Lobby
             }
         }
 
-        private static void BuildWishingWell(GameObject well)
+        private static void BuildDetailedWishingWell(GameObject well)
         {
             var woodColor = new Color(0.48f, 0.32f, 0.18f);
             var stoneColor = new Color(0.72f, 0.72f, 0.75f);
@@ -936,6 +1007,40 @@ namespace RangerCity.Lobby
             roofR.transform.localRotation = Quaternion.Euler(0, 0, -30f);
             roofR.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor * 0.8f);
             Object.Destroy(roofR.GetComponent<Collider>());
+        }
+
+        private static void CreatePathwaySign(GameObject parent, Vector3 localPos, string text)
+        {
+            var sign = new GameObject("PathwaySign");
+            sign.transform.SetParent(parent.transform, false);
+            sign.transform.localPosition = localPos;
+
+            var woodColor = new Color(0.42f, 0.28f, 0.15f);
+
+            var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            post.name = "SignPost_Collider";
+            post.transform.SetParent(sign.transform, false);
+            post.transform.localPosition = new Vector3(0, 0.4f, 0);
+            post.transform.localScale = new Vector3(0.05f, 0.4f, 0.05f);
+            post.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor);
+
+            var board = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            board.name = "SignBoard";
+            board.transform.SetParent(sign.transform, false);
+            board.transform.localPosition = new Vector3(0, 0.72f, 0);
+            board.transform.localScale = new Vector3(0.6f, 0.22f, 0.05f);
+            board.transform.localRotation = Quaternion.Euler(0, 0, Random.Range(-5f, 5f));
+            board.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor * 0.8f);
+            Object.Destroy(board.GetComponent<Collider>());
+
+            var textObj = new GameObject("SignText");
+            textObj.transform.SetParent(board.transform, false);
+            textObj.transform.localPosition = new Vector3(0, 0, -0.026f);
+            var tmp = textObj.AddComponent<TextMeshPro>();
+            tmp.text = text;
+            tmp.fontSize = 1.2f;
+            tmp.color = Color.white;
+            tmp.alignment = TextAlignmentOptions.Center;
         }
     }
 }
