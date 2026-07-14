@@ -192,19 +192,19 @@ namespace RangerCity.Lobby
 
             MonoBehaviour closestTarget = null;
             float closestDist = _punchRange;
-            var allObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
-            foreach (var obj in allObjects)
-            {
-                if (obj.gameObject == gameObject) continue;
-                var punchable = obj as IPunchable;
-                if (punchable == null) continue;
 
-                float dist = Vector3.Distance(transform.position, obj.transform.position);
-                if (dist < closestDist)
-                {
-                    closestDist = dist;
-                    closestTarget = obj;
-                }
+            var npcs = FindObjectsByType<NPCController>(FindObjectsSortMode.None);
+            foreach (var npc in npcs)
+            {
+                float dist = Vector3.Distance(transform.position, npc.transform.position);
+                if (dist < closestDist) { closestDist = dist; closestTarget = npc; }
+            }
+
+            var fakePlayers = FindObjectsByType<FakePlayerController>(FindObjectsSortMode.None);
+            foreach (var fp in fakePlayers)
+            {
+                float dist = Vector3.Distance(transform.position, fp.transform.position);
+                if (dist < closestDist) { closestDist = dist; closestTarget = fp; }
             }
 
             if (closestTarget != null)
@@ -319,15 +319,18 @@ namespace RangerCity.Lobby
             IInteractable closest = null;
             float closestDist = _interactionRange;
 
-            var allObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
-            foreach (var obj in allObjects)
+            var npcs = FindObjectsByType<NPCController>(FindObjectsSortMode.None);
+            foreach (var npc in npcs)
             {
-                if (obj.gameObject == gameObject) continue;
-                var interactable = obj as IInteractable;
-                if (interactable == null) continue;
+                float dist = Vector3.Distance(transform.position, npc.transform.position);
+                if (dist < closestDist) { closestDist = dist; closest = npc; }
+            }
 
-                float dist = Vector3.Distance(transform.position, obj.transform.position);
-                if (dist < closestDist) { closestDist = dist; closest = interactable; }
+            var fakePlayers = FindObjectsByType<FakePlayerController>(FindObjectsSortMode.None);
+            foreach (var fp in fakePlayers)
+            {
+                float dist = Vector3.Distance(transform.position, fp.transform.position);
+                if (dist < closestDist) { closestDist = dist; closest = fp; }
             }
 
             if (closest != _nearestInteractable)
