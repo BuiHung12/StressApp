@@ -1129,7 +1129,7 @@ namespace RangerCity.Lobby
                 flL.transform.SetParent(arch.transform, false);
                 flL.transform.localPosition = new Vector3(-1.1f + Random.Range(-0.05f, 0.05f), fy, Random.Range(-0.05f, 0.05f));
                 flL.transform.localScale = Vector3.one * Random.Range(0.12f, 0.22f);
-                flL.GetComponent<Renderer>().material = flowerColors[i % 2];
+                flL.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(flowerColors[i % 2]);
                 Object.Destroy(flL.GetComponent<Collider>());
 
                 var flR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -1137,7 +1137,7 @@ namespace RangerCity.Lobby
                 flR.transform.SetParent(arch.transform, false);
                 flR.transform.localPosition = new Vector3(1.1f + Random.Range(-0.05f, 0.05f), fy, Random.Range(-0.05f, 0.05f));
                 flR.transform.localScale = Vector3.one * Random.Range(0.12f, 0.22f);
-                flR.GetComponent<Renderer>().material = flowerColors[i % 2];
+                flR.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(flowerColors[i % 2]);
                 Object.Destroy(flR.GetComponent<Collider>());
             }
         }
