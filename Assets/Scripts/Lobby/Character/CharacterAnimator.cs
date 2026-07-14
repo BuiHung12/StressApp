@@ -44,7 +44,7 @@ namespace RangerCity.Lobby
         private void LateUpdate()
         {
             float speed = (transform.position - _lastPos).magnitude / Time.deltaTime;
-            _isMoving = speed > 0.1f;
+            _isMoving = speed > 0.4f;
             _lastPos = transform.position;
 
             if (_isMoving)
@@ -68,15 +68,15 @@ namespace RangerCity.Lobby
             }
             else
             {
-                // Return to idle pose
+                // Dừng hành động bật nhảy và vung tay chân ngay lập tức!
                 Vector3 pos = transform.localPosition;
-                pos.y = Mathf.Lerp(pos.y, _baseY, 8f * Time.deltaTime);
+                pos.y = _baseY;
                 transform.localPosition = pos;
 
-                if (_leftArm) _leftArm.localRotation = Quaternion.Lerp(_leftArm.localRotation, Quaternion.identity, 8f * Time.deltaTime);
-                if (_rightArm) _rightArm.localRotation = Quaternion.Lerp(_rightArm.localRotation, Quaternion.identity, 8f * Time.deltaTime);
-                if (_leftLeg) _leftLeg.localRotation = Quaternion.Lerp(_leftLeg.localRotation, Quaternion.identity, 8f * Time.deltaTime);
-                if (_rightLeg) _rightLeg.localRotation = Quaternion.Lerp(_rightLeg.localRotation, Quaternion.identity, 8f * Time.deltaTime);
+                if (_leftArm) _leftArm.localRotation = Quaternion.identity;
+                if (_rightArm) _rightArm.localRotation = Quaternion.identity;
+                if (_leftLeg) _leftLeg.localRotation = Quaternion.identity;
+                if (_rightLeg) _rightLeg.localRotation = Quaternion.identity;
             }
         }
     }
