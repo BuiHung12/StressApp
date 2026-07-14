@@ -401,10 +401,9 @@ namespace RangerCity.Lobby
             var panel = new GameObject("InteractionPanel");
             panel.transform.SetParent(parent, false);
             var panelRT = panel.AddComponent<RectTransform>();
-            panelRT.sizeDelta = new Vector2(100, 54);
+            panelRT.sizeDelta = new Vector2(54, 54);
 
-            // Punch button at X = 30
-            var punchBtnObj = CreateUIButton("PunchButton", panel.transform, new Vector2(30, 0), "", Color.clear, new Vector2(54, 54));
+            var punchBtnObj = CreateUIButton("PunchButton", panel.transform, Vector2.zero, "", Color.clear, new Vector2(54, 54));
             
             var fistIcon = new GameObject("FistIcon");
             fistIcon.transform.SetParent(punchBtnObj.transform, false);
@@ -414,31 +413,14 @@ namespace RangerCity.Lobby
             fistImg.sprite = CreateFistSprite();
             fistImg.color = Color.white;
 
-            // Talk button at X = -30
-            var talkBtnObj = CreateUIButton("TalkButton", panel.transform, new Vector2(-30, 0), "", new Color(0.25f, 0.25f, 0.35f, 0.9f), new Vector2(54, 54));
-            
-            var talkIcon = new GameObject("TalkText");
-            talkIcon.transform.SetParent(talkBtnObj.transform, false);
-            var talkRT = talkIcon.AddComponent<RectTransform>();
-            talkRT.anchorMin = Vector2.zero;
-            talkRT.anchorMax = Vector2.one;
-            talkRT.offsetMin = talkRT.offsetMax = Vector2.zero;
-            
-            var talkTxt = talkIcon.AddComponent<TextMeshProUGUI>();
-            talkTxt.text = "Hỏi";
-            talkTxt.fontSize = 18;
-            talkTxt.fontStyle = FontStyles.Bold;
-            talkTxt.alignment = TextAlignmentOptions.Center;
-            talkTxt.color = Color.white;
+            var talkBtnObj = CreateUIButton("TalkButton", panel.transform, new Vector2(9999f, 9999f), "DummyTalk", Color.clear, Vector2.one);
+            talkBtnObj.SetActive(false);
 
-            // Target name label above buttons
             var nameObj = new GameObject("TargetName");
             nameObj.transform.SetParent(panel.transform, false);
-            nameObj.transform.localPosition = new Vector3(0, 42, 0);
+            nameObj.transform.localPosition = new Vector3(9999f, 9999f, 0);
             var nameTmp = nameObj.AddComponent<TextMeshProUGUI>();
             nameTmp.text = "";
-            nameTmp.fontSize = 18;
-            nameTmp.alignment = TextAlignmentOptions.Center;
 
             panel.SetActive(false);
             return panel;
@@ -712,7 +694,7 @@ namespace RangerCity.Lobby
             if (_lines == null || _currentIndex >= _lines.Length) return;
 
             string rawText = _lines[_currentIndex];
-            _tmp.text = $"<color=#FFDD88>[ Tang Xu Yu ]</color>\n\"{rawText}\"";
+            _tmp.text = $"\"{rawText}\"";
         }
     }
 }

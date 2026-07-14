@@ -249,16 +249,6 @@ namespace RangerCity.Lobby
         {
             if (Input.GetKeyDown(KeyCode.E))
             {
-                if (_nearestInteractable != null && _nearestInteractable.CanTalk)
-                {
-                    var lobbyUI = FindAnyObjectByType<LobbyUI>();
-                    if (lobbyUI != null)
-                    {
-                        lobbyUI.StartDialogue(_nearestInteractable);
-                    }
-                    return;
-                }
-
                 float interactDist = 2.0f;
                 var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
                 GardenPlot closestPlot = null;

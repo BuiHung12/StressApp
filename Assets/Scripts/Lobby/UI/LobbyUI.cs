@@ -196,26 +196,18 @@ namespace RangerCity.Lobby
 
             if (_targetNameText != null) _targetNameText.text = target.DisplayName;
             
-            bool canTalk = target.CanTalk;
-            bool canPunch = target.CanBePunched;
-
             if (_talkButton != null)
             {
-                _talkButton.gameObject.SetActive(canTalk);
-                var talkRT = _talkButton.GetComponent<RectTransform>();
-                if (talkRT != null)
-                {
-                    talkRT.anchoredPosition = canPunch ? new Vector2(-30, 0) : new Vector2(0, 0);
-                }
+                _talkButton.gameObject.SetActive(false);
             }
 
             if (_punchButton != null)
             {
-                _punchButton.gameObject.SetActive(canPunch);
+                _punchButton.gameObject.SetActive(target.CanBePunched);
                 var punchRT = _punchButton.GetComponent<RectTransform>();
                 if (punchRT != null)
                 {
-                    punchRT.anchoredPosition = canTalk ? new Vector2(30, 0) : new Vector2(0, 0);
+                    punchRT.anchoredPosition = Vector2.zero;
                 }
             }
 
