@@ -158,6 +158,12 @@ namespace RangerCity.Lobby
             string deviceId = SystemInfo.deviceUniqueIdentifier;
             CmdSetDeviceId(deviceId);
 
+            var lobbyUI = FindAnyObjectByType<LobbyUI>();
+            if (lobbyUI != null)
+            {
+                lobbyUI.SetPlayer(_playerController);
+            }
+
             Debug.Log($"[NetworkPlayer] Local player: {savedName}, Gender:{gender}, Hair:{hairStyleIdx}, Outfit:{outfitIdx}, Pants:{pantsStyleIdx}");
         }
 

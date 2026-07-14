@@ -150,7 +150,7 @@ namespace RangerCity.Lobby
                 "Zhang Guang Yu là tri kỷ của tôi đấy, hai đứa thơm tho như nhau! 🤝"
             }, new Color(0.2f, 0.14f, 0.09f));
 
-            CreateNPC("Tang Xu Yu", "⛓️", new Vector3(-6, 0, -62.5f), new Color(0.2f, 0.4f, 0.7f), new[] {
+            CreateNPC("Tang Xu Yu", "⛓️", new Vector3(-6, 0, -61.2f), new Color(0.2f, 0.4f, 0.7f), new[] {
                 "Tôi bị nhốt rồi, tôi sai rồi... 😭",
                 "Tôi có lỗi với mọi người! 🙇‍♂️",
                 "Tôi sẵn sàng làm trâu ngựa để chuộc lỗi lầm của tôi! 🐂🐎"

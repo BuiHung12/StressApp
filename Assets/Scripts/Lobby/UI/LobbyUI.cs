@@ -117,6 +117,31 @@ namespace RangerCity.Lobby
             }
         }
 
+        public void SetPlayer(PlayerController player)
+        {
+            if (_player != null)
+            {
+                _player.OnNearInteractable -= ShowInteractionPrompt;
+                _player.OnLeaveInteractable -= HideInteractionPrompt;
+                _player.OnJailStart -= ShowJailNotification;
+                _player.OnJailEnd -= HideJailNotification;
+                _player.OnCoinsChanged -= UpdateCoinUI;
+            }
+
+            _player = player;
+
+            if (_player != null)
+            {
+                _player.OnNearInteractable += ShowInteractionPrompt;
+                _player.OnLeaveInteractable += HideInteractionPrompt;
+                _player.OnJailStart += ShowJailNotification;
+                _player.OnJailEnd += HideJailNotification;
+                _player.OnCoinsChanged += UpdateCoinUI;
+
+                UpdateCoinUI(_player.Coins);
+            }
+        }
+
         private void Update()
         {
             if (_currentTarget != null && _interactionPanel != null && _interactionPanel.activeSelf)
