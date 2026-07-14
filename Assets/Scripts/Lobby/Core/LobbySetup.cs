@@ -231,7 +231,7 @@ namespace RangerCity.Lobby
             swollen.SetActive(false);
             stars.SetActive(false);
 
-            AddNameTag(npc, name);
+            AddNameTag(npc, name, new Color(0.95f, 0.85f, 0.5f));
 
             if (name == "Tang Xu Yu")
             {
@@ -317,7 +317,7 @@ namespace RangerCity.Lobby
                 swollen.SetActive(false);
                 stars.SetActive(false);
 
-                AddNameTag(fp, fpName);
+                AddNameTag(fp, fpName, new Color(0.55f, 0.8f, 1f));
             }
         }
 
@@ -562,7 +562,7 @@ namespace RangerCity.Lobby
             return panel;
         }
 
-        private void AddNameTag(GameObject character, string nameText)
+        private void AddNameTag(GameObject character, string nameText, Color textColor)
         {
             var tag = new GameObject("NameTag");
             tag.transform.SetParent(character.transform, false);
@@ -572,7 +572,7 @@ namespace RangerCity.Lobby
             tmp.text = nameText;
             tmp.fontSize = 4;
             tmp.alignment = TextAlignmentOptions.Center;
-            tmp.color = Color.white;
+            tmp.color = textColor;
             tmp.outlineColor = Color.black;
             tmp.outlineWidth = 0.25f;
             tmp.fontStyle = FontStyles.Bold;
