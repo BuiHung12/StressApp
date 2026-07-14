@@ -43,8 +43,16 @@ namespace RangerCity.Lobby
 
         private void LateUpdate()
         {
-            float speed = (transform.position - _lastPos).magnitude / Time.deltaTime;
-            _isMoving = speed > 0.05f;
+            float displacement = (transform.position - _lastPos).magnitude;
+            
+            // Bỏ qua các sai số dịch chuyển siêu nhỏ (dưới 2 milimet) do nội suy mạng (SmoothDamp)
+            if (displacement < 0.002f)
+            {
+                displacement = 0f;
+            }
+
+            float speed = displacement / Time.deltaTime;
+            _isMoving = speed > 0.15f;
             _lastPos = transform.position;
 
             if (_isMoving)
