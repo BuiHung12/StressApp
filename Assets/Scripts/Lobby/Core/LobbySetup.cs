@@ -47,8 +47,12 @@ namespace RangerCity.Lobby
         {
             var networkSetup = gameObject.AddComponent<NetworkSetup>();
 
-            if (player.GetComponent<NetworkIdentity>() == null)
-                player.AddComponent<NetworkIdentity>();
+            var identity = player.GetComponent<NetworkIdentity>();
+            if (identity == null)
+                identity = player.AddComponent<NetworkIdentity>();
+
+            if (identity.assetId == 0)
+                identity.assetId = 424242;
 
             if (player.GetComponent<NetworkPlayer>() == null)
                 player.AddComponent<NetworkPlayer>();
