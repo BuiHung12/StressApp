@@ -520,6 +520,7 @@ namespace RangerCity.Lobby
         // ══════════════════════════════════════════════════════
 
         // Customization state
+        private int _selectedGender = 0; // 0 = Nam, 1 = Nữ
         private int _selectedHairStyle = 0;
         private int _selectedHairColor = 0;
         private int _selectedOutfitStyle = 0;
@@ -537,6 +538,7 @@ namespace RangerCity.Lobby
         private GameObject _tabOutfitContent;
         private GameObject _tabPantsContent;
         private Image[] _tabButtons;
+        private Image[] _genderButtons;
 
         // Swatch highlight refs
         private GameObject _hairStyleIndicator;
@@ -553,6 +555,7 @@ namespace RangerCity.Lobby
             if (canvas == null) return;
 
             // Load saved prefs
+            _selectedGender = PlayerPrefs.GetInt("PlayerGender", 0);
             _selectedBodyColor = PlayerPrefs.GetInt("PlayerColorIndex", 0);
             _selectedHairStyle = PlayerPrefs.GetInt("PlayerHairStyle", 0);
             _selectedHairColor = PlayerPrefs.GetInt("PlayerHairColor", 0);
@@ -620,8 +623,28 @@ namespace RangerCity.Lobby
             var rightCol = CreatePanel(card.transform, "RightCol", new Vector2(220, 25), new Vector2(440, 420));
             rightCol.GetComponent<Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.6f);
 
-            // Tab buttons row
-            var tabRow = CreatePanel(rightCol.transform, "TabRow", new Vector2(0, 192), new Vector2(420, 42));
+            // ── Gender Toggle ──
+            MakeText(rightCol.transform, "GenderLabel", "GIỚI TÍNH", 13,
+                new Vector2(0, 192), new Vector2(420, 18), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+
+            var genderRow = CreatePanel(rightCol.transform, "GenderRow", new Vector2(0, 160), new Vector2(420, 36), false);
+            genderRow.GetComponent<Image>().color = Color.clear;
+            _genderButtons = new Image[2];
+            string[] genderLabels = { "NAM", "NỮ" };
+            for (int i = 0; i < 2; i++)
+            {
+                int genderIdx = i;
+                var gBtn = CreatePanel(genderRow.transform, $"GenderBtn_{i}",
+                    new Vector2(-100 + i * 200, 0), new Vector2(180, 32), true); // RaycastTarget = true
+                _genderButtons[i] = gBtn.GetComponent<Image>();
+                var btn = gBtn.AddComponent<Button>();
+                btn.onClick.AddListener(() => { _selectedGender = genderIdx; RefreshGenderUI(); });
+                MakeText(gBtn.transform, "Label", genderLabels[i], 14,
+                    Vector2.zero, new Vector2(170, 28), TextAlignmentOptions.Center, Color.white);
+            }
+
+            // ── Tab buttons row ──
+            var tabRow = CreatePanel(rightCol.transform, "TabRow", new Vector2(0, 105), new Vector2(420, 36));
             tabRow.GetComponent<Image>().color = Color.clear;
             _tabButtons = new Image[3];
             string[] tabLabels = { "TÓC", "ÁO", "QUẦN" };
@@ -629,29 +652,32 @@ namespace RangerCity.Lobby
             {
                 int tabIdx = i;
                 var tabBtn = CreatePanel(tabRow.transform, $"Tab_{i}",
-                    new Vector2(-135 + i * 135, 0), new Vector2(130, 36), true); // RaycastTarget = true
+                    new Vector2(-135 + i * 135, 0), new Vector2(130, 32), true); // RaycastTarget = true
                 _tabButtons[i] = tabBtn.GetComponent<Image>();
                 _tabButtons[i].color = i == 0 ? new Color(0.25f, 0.45f, 0.8f, 0.9f) : new Color(0.18f, 0.18f, 0.24f, 0.8f);
                 var btn = tabBtn.AddComponent<Button>();
                 btn.onClick.AddListener(() => SwitchTab(tabIdx));
-                MakeText(tabBtn.transform, "Label", tabLabels[i], 16,
-                    Vector2.zero, new Vector2(120, 32), TextAlignmentOptions.Center, Color.white);
+                MakeText(tabBtn.transform, "Label", tabLabels[i], 15,
+                    Vector2.zero, new Vector2(120, 28), TextAlignmentOptions.Center, Color.white);
             }
 
             // Tab contents (Container panels don't intercept raycasts)
-            _tabHairContent = CreatePanel(rightCol.transform, "HairContent", new Vector2(0, 10), new Vector2(420, 320), false);
+            _tabHairContent = CreatePanel(rightCol.transform, "HairContent", new Vector2(0, -50), new Vector2(420, 270), false);
             _tabHairContent.GetComponent<Image>().color = Color.clear;
             BuildHairTab(_tabHairContent.transform);
 
-            _tabOutfitContent = CreatePanel(rightCol.transform, "OutfitContent", new Vector2(0, 10), new Vector2(420, 320), false);
+            _tabOutfitContent = CreatePanel(rightCol.transform, "OutfitContent", new Vector2(0, -50), new Vector2(420, 270), false);
             _tabOutfitContent.GetComponent<Image>().color = Color.clear;
             BuildOutfitTab(_tabOutfitContent.transform);
             _tabOutfitContent.SetActive(false);
 
-            _tabPantsContent = CreatePanel(rightCol.transform, "PantsContent", new Vector2(0, 10), new Vector2(420, 320), false);
+            _tabPantsContent = CreatePanel(rightCol.transform, "PantsContent", new Vector2(0, -50), new Vector2(420, 270), false);
             _tabPantsContent.GetComponent<Image>().color = Color.clear;
             BuildPantsTab(_tabPantsContent.transform);
             _tabPantsContent.SetActive(false);
+
+            // Trigger visual updates for loaded gender
+            RefreshGenderUI();
 
             // ═══════════════════════════════════
             //  BOTTOM — Connection Buttons
@@ -682,52 +708,54 @@ namespace RangerCity.Lobby
 
         // ── Tab Builders ──
 
+        // ── Tab Builders ──
+
         private void BuildHairTab(Transform parent)
         {
             MakeText(parent, "StyleLabel", "KIỂU TÓC", 14,
-                new Vector2(0, 140), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+                new Vector2(0, 115), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
 
             // Style grid (2 rows x 3 cols)
-            float y = 95f;
-            for (int i = 0; i < NetworkPlayer.HairStyleNames.Length; i++)
+            float y = 70f;
+            for (int i = 0; i < 6; i++)
             {
                 int idx = i;
                 int row = i / 3; int col = i % 3;
                 float x = -130f + col * 130f;
                 float yPos = y - row * 75f;
 
-                var slot = CreateStyleSlot(parent, $"Hair_{i}", NetworkPlayer.HairStyleNames[i], new Vector2(x, yPos), new Vector2(110, 66),
+                var slot = CreateStyleSlot(parent, $"Hair_{i}", NetworkPlayer.MaleHairStyleNames[i], new Vector2(x, yPos), new Vector2(110, 66),
                     i == _selectedHairStyle);
                 slot.GetComponent<Button>().onClick.AddListener(() => { _selectedHairStyle = idx; RefreshHairStyleHighlight(); UpdatePreview(); });
             }
 
             // Color row
-            y -= 155f;
+            float cy = -75f;
             MakeText(parent, "HColorLabel", "MÀU TÓC", 14,
-                new Vector2(0, y + 15), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
-            BuildColorRow(parent, NetworkPlayer.HairColorPalette, _selectedHairColor, y - 20f,
+                new Vector2(0, cy + 15), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            BuildColorRow(parent, NetworkPlayer.HairColorPalette, _selectedHairColor, cy - 20f,
                 (idx) => { _selectedHairColor = idx; UpdatePreview(); }, "HairCol");
         }
 
         private void BuildOutfitTab(Transform parent)
         {
             MakeText(parent, "StyleLabel", "KIỂU ÁO", 14,
-                new Vector2(0, 140), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+                new Vector2(0, 115), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
 
-            float y = 95f;
-            for (int i = 0; i < NetworkPlayer.OutfitStyleNames.Length; i++)
+            float y = 70f;
+            for (int i = 0; i < 5; i++)
             {
                 int idx = i;
                 int row = i / 3; int col = i % 3;
                 float x = -130f + col * 130f;
                 float yPos = y - row * 75f;
 
-                var slot = CreateStyleSlot(parent, $"Outfit_{i}", NetworkPlayer.OutfitStyleNames[i], new Vector2(x, yPos), new Vector2(110, 66),
+                var slot = CreateStyleSlot(parent, $"Outfit_{i}", NetworkPlayer.MaleOutfitStyleNames[i], new Vector2(x, yPos), new Vector2(110, 66),
                     i == _selectedOutfitStyle);
                 slot.GetComponent<Button>().onClick.AddListener(() => { _selectedOutfitStyle = idx; RefreshOutfitStyleHighlight(); UpdatePreview(); });
             }
 
-            float cy = -65f;
+            float cy = -75f;
             MakeText(parent, "OColorLabel", "MÀU ÁO", 14,
                 new Vector2(0, cy + 15), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
             BuildColorRow(parent, NetworkPlayer.BodyColorPalette, _selectedBodyColor, cy - 20f,
@@ -737,21 +765,21 @@ namespace RangerCity.Lobby
         private void BuildPantsTab(Transform parent)
         {
             MakeText(parent, "StyleLabel", "KIỂU QUẦN", 14,
-                new Vector2(0, 140), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+                new Vector2(0, 115), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
 
-            float y = 95f;
-            for (int i = 0; i < NetworkPlayer.PantsStyleNames.Length; i++)
+            float y = 70f;
+            for (int i = 0; i < 4; i++)
             {
                 int idx = i;
                 int col = i;
                 float x = -145f + col * 97f;
 
-                var slot = CreateStyleSlot(parent, $"Pants_{i}", NetworkPlayer.PantsStyleNames[i], new Vector2(x, y), new Vector2(85, 66),
+                var slot = CreateStyleSlot(parent, $"Pants_{i}", NetworkPlayer.MalePantsStyleNames[i], new Vector2(x, y), new Vector2(85, 66),
                     i == _selectedPantsStyle);
                 slot.GetComponent<Button>().onClick.AddListener(() => { _selectedPantsStyle = idx; RefreshPantsStyleHighlight(); UpdatePreview(); });
             }
 
-            float cy = -45f;
+            float cy = -75f;
             MakeText(parent, "PColorLabel", "MÀU QUẦN", 14,
                 new Vector2(0, cy + 15), new Vector2(380, 20), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
             BuildColorRow(parent, NetworkPlayer.PantsColorPalette, _selectedPantsColor, cy - 20f,
@@ -895,7 +923,70 @@ namespace RangerCity.Lobby
             Color hairColor = NetworkPlayer.HairColorPalette[Mathf.Clamp(_selectedHairColor, 0, NetworkPlayer.HairColorPalette.Length - 1)];
             Color pantsColor = NetworkPlayer.PantsColorPalette[Mathf.Clamp(_selectedPantsColor, 0, NetworkPlayer.PantsColorPalette.Length - 1)];
 
-            LobbySetup.ApplyCustomization(model, _selectedHairStyle, hairColor, _selectedOutfitStyle, bodyColor, _selectedPantsStyle, pantsColor);
+            LobbySetup.ApplyCustomization(model, _selectedGender, _selectedHairStyle, hairColor, _selectedOutfitStyle, bodyColor, _selectedPantsStyle, pantsColor);
+        }
+
+        private void RefreshGenderUI()
+        {
+            // Save immediately
+            PlayerPrefs.SetInt("PlayerGender", _selectedGender);
+            PlayerPrefs.Save();
+
+            // Highlight buttons
+            for (int i = 0; i < 2; i++)
+            {
+                if (_genderButtons[i] != null)
+                {
+                    _genderButtons[i].color = i == _selectedGender
+                        ? new Color(0.25f, 0.45f, 0.8f, 0.9f)
+                        : new Color(0.18f, 0.18f, 0.24f, 0.8f);
+                }
+            }
+
+            // Update slot labels dynamically
+            if (_tabHairContent != null)
+            {
+                for (int i = 0; i < 6; i++)
+                {
+                    var slot = _tabHairContent.transform.Find($"Hair_{i}");
+                    if (slot != null)
+                    {
+                        var tmp = slot.GetComponentInChildren<TextMeshProUGUI>();
+                        if (tmp != null)
+                            tmp.text = _selectedGender == 0 ? NetworkPlayer.MaleHairStyleNames[i] : NetworkPlayer.FemaleHairStyleNames[i];
+                    }
+                }
+            }
+
+            if (_tabOutfitContent != null)
+            {
+                for (int i = 0; i < 5; i++)
+                {
+                    var slot = _tabOutfitContent.transform.Find($"Outfit_{i}");
+                    if (slot != null)
+                    {
+                        var tmp = slot.GetComponentInChildren<TextMeshProUGUI>();
+                        if (tmp != null)
+                            tmp.text = _selectedGender == 0 ? NetworkPlayer.MaleOutfitStyleNames[i] : NetworkPlayer.FemaleOutfitStyleNames[i];
+                    }
+                }
+            }
+
+            if (_tabPantsContent != null)
+            {
+                for (int i = 0; i < 4; i++)
+                {
+                    var slot = _tabPantsContent.transform.Find($"Pants_{i}");
+                    if (slot != null)
+                    {
+                        var tmp = slot.GetComponentInChildren<TextMeshProUGUI>();
+                        if (tmp != null)
+                            tmp.text = _selectedGender == 0 ? NetworkPlayer.MalePantsStyleNames[i] : NetworkPlayer.FemalePantsStyleNames[i];
+                    }
+                }
+            }
+
+            UpdatePreview();
         }
 
         // ── Tab Switching ──
@@ -921,7 +1012,7 @@ namespace RangerCity.Lobby
         private void RefreshHairStyleHighlight()
         {
             if (_tabHairContent == null) return;
-            for (int i = 0; i < NetworkPlayer.HairStyleNames.Length; i++)
+            for (int i = 0; i < 6; i++)
             {
                 var slot = _tabHairContent.transform.Find($"Hair_{i}");
                 if (slot != null)
@@ -937,7 +1028,7 @@ namespace RangerCity.Lobby
         private void RefreshOutfitStyleHighlight()
         {
             if (_tabOutfitContent == null) return;
-            for (int i = 0; i < NetworkPlayer.OutfitStyleNames.Length; i++)
+            for (int i = 0; i < 5; i++)
             {
                 var slot = _tabOutfitContent.transform.Find($"Outfit_{i}");
                 if (slot != null)
@@ -953,7 +1044,7 @@ namespace RangerCity.Lobby
         private void RefreshPantsStyleHighlight()
         {
             if (_tabPantsContent == null) return;
-            for (int i = 0; i < NetworkPlayer.PantsStyleNames.Length; i++)
+            for (int i = 0; i < 4; i++)
             {
                 var slot = _tabPantsContent.transform.Find($"Pants_{i}");
                 if (slot != null)
@@ -972,6 +1063,7 @@ namespace RangerCity.Lobby
         {
             if (_nameInput != null)
                 PlayerPrefs.SetString("PlayerName", _nameInput.text);
+            PlayerPrefs.SetInt("PlayerGender", _selectedGender);
             PlayerPrefs.SetInt("PlayerColorIndex", _selectedBodyColor);
             PlayerPrefs.SetInt("PlayerHairStyle", _selectedHairStyle);
             PlayerPrefs.SetInt("PlayerHairColor", _selectedHairColor);

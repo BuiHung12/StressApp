@@ -22,6 +22,9 @@ namespace RangerCity.Lobby
 
         // ── Customization SyncVars ──
         [SyncVar(hook = nameof(OnAppearanceChanged))]
+        public int Gender = 0; // 0 = Male, 1 = Female
+
+        [SyncVar(hook = nameof(OnAppearanceChanged))]
         public int HairStyle = 0;
 
         [SyncVar(hook = nameof(OnAppearanceChanged))]
@@ -89,17 +92,22 @@ namespace RangerCity.Lobby
             new Color(0.75f, 0.75f, 0.78f),  // Xám nhạt
         };
 
-        // Tên kiểu tóc (dùng trong UI)
-        public static readonly string[] HairStyleNames = { "Ngắn", "Dài", "Mohawk", "Afro", "Ponytail", "Trọc" };
-        public static readonly string[] HairStyleIcons = { "💇", "💁", "🦔", "🌀", "🎀", "🥚" };
+        // Tên kiểu tóc nam / nữ (dùng trong UI)
+        public static readonly string[] MaleHairStyleNames = { "Tóc Ngắn", "Mohawk", "Afro", "Tóc Dựng", "Undercut", "Trọc" };
+        public static readonly string[] FemaleHairStyleNames = { "Đuôi Ngựa", "Tóc Dài", "Tóc Búi", "Tóc Bob", "Bím Tóc", "Xoăn Ngắn" };
 
-        // Tên kiểu áo
-        public static readonly string[] OutfitStyleNames = { "T-Shirt", "Vest", "Hoodie", "Tank Top", "Jacket" };
-        public static readonly string[] OutfitStyleIcons = { "👕", "🎽", "🧥", "🩳", "🧱" };
+        // Tên kiểu áo nam / nữ
+        public static readonly string[] MaleOutfitStyleNames = { "T-Shirt", "Vest", "Hoodie", "Ba Lỗ", "Áo Khoác" };
+        public static readonly string[] FemaleOutfitStyleNames = { "Croptop", "Đầm", "Hoodie Nữ", "Hai Dây", "Áo Khoác Nữ" };
 
-        // Tên kiểu quần
-        public static readonly string[] PantsStyleNames = { "Jeans", "Shorts", "Cargo", "Skirt" };
-        public static readonly string[] PantsStyleIcons = { "👖", "🩳", "🪖", "👗" };
+        // Tên kiểu quần nam / nữ
+        public static readonly string[] MalePantsStyleNames = { "Jeans", "Shorts", "Cargo", "Joggers" };
+        public static readonly string[] FemalePantsStyleNames = { "Skinny Jeans", "Váy Ngắn", "Shorts Nữ", "Leggings" };
+
+        // Backward compatibility
+        public static string[] HairStyleNames => MaleHairStyleNames;
+        public static string[] OutfitStyleNames => MaleOutfitStyleNames;
+        public static string[] PantsStyleNames => MalePantsStyleNames;
 
         // ── Lifecycle ──
 
@@ -121,6 +129,8 @@ namespace RangerCity.Lobby
             CmdSetDisplayName(savedName);
 
             // Đọc customization từ PlayerPrefs
+            int gender = PlayerPrefs.GetInt("PlayerGender", 0);
+
             int bodyColorIdx = PlayerPrefs.GetInt("PlayerColorIndex", 0);
             Color bodyCol = (bodyColorIdx >= 0 && bodyColorIdx < BodyColorPalette.Length)
                 ? BodyColorPalette[bodyColorIdx]
@@ -140,14 +150,14 @@ namespace RangerCity.Lobby
                 ? PantsColorPalette[pantsColorIdx]
                 : PantsColorPalette[0];
 
-            // Gửi tất cả customization lên server
-            CmdSetFullCustomization(bodyCol, hairStyleIdx, hairCol, outfitIdx, pantsStyleIdx, pantsCol);
+            // Gửi tất cả customization lên server (thêm gender)
+            CmdSetFullCustomization(gender, bodyCol, hairStyleIdx, hairCol, outfitIdx, pantsStyleIdx, pantsCol);
 
             // Gửi Device ID
             string deviceId = SystemInfo.deviceUniqueIdentifier;
             CmdSetDeviceId(deviceId);
 
-            Debug.Log($"[NetworkPlayer] Local player: {savedName}, Hair:{hairStyleIdx}, Outfit:{outfitIdx}, Pants:{pantsStyleIdx}");
+            Debug.Log($"[NetworkPlayer] Local player: {savedName}, Gender:{gender}, Hair:{hairStyleIdx}, Outfit:{outfitIdx}, Pants:{pantsStyleIdx}");
         }
 
         public override void OnStartClient()
@@ -160,8 +170,8 @@ namespace RangerCity.Lobby
                 if (pc != null) pc.enabled = false;
             }
 
-            // Apply current appearance on join (hooks chỉ fire khi giá trị thay đổi)
-            LobbySetup.ApplyCustomization(gameObject, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+            // Apply current appearance on join
+            LobbySetup.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
         }
 
         private void Update()
@@ -221,8 +231,9 @@ namespace RangerCity.Lobby
         private void CmdSetDeviceId(string id) { DeviceId = id; }
 
         [Command]
-        private void CmdSetFullCustomization(Color bodyColor, int hairStyle, Color hairColor, int outfitStyle, int pantsStyle, Color pantsColor)
+        private void CmdSetFullCustomization(int gender, Color bodyColor, int hairStyle, Color hairColor, int outfitStyle, int pantsStyle, Color pantsColor)
         {
+            Gender = gender;
             BodyColor = bodyColor;
             HairStyle = hairStyle;
             HairColor = hairColor;
@@ -261,12 +272,12 @@ namespace RangerCity.Lobby
         // Generic appearance hook — any customization SyncVar change triggers full re-apply
         private void OnAppearanceChanged(int oldVal, int newVal)
         {
-            LobbySetup.ApplyCustomization(gameObject, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+            LobbySetup.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
         }
 
         private void OnAppearanceChanged(Color oldVal, Color newVal)
         {
-            LobbySetup.ApplyCustomization(gameObject, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+            LobbySetup.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
         }
 
         // ── NPC Position/State Synchronizer ──

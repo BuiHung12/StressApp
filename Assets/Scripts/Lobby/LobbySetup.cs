@@ -2011,8 +2011,8 @@ namespace RangerCity.Lobby
             character.transform.localScale = Vector3.one * 0.45f;
             character.AddComponent<CharacterAnimator>();
 
-            // Apply defaults
-            ApplyCustomization(character, 0, new Color(0.18f, 0.12f, 0.08f), 0, bodyColor, 0, new Color(0.25f, 0.35f, 0.55f));
+            // Apply defaults (gender = 0)
+            ApplyCustomization(character, 0, 0, new Color(0.18f, 0.12f, 0.08f), 0, bodyColor, 0, new Color(0.25f, 0.35f, 0.55f));
 
             return character;
         }
@@ -2021,18 +2021,24 @@ namespace RangerCity.Lobby
         //  STATIC: Apply Customization (gọi từ NetworkPlayer hooks)
         // ══════════════════════════════════════════════
 
-        public static void ApplyCustomization(GameObject character, int hairStyle, Color hairColor, int outfitStyle, Color bodyColor, int pantsStyle, Color pantsColor)
+        public static void ApplyCustomization(GameObject character, int gender, int hairStyle, Color hairColor, int outfitStyle, Color bodyColor, int pantsStyle, Color pantsColor)
         {
             if (character == null) return;
 
-            ApplyHair(character, hairStyle, hairColor);
-            ApplyOutfit(character, outfitStyle, bodyColor);
-            ApplyPants(character, pantsStyle, pantsColor);
+            ApplyHair(character, gender, hairStyle, hairColor);
+            ApplyOutfit(character, gender, outfitStyle, bodyColor);
+            ApplyPants(character, gender, pantsStyle, pantsColor);
+        }
+
+        // Overload for backward compatibility
+        public static void ApplyCustomization(GameObject character, int hairStyle, Color hairColor, int outfitStyle, Color bodyColor, int pantsStyle, Color pantsColor)
+        {
+            ApplyCustomization(character, 0, hairStyle, hairColor, outfitStyle, bodyColor, pantsStyle, pantsColor);
         }
 
         // ── Hair Styles ──
 
-        private static void ApplyHair(GameObject character, int style, Color color)
+        private static void ApplyHair(GameObject character, int gender, int style, Color color)
         {
             var container = character.transform.Find("HairContainer");
             if (container == null) return;
@@ -2043,61 +2049,121 @@ namespace RangerCity.Lobby
 
             style = Mathf.Clamp(style, 0, 5);
 
-            switch (style)
+            if (gender == 0) // NAM (Male)
             {
-                case 0: // Short — mái ngắn gọn gàng
-                    AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
-                        new Vector3(0, 1.48f, -0.02f), new Vector3(0.42f, 0.25f, 0.42f), color);
-                    AddPrimChild(container, "HairFringe", PrimitiveType.Sphere,
-                        new Vector3(0, 1.42f, 0.18f), new Vector3(0.35f, 0.12f, 0.15f), color);
-                    break;
+                switch (style)
+                {
+                    case 0: // Tóc Ngắn
+                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.42f, 0.25f, 0.42f), color);
+                        AddPrimChild(container, "HairFringe", PrimitiveType.Sphere,
+                            new Vector3(0, 1.42f, 0.18f), new Vector3(0.35f, 0.12f, 0.15f), color);
+                        break;
 
-                case 1: // Long — tóc dài chạm vai
-                    AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
-                        new Vector3(0, 1.5f, -0.02f), new Vector3(0.48f, 0.28f, 0.46f), color);
-                    AddPrimChild(container, "HairBackL", PrimitiveType.Capsule,
-                        new Vector3(-0.12f, 1.15f, -0.1f), new Vector3(0.18f, 0.35f, 0.15f), color);
-                    AddPrimChild(container, "HairBackR", PrimitiveType.Capsule,
-                        new Vector3(0.12f, 1.15f, -0.1f), new Vector3(0.18f, 0.35f, 0.15f), color);
-                    AddPrimChild(container, "HairFringe", PrimitiveType.Sphere,
-                        new Vector3(0, 1.42f, 0.2f), new Vector3(0.38f, 0.12f, 0.12f), color);
-                    break;
+                    case 1: // Mohawk
+                        AddPrimChild(container, "MohawkBase", PrimitiveType.Cube,
+                            new Vector3(0, 1.55f, 0f), new Vector3(0.06f, 0.25f, 0.35f), color);
+                        AddPrimChild(container, "MohawkTip", PrimitiveType.Sphere,
+                            new Vector3(0, 1.7f, -0.05f), new Vector3(0.08f, 0.12f, 0.2f), color);
+                        AddPrimChild(container, "MohawkSideL", PrimitiveType.Sphere,
+                            new Vector3(-0.2f, 1.38f, 0f), new Vector3(0.08f, 0.12f, 0.3f), color * 0.7f);
+                        AddPrimChild(container, "MohawkSideR", PrimitiveType.Sphere,
+                            new Vector3(0.2f, 1.38f, 0f), new Vector3(0.08f, 0.12f, 0.3f), color * 0.7f);
+                        break;
 
-                case 2: // Mohawk — mào gà
-                    AddPrimChild(container, "MohawkBase", PrimitiveType.Cube,
-                        new Vector3(0, 1.55f, 0f), new Vector3(0.06f, 0.25f, 0.35f), color);
-                    AddPrimChild(container, "MohawkTip", PrimitiveType.Sphere,
-                        new Vector3(0, 1.7f, -0.05f), new Vector3(0.08f, 0.12f, 0.2f), color);
-                    AddPrimChild(container, "MohawkSideL", PrimitiveType.Sphere,
-                        new Vector3(-0.2f, 1.38f, 0f), new Vector3(0.08f, 0.12f, 0.3f), color * 0.7f);
-                    AddPrimChild(container, "MohawkSideR", PrimitiveType.Sphere,
-                        new Vector3(0.2f, 1.38f, 0f), new Vector3(0.08f, 0.12f, 0.3f), color * 0.7f);
-                    break;
+                    case 2: // Afro
+                        AddPrimChild(container, "AfroMain", PrimitiveType.Sphere,
+                            new Vector3(0, 1.52f, 0f), new Vector3(0.65f, 0.55f, 0.6f), color);
+                        AddPrimChild(container, "AfroFront", PrimitiveType.Sphere,
+                            new Vector3(0, 1.45f, 0.15f), new Vector3(0.5f, 0.35f, 0.25f), color * 1.1f);
+                        break;
 
-                case 3: // Afro — tóc xù phồng to
-                    AddPrimChild(container, "AfroMain", PrimitiveType.Sphere,
-                        new Vector3(0, 1.52f, 0f), new Vector3(0.65f, 0.55f, 0.6f), color);
-                    AddPrimChild(container, "AfroFront", PrimitiveType.Sphere,
-                        new Vector3(0, 1.45f, 0.15f), new Vector3(0.5f, 0.35f, 0.25f), color * 1.1f);
-                    break;
+                    case 3: // Tóc Dựng (Spiky)
+                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
+                            new Vector3(0, 1.46f, -0.02f), new Vector3(0.42f, 0.23f, 0.42f), color);
+                        AddPrimChild(container, "Spike1", PrimitiveType.Cube,
+                            new Vector3(0f, 1.58f, 0.05f), new Vector3(0.08f, 0.15f, 0.08f), color);
+                        AddPrimChild(container, "Spike2", PrimitiveType.Cube,
+                            new Vector3(-0.09f, 1.54f, 0f), new Vector3(0.08f, 0.15f, 0.08f), color);
+                        AddPrimChild(container, "Spike3", PrimitiveType.Cube,
+                            new Vector3(0.09f, 1.54f, 0f), new Vector3(0.08f, 0.15f, 0.08f), color);
+                        break;
 
-                case 4: // Ponytail — đuôi ngựa
-                    AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
-                        new Vector3(0, 1.48f, -0.02f), new Vector3(0.44f, 0.25f, 0.42f), color);
-                    AddPrimChild(container, "Ponytail", PrimitiveType.Capsule,
-                        new Vector3(0, 1.25f, -0.2f), new Vector3(0.1f, 0.28f, 0.1f), color);
-                    AddPrimChild(container, "PonytailBand", PrimitiveType.Sphere,
-                        new Vector3(0, 1.38f, -0.18f), new Vector3(0.12f, 0.06f, 0.12f), color * 0.6f);
-                    break;
+                    case 4: // Undercut
+                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.42f, 0.25f, 0.42f), color);
+                        AddPrimChild(container, "UndercutSwept", PrimitiveType.Cube,
+                            new Vector3(0.05f, 1.45f, 0.12f), new Vector3(0.32f, 0.08f, 0.18f), color * 0.9f);
+                        break;
 
-                case 5: // Bald — trọc (không thêm gì)
-                    break;
+                    case 5: // Trọc
+                        break;
+                }
+            }
+            else // NỮ (Female)
+            {
+                switch (style)
+                {
+                    case 0: // Đuôi Ngựa
+                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.44f, 0.25f, 0.42f), color);
+                        AddPrimChild(container, "Ponytail", PrimitiveType.Capsule,
+                            new Vector3(0, 1.25f, -0.2f), new Vector3(0.1f, 0.28f, 0.1f), color);
+                        AddPrimChild(container, "PonytailBand", PrimitiveType.Sphere,
+                            new Vector3(0, 1.38f, -0.18f), new Vector3(0.12f, 0.06f, 0.12f), color * 0.6f);
+                        break;
+
+                    case 1: // Tóc Dài
+                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
+                            new Vector3(0, 1.5f, -0.02f), new Vector3(0.48f, 0.28f, 0.46f), color);
+                        AddPrimChild(container, "HairBackL", PrimitiveType.Capsule,
+                            new Vector3(-0.12f, 1.15f, -0.1f), new Vector3(0.18f, 0.35f, 0.15f), color);
+                        AddPrimChild(container, "HairBackR", PrimitiveType.Capsule,
+                            new Vector3(0.12f, 1.15f, -0.1f), new Vector3(0.18f, 0.35f, 0.15f), color);
+                        AddPrimChild(container, "HairFringe", PrimitiveType.Sphere,
+                            new Vector3(0, 1.42f, 0.2f), new Vector3(0.38f, 0.12f, 0.12f), color);
+                        break;
+
+                    case 2: // Tóc Búi (Bun)
+                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.44f, 0.25f, 0.42f), color);
+                        AddPrimChild(container, "Bun", PrimitiveType.Sphere,
+                            new Vector3(0f, 1.62f, -0.08f), new Vector3(0.2f, 0.2f, 0.2f), color);
+                        break;
+
+                    case 3: // Tóc Bob
+                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.46f, 0.26f, 0.44f), color);
+                        AddPrimChild(container, "BobL", PrimitiveType.Sphere,
+                            new Vector3(-0.16f, 1.3f, 0.02f), new Vector3(0.18f, 0.25f, 0.18f), color);
+                        AddPrimChild(container, "BobR", PrimitiveType.Sphere,
+                            new Vector3(0.16f, 1.3f, 0.02f), new Vector3(0.18f, 0.25f, 0.18f), color);
+                        break;
+
+                    case 4: // Bím Tóc (Braids)
+                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.44f, 0.25f, 0.42f), color);
+                        AddPrimChild(container, "BraidL", PrimitiveType.Capsule,
+                            new Vector3(-0.16f, 1.1f, 0.06f), new Vector3(0.08f, 0.24f, 0.08f), color);
+                        AddPrimChild(container, "BraidR", PrimitiveType.Capsule,
+                            new Vector3(0.16f, 1.1f, 0.06f), new Vector3(0.08f, 0.24f, 0.08f), color);
+                        break;
+
+                    case 5: // Xoăn Ngắn (Curly short)
+                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.45f, 0.26f, 0.44f), color);
+                        AddPrimChild(container, "Curl1", PrimitiveType.Sphere,
+                            new Vector3(-0.12f, 1.32f, -0.1f), new Vector3(0.12f, 0.12f, 0.12f), color * 0.9f);
+                        AddPrimChild(container, "Curl2", PrimitiveType.Sphere,
+                            new Vector3(0.12f, 1.32f, -0.1f), new Vector3(0.12f, 0.12f, 0.12f), color * 0.9f);
+                        break;
+                }
             }
         }
 
         // ── Outfit Styles ──
 
-        private static void ApplyOutfit(GameObject character, int style, Color color)
+        private static void ApplyOutfit(GameObject character, int gender, int style, Color color)
         {
             var container = character.transform.Find("TorsoContainer");
             if (container == null) return;
@@ -2109,25 +2175,39 @@ namespace RangerCity.Lobby
 
             switch (style)
             {
-                case 0: // T-Shirt — áo thun đơn giản
+                case 0: // T-Shirt / Croptop
+                    float scaleY = gender == 0 ? 0.45f : 0.35f; // Nữ mặc croptop ngắn hơn
+                    float posY = gender == 0 ? 0.7f : 0.78f;
                     AddPrimChild(container, "Torso", PrimitiveType.Capsule,
-                        new Vector3(0, 0.7f, 0), new Vector3(0.4f, 0.45f, 0.25f), color);
+                        new Vector3(0, posY, 0), new Vector3(0.4f, scaleY, 0.25f), color);
                     break;
 
-                case 1: // Vest — áo vest có cổ
-                    AddPrimChild(container, "Torso", PrimitiveType.Capsule,
-                        new Vector3(0, 0.7f, 0), new Vector3(0.4f, 0.45f, 0.25f), color);
-                    AddPrimChild(container, "CollarL", PrimitiveType.Cube,
-                        new Vector3(-0.12f, 1.05f, 0.08f), new Vector3(0.1f, 0.12f, 0.06f), color * 0.8f);
-                    AddPrimChild(container, "CollarR", PrimitiveType.Cube,
-                        new Vector3(0.12f, 1.05f, 0.08f), new Vector3(0.1f, 0.12f, 0.06f), color * 0.8f);
-                    AddPrimChild(container, "VestButton", PrimitiveType.Sphere,
-                        new Vector3(0, 0.8f, 0.13f), new Vector3(0.04f, 0.04f, 0.02f), Color.white);
-                    AddPrimChild(container, "VestButton2", PrimitiveType.Sphere,
-                        new Vector3(0, 0.65f, 0.13f), new Vector3(0.04f, 0.04f, 0.02f), Color.white);
+                case 1: // Vest / Đầm (Dress)
+                    if (gender == 0) // Nam mặc Vest
+                    {
+                        AddPrimChild(container, "Torso", PrimitiveType.Capsule,
+                            new Vector3(0, 0.7f, 0), new Vector3(0.4f, 0.45f, 0.25f), color);
+                        AddPrimChild(container, "CollarL", PrimitiveType.Cube,
+                            new Vector3(-0.12f, 1.05f, 0.08f), new Vector3(0.1f, 0.12f, 0.06f), color * 0.8f);
+                        AddPrimChild(container, "CollarR", PrimitiveType.Cube,
+                            new Vector3(0.12f, 1.05f, 0.08f), new Vector3(0.1f, 0.12f, 0.06f), color * 0.8f);
+                        AddPrimChild(container, "VestButton", PrimitiveType.Sphere,
+                            new Vector3(0, 0.8f, 0.13f), new Vector3(0.04f, 0.04f, 0.02f), Color.white);
+                        AddPrimChild(container, "VestButton2", PrimitiveType.Sphere,
+                            new Vector3(0, 0.65f, 0.13f), new Vector3(0.04f, 0.04f, 0.02f), Color.white);
+                    }
+                    else // Nữ mặc Đầm
+                    {
+                        // Upper torso
+                        AddPrimChild(container, "Torso", PrimitiveType.Capsule,
+                            new Vector3(0, 0.75f, 0), new Vector3(0.38f, 0.38f, 0.23f), color);
+                        // Flared dress skirt bottom
+                        AddPrimChild(container, "DressSkirt", PrimitiveType.Cylinder,
+                            new Vector3(0, 0.42f, 0), new Vector3(0.42f, 0.2f, 0.42f), color);
+                    }
                     break;
 
-                case 2: // Hoodie — áo hoodie có mũ
+                case 2: // Hoodie
                     AddPrimChild(container, "Torso", PrimitiveType.Capsule,
                         new Vector3(0, 0.7f, 0), new Vector3(0.42f, 0.47f, 0.27f), color);
                     AddPrimChild(container, "Hood", PrimitiveType.Sphere,
@@ -2136,16 +2216,16 @@ namespace RangerCity.Lobby
                         new Vector3(0, 0.55f, 0.13f), new Vector3(0.2f, 0.1f, 0.04f), color * 0.85f);
                     break;
 
-                case 3: // Tank Top — áo ba lỗ
+                case 3: // Tank Top / Hai Dây
                     AddPrimChild(container, "Torso", PrimitiveType.Capsule,
                         new Vector3(0, 0.7f, 0), new Vector3(0.36f, 0.43f, 0.22f), color);
                     AddPrimChild(container, "StrapL", PrimitiveType.Cube,
-                        new Vector3(-0.12f, 1.0f, 0.02f), new Vector3(0.06f, 0.15f, 0.04f), color);
+                        new Vector3(-0.12f, 1.0f, 0.02f), new Vector3(0.04f, 0.15f, 0.04f), color);
                     AddPrimChild(container, "StrapR", PrimitiveType.Cube,
-                        new Vector3(0.12f, 1.0f, 0.02f), new Vector3(0.06f, 0.15f, 0.04f), color);
+                        new Vector3(0.12f, 1.0f, 0.02f), new Vector3(0.04f, 0.15f, 0.04f), color);
                     break;
 
-                case 4: // Jacket — áo khoác dài
+                case 4: // Jacket
                     AddPrimChild(container, "Torso", PrimitiveType.Capsule,
                         new Vector3(0, 0.7f, 0), new Vector3(0.44f, 0.48f, 0.28f), color);
                     AddPrimChild(container, "JacketCollar", PrimitiveType.Cube,
@@ -2162,7 +2242,7 @@ namespace RangerCity.Lobby
 
         // ── Pants Styles ──
 
-        private static void ApplyPants(GameObject character, int style, Color color)
+        private static void ApplyPants(GameObject character, int gender, int style, Color color)
         {
             var container = character.transform.Find("LegsContainer");
             if (container == null) return;
@@ -2174,44 +2254,66 @@ namespace RangerCity.Lobby
 
             switch (style)
             {
-                case 0: // Jeans — quần dài tiêu chuẩn
+                case 0: // Jeans / Skinny Jeans
                     AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
                         new Vector3(-0.1f, 0.22f, 0), new Vector3(0.14f, 0.25f, 0.14f), color);
                     AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
                         new Vector3(0.1f, 0.22f, 0), new Vector3(0.14f, 0.25f, 0.14f), color);
                     break;
 
-                case 1: // Shorts — quần đùi
-                    AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                        new Vector3(-0.1f, 0.28f, 0), new Vector3(0.15f, 0.18f, 0.15f), color);
-                    AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                        new Vector3(0.1f, 0.28f, 0), new Vector3(0.15f, 0.18f, 0.15f), color);
-                    // Exposed skin below shorts
-                    AddPrimChild(container, "LeftShin", PrimitiveType.Capsule,
-                        new Vector3(-0.1f, 0.12f, 0), new Vector3(0.1f, 0.12f, 0.1f), new Color(1f, 0.88f, 0.7f));
-                    AddPrimChild(container, "RightShin", PrimitiveType.Capsule,
-                        new Vector3(0.1f, 0.12f, 0), new Vector3(0.1f, 0.12f, 0.1f), new Color(1f, 0.88f, 0.7f));
+                case 1: // Shorts / Váy Ngắn (Skirt)
+                    if (gender == 0) // Nam mặc shorts
+                    {
+                        AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(-0.1f, 0.28f, 0), new Vector3(0.15f, 0.18f, 0.15f), color);
+                        AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0.1f, 0.28f, 0), new Vector3(0.15f, 0.18f, 0.15f), color);
+                        AddPrimChild(container, "LeftShin", PrimitiveType.Capsule,
+                            new Vector3(-0.1f, 0.12f, 0), new Vector3(0.1f, 0.12f, 0.1f), new Color(1f, 0.88f, 0.7f));
+                        AddPrimChild(container, "RightShin", PrimitiveType.Capsule,
+                            new Vector3(0.1f, 0.12f, 0), new Vector3(0.1f, 0.12f, 0.1f), new Color(1f, 0.88f, 0.7f));
+                    }
+                    else // Nữ mặc váy ngắn
+                    {
+                        AddPrimChild(container, "Skirt", PrimitiveType.Cylinder,
+                            new Vector3(0, 0.32f, 0), new Vector3(0.32f, 0.15f, 0.32f), color);
+                        AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(-0.08f, 0.12f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
+                        AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0.08f, 0.12f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
+                    }
                     break;
 
-                case 2: // Cargo — quần cargo rộng có túi
-                    AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                        new Vector3(-0.1f, 0.22f, 0), new Vector3(0.16f, 0.25f, 0.16f), color);
-                    AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                        new Vector3(0.1f, 0.22f, 0), new Vector3(0.16f, 0.25f, 0.16f), color);
-                    // Cargo pockets
-                    AddPrimChild(container, "PocketL", PrimitiveType.Cube,
-                        new Vector3(-0.18f, 0.22f, 0.02f), new Vector3(0.06f, 0.1f, 0.06f), color * 0.85f);
-                    AddPrimChild(container, "PocketR", PrimitiveType.Cube,
-                        new Vector3(0.18f, 0.22f, 0.02f), new Vector3(0.06f, 0.1f, 0.06f), color * 0.85f);
+                case 2: // Cargo / Shorts Nữ
+                    if (gender == 0) // Cargo
+                    {
+                        AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(-0.1f, 0.22f, 0), new Vector3(0.16f, 0.25f, 0.16f), color);
+                        AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0.1f, 0.22f, 0), new Vector3(0.16f, 0.25f, 0.16f), color);
+                        AddPrimChild(container, "PocketL", PrimitiveType.Cube,
+                            new Vector3(-0.18f, 0.22f, 0.02f), new Vector3(0.06f, 0.1f, 0.06f), color * 0.85f);
+                        AddPrimChild(container, "PocketR", PrimitiveType.Cube,
+                            new Vector3(0.18f, 0.22f, 0.02f), new Vector3(0.06f, 0.1f, 0.06f), color * 0.85f);
+                    }
+                    else // Shorts Nữ
+                    {
+                        AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(-0.1f, 0.32f, 0), new Vector3(0.14f, 0.14f, 0.14f), color);
+                        AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0.1f, 0.32f, 0), new Vector3(0.14f, 0.14f, 0.14f), color);
+                        AddPrimChild(container, "LeftShin", PrimitiveType.Capsule,
+                            new Vector3(-0.1f, 0.12f, 0), new Vector3(0.09f, 0.15f, 0.09f), new Color(1f, 0.88f, 0.7f));
+                        AddPrimChild(container, "RightShin", PrimitiveType.Capsule,
+                            new Vector3(0.1f, 0.12f, 0), new Vector3(0.09f, 0.15f, 0.09f), new Color(1f, 0.88f, 0.7f));
+                    }
                     break;
 
-                case 3: // Skirt — váy
-                    AddPrimChild(container, "Skirt", PrimitiveType.Cylinder,
-                        new Vector3(0, 0.32f, 0), new Vector3(0.32f, 0.15f, 0.32f), color);
+                case 3: // Joggers / Leggings
                     AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                        new Vector3(-0.08f, 0.12f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
+                        new Vector3(-0.1f, 0.22f, 0), new Vector3(0.13f, 0.25f, 0.13f), color);
                     AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                        new Vector3(0.08f, 0.12f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
+                        new Vector3(0.1f, 0.22f, 0), new Vector3(0.13f, 0.25f, 0.13f), color);
                     break;
             }
         }
