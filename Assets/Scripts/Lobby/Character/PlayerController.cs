@@ -136,7 +136,7 @@ namespace RangerCity.Lobby
                 if (groundPlane.Raycast(ray, out float dist))
                 {
                     _moveTarget = ray.GetPoint(dist);
-                    _moveTarget.y = 0f;
+                    _moveTarget.y = 0.03f;
                     _isClickMoving = true;
                 }
             }
@@ -219,7 +219,7 @@ namespace RangerCity.Lobby
         private void GoToJail()
         {
             float jailDuration = 15f;
-            transform.position = new Vector3(2f, 0.05f, -62f);
+            transform.position = new Vector3(2f, 0.03f, -62f);
             _isJailed = true;
             _jailTimer = jailDuration;
             _isClickMoving = false;
@@ -232,8 +232,8 @@ namespace RangerCity.Lobby
         {
             _isJailed = false;
             var lobbyPortal = _prisonPortal ?? GameObject.Find("PrisonPortal");
-            Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(0, 0, 1.2f) : new Vector3(0, 0.05f, -9.5f);
-            dest.y = 0.05f;
+            Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(0, 0, 1.2f) : new Vector3(0, 0.03f, -9.5f);
+            dest.y = 0.03f;
             transform.position = dest;
             _teleportCooldownTimer = 1.0f;
             OnJailEnd?.Invoke();

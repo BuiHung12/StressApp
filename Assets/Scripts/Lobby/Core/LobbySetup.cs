@@ -123,7 +123,7 @@ namespace RangerCity.Lobby
         private GameObject CreatePlayer()
         {
             var player = CharacterVisuals.CreateCharacterTopDown("Player", new Color(0.26f, 0.65f, 0.96f), new Color(1f, 0.88f, 0.7f));
-            player.transform.position = new Vector3(0, 0, -3);
+            player.transform.position = new Vector3(0, 0.03f, -3);
             player.AddComponent<PlayerController>();
             player.tag = "Player";
             return player;
@@ -131,36 +131,36 @@ namespace RangerCity.Lobby
 
         private void CreateNPCs()
         {
-            CreateNPC("Chief Rosa", "👩‍✈️", new Vector3(-5, 0, 4), new Color(0.81f, 0.58f, 0.86f), new[] {
+            CreateNPC("Chief Rosa", "👩‍✈️", new Vector3(-5, 0.03f, 4), new Color(0.81f, 0.58f, 0.86f), new[] {
                 "Chào mừng Junior Ranger! 🌟",
                 "Tôi là Chief Rosa, người hướng dẫn.",
                 "Hãy khám phá sảnh chờ nhé! 💪",
             });
 
-            CreateNPC("Sr. Stoplight", "🚦", new Vector3(5, 0, 4), new Color(0.4f, 0.73f, 0.42f), new[] {
+            CreateNPC("Sr. Stoplight", "🚦", new Vector3(5, 0.03f, 4), new Color(0.4f, 0.73f, 0.42f), new[] {
                 "Xin chào! Tôi là Señor Stoplight! 🚦",
                 "Đèn đỏ = DỪNG, đèn xanh = ĐI! 🔴🟢",
                 "Kiên nhẫn là chìa khóa! ⏰",
             });
 
-            CreateNPC("Milo", "🧑‍🍳", new Vector3(-3, 0, -6), new Color(1f, 0.72f, 0.3f), new[] {
+            CreateNPC("Milo", "🧑‍🍳", new Vector3(-3, 0.03f, -6), new Color(1f, 0.72f, 0.3f), new[] {
                 "Chào! Tôi là Milo, chủ cửa hàng! 🛒",
                 "Quay lại khi có Ranger Coins nhé! 💰",
             });
 
-            CreateNPC("Zhang Guang Yu", "🦨", new Vector3(-6, 0, -2), new Color(0.12f, 0.12f, 0.12f), new[] {
+            CreateNPC("Zhang Guang Yu", "🦨", new Vector3(-6, 0.03f, -2), new Color(0.12f, 0.12f, 0.12f), new[] {
                 "Chào bồ! Tôi là Zhang Guang Yu đây!",
                 "Đừng đứng gần tôi quá, tôi chưa tắm 3 tuần rồi...",
                 "Người ta bảo tôi đen hôi, nhưng tôi thấy mình men lỳ!"
             }, new Color(0.25f, 0.18f, 0.12f));
 
-            CreateNPC("Yan Min Sheng", "😷", new Vector3(6, 0, -2), new Color(0.15f, 0.1f, 0.08f), new[] {
+            CreateNPC("Yan Min Sheng", "😷", new Vector3(6, 0.03f, -2), new Color(0.15f, 0.1f, 0.08f), new[] {
                 "Yan Min Sheng xin chào! Chắc bạn ngửi thấy mùi tôi rồi nhỉ?",
                 "Nước hoa tốt nhất là mùi mồ hôi tự nhiên!",
                 "Zhang Guang Yu là tri kỷ của tôi đấy, hai đứa thơm tho như nhau!"
             }, new Color(0.2f, 0.14f, 0.09f));
 
-            CreateNPC("Tang Xu Yu", "⛓️", new Vector3(-6, 0, -61.2f), new Color(0.2f, 0.4f, 0.7f), new[] {
+            CreateNPC("Tang Xu Yu", "⛓️", new Vector3(-6, 0.03f, -61.2f), new Color(0.2f, 0.4f, 0.7f), new[] {
                 "Tôi bị nhốt rồi, tôi sai rồi...",
                 "Tôi có lỗi với mọi người!",
                 "Tôi sẵn sàng làm trâu ngựa để chuộc lỗi lầm của tôi!"
@@ -171,7 +171,7 @@ namespace RangerCity.Lobby
         {
             Color skinCol = skinColor ?? new Color(1f, 0.88f, 0.7f);
             var npc = CharacterVisuals.CreateCharacterTopDown(name, bodyColor, skinCol);
-            npc.transform.position = pos;
+            npc.transform.position = new Vector3(pos.x, 0.03f, pos.z);
 
             var ctrl = npc.AddComponent<NPCController>();
             SetField(ctrl, "_displayName", name);
@@ -258,7 +258,7 @@ namespace RangerCity.Lobby
             foreach (var (fpName, pos, color, greetings) in data)
             {
                 var fp = CharacterVisuals.CreateCharacterTopDown(fpName, color, new Color(1f, 0.88f, 0.7f));
-                fp.transform.position = pos;
+                fp.transform.position = new Vector3(pos.x, 0.03f, pos.z);
 
                 var ctrl = fp.AddComponent<FakePlayerController>();
                 SetField(ctrl, "_displayName", fpName);
