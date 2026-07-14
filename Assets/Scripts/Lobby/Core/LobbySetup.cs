@@ -178,8 +178,8 @@ namespace RangerCity.Lobby
             SetField(ctrl, "_avatarEmoji", emoji);
             SetField(ctrl, "_dialogueLines", dialogues);
             SetField(ctrl, "_moveSpeed", 1.2f);
-            SetField(ctrl, "_wanderPauseMin", 5f);
-            SetField(ctrl, "_wanderPauseMax", 10f);
+            SetField(ctrl, "_wanderPauseMin", 1f);
+            SetField(ctrl, "_wanderPauseMax", 3f);
             SetField(ctrl, "_wanderRadius", wanderRadius);
 
             var swollen = new GameObject("SwollenFace");
@@ -263,9 +263,9 @@ namespace RangerCity.Lobby
                 var ctrl = fp.AddComponent<FakePlayerController>();
                 SetField(ctrl, "_displayName", fpName);
                 SetField(ctrl, "_greetings", greetings);
-                SetField(ctrl, "_moveSpeed", 0.35f);
-                SetField(ctrl, "_pauseMin", 5f);
-                SetField(ctrl, "_pauseMax", 10f);
+                SetField(ctrl, "_moveSpeed", 1.2f);
+                SetField(ctrl, "_pauseMin", 1f);
+                SetField(ctrl, "_pauseMax", 3f);
                 SetField(ctrl, "_wanderRadius", 4f);
 
                 var swollen = new GameObject("SwollenFace");
