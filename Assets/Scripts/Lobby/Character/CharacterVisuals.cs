@@ -550,5 +550,10 @@ namespace RangerCity.Lobby
 
             return mat;
         }
+
+        private static void Destroy(UnityEngine.Object obj)
+        {
+            UnityEngine.Object.Destroy(obj);
+        }
     }
 }

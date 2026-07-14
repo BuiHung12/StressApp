@@ -14,9 +14,9 @@ def main():
     print("Connecting...")
     client.connect(SERVER, port=22, username=USER, password=PASSWORD, timeout=15)
     
-    print("Cleaning old remote files...")
-    # Clean the remote directory to avoid duplicates
-    stdin, stdout, stderr = client.exec_command(f"rm -rf {REMOTE_DIR}/*")
+    print("Cleaning old remote C# files...")
+    # Clean the remote directory C# files to avoid duplicates
+    stdin, stdout, stderr = client.exec_command(f"find {REMOTE_DIR} -type f -name '*.cs' -delete")
     stdout.read() # Wait for completion
 
     sftp = client.open_sftp()

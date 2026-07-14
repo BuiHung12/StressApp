@@ -49,6 +49,7 @@ namespace RangerCity.Lobby
 
         private PlayerController _playerController;
         private float _syncTimer;
+        private float _syncTimerLocal;
         private Vector3 _smoothVelocity;
 
         // ── Preset Palettes ──
@@ -171,34 +172,48 @@ namespace RangerCity.Lobby
             }
 
             // Apply current appearance on join
-            LobbySetup.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+            CharacterVisuals.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
         }
 
         private void Update()
         {
             if (netIdentity == null || netIdentity.netId == 0) return;
 
-            if (isLocalPlayer)
+            // Broadcast the positions and rotations of all NPCs from the server
+            // Run only from the first player instance to avoid redundant network updates
+            if (isServer && IsFirstServerPlayer())
             {
                 _syncTimer += Time.deltaTime;
                 if (_syncTimer >= _syncInterval)
                 {
                     _syncTimer = 0f;
-                    CmdSyncPosition(transform.position, transform.eulerAngles.y, IsMoving());
+                    SyncNPCsToServer();
+                }
+            }
 
-                    // If we are the Host (Server), also broadcast the positions of all NPCs!
-                    if (isServer)
-                    {
-                        SyncNPCsToServer();
-                    }
+            if (isLocalPlayer)
+            {
+                _syncTimerLocal += Time.deltaTime;
+                if (_syncTimerLocal >= _syncInterval)
+                {
+                    _syncTimerLocal = 0f;
+                    CmdSyncPosition(transform.position, transform.eulerAngles.y, IsMoving());
                 }
             }
             else
             {
                 transform.position = Vector3.SmoothDamp(
                     transform.position, _syncPosition, ref _smoothVelocity, 0.1f);
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, _syncRotationY, 0), Time.deltaTime * 10f);
                 UpdateRemoteAnimation();
             }
+        }
+
+        private bool IsFirstServerPlayer()
+        {
+            var players = FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None);
+            if (players == null || players.Length == 0) return false;
+            return players[0] == this;
         }
 
         private bool IsMoving()
@@ -272,12 +287,12 @@ namespace RangerCity.Lobby
         // Generic appearance hook — any customization SyncVar change triggers full re-apply
         private void OnAppearanceChanged(int oldVal, int newVal)
         {
-            LobbySetup.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+            CharacterVisuals.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
         }
 
         private void OnAppearanceChanged(Color oldVal, Color newVal)
         {
-            LobbySetup.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+            CharacterVisuals.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
         }
 
         // ── NPC Position/State Synchronizer ──

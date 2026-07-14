@@ -19,6 +19,8 @@ namespace RangerCity.Lobby
         // Preview
         private GameObject _previewCharacter;
         private float _previewRotation = 0f;
+        private Camera _previewCamera;
+        private RenderTexture _previewRT;
 
         // Tab UI
         private int _activeTab = 0; // 0=hair, 1=outfit, 2=pants

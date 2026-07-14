@@ -107,6 +107,7 @@ namespace RangerCity.Lobby
             {
                 _isClickMoving = false;
                 _lastMoveDir = dir;
+                transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 12f);
 
                 Vector3 targetPosX = ClampToWorld(transform.position + new Vector3(dir.x, 0, 0) * _moveSpeed * Time.deltaTime);
                 if (IsValidPosition(targetPosX)) transform.position = targetPosX;
@@ -148,6 +149,7 @@ namespace RangerCity.Lobby
                 if (dir.magnitude > 0.15f)
                 {
                     Vector3 moveDir = dir.normalized;
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDir), Time.deltaTime * 12f);
                     bool moved = false;
 
                     Vector3 targetPosX = ClampToWorld(transform.position + new Vector3(moveDir.x, 0, 0) * _moveSpeed * Time.deltaTime);

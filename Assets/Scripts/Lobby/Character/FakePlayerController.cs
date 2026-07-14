@@ -75,7 +75,9 @@ namespace RangerCity.Lobby
 
                 if (dir.magnitude > 0.2f)
                 {
-                    Vector3 nextPos = transform.position + dir.normalized * _moveSpeed * Time.deltaTime;
+                    Vector3 moveDir = dir.normalized;
+                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDir), Time.deltaTime * 8f);
+                    Vector3 nextPos = transform.position + moveDir * _moveSpeed * Time.deltaTime;
                     if (IsValidPosition(nextPos))
                     {
                         transform.position = nextPos;
