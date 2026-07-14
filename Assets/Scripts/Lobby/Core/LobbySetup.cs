@@ -149,15 +149,15 @@ namespace RangerCity.Lobby
             });
 
             CreateNPC("Zhang Guang Yu", "🦨", new Vector3(-6, 0, -2), new Color(0.12f, 0.12f, 0.12f), new[] {
-                "Chào bồ! Tôi là Zhang Guang Yu đây! 💨",
-                "Đừng đứng gần tôi quá, tôi chưa tắm 3 tuần rồi... 🦨",
-                "Người ta bảo tôi đen hôi, nhưng tôi thấy mình men lỳ! 😎"
+                "Chào bồ! Tôi là Zhang Guang Yu đây!",
+                "Đừng đứng gần tôi quá, tôi chưa tắm 3 tuần rồi...",
+                "Người ta bảo tôi đen hôi, nhưng tôi thấy mình men lỳ!"
             }, new Color(0.25f, 0.18f, 0.12f));
 
             CreateNPC("Yan Min Sheng", "😷", new Vector3(6, 0, -2), new Color(0.15f, 0.1f, 0.08f), new[] {
-                "Yan Min Sheng xin chào! Chắc bạn ngửi thấy mùi tôi rồi nhỉ? 😷",
-                "Nước hoa tốt nhất là mùi mồ hôi tự nhiên! 💦",
-                "Zhang Guang Yu là tri kỷ của tôi đấy, hai đứa thơm tho như nhau! 🤝"
+                "Yan Min Sheng xin chào! Chắc bạn ngửi thấy mùi tôi rồi nhỉ?",
+                "Nước hoa tốt nhất là mùi mồ hôi tự nhiên!",
+                "Zhang Guang Yu là tri kỷ của tôi đấy, hai đứa thơm tho như nhau!"
             }, new Color(0.2f, 0.14f, 0.09f));
 
             CreateNPC("Tang Xu Yu", "⛓️", new Vector3(-6, 0, -61.2f), new Color(0.2f, 0.4f, 0.7f), new[] {
@@ -177,7 +177,7 @@ namespace RangerCity.Lobby
             SetField(ctrl, "_displayName", name);
             SetField(ctrl, "_avatarEmoji", emoji);
             SetField(ctrl, "_dialogueLines", dialogues);
-            SetField(ctrl, "_moveSpeed", 0.3f);
+            SetField(ctrl, "_moveSpeed", 1.2f);
             SetField(ctrl, "_wanderPauseMin", 5f);
             SetField(ctrl, "_wanderPauseMax", 10f);
             SetField(ctrl, "_wanderRadius", wanderRadius);
@@ -233,7 +233,7 @@ namespace RangerCity.Lobby
 
             AddNameTag(npc, name, new Color(0.95f, 0.85f, 0.5f));
 
-            if (name == "Tang Xu Yu")
+            if (name == "Tang Xu Yu" || name == "Zhang Guang Yu" || name == "Yan Min Sheng")
             {
                 var bubbleObj = new GameObject("DialogueBubble");
                 bubbleObj.transform.SetParent(npc.transform, false);
