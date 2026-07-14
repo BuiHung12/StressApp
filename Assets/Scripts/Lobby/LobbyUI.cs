@@ -583,7 +583,7 @@ namespace RangerCity.Lobby
             // ── Title bar ──
             var titleBar = CreatePanel(card.transform, "TitleBar", new Vector2(0, 295), new Vector2(960, 48));
             titleBar.GetComponent<Image>().color = new Color(0.08f, 0.09f, 0.14f, 0.9f);
-            var titleTxt = MakeText(titleBar.transform, "TitleText", "✨ RANGER CITY — TÙY CHỈNH NHÂN VẬT", 22,
+            var titleTxt = MakeText(titleBar.transform, "TitleText", "RANGER CITY — TÙY CHỈNH NHÂN VẬT", 22,
                 Vector2.zero, new Vector2(900, 40), TextAlignmentOptions.Center, new Color(0.5f, 0.85f, 1f));
 
             // ═══════════════════════════════════
@@ -661,7 +661,7 @@ namespace RangerCity.Lobby
             bottomBar.GetComponent<Image>().color = Color.clear;
 
             // Host button
-            CreateGradientButton(bottomBar.transform, "HostBtn", "▶ HOST SERVER",
+            CreateGradientButton(bottomBar.transform, "HostBtn", "HOST SERVER",
                 new Color(0.15f, 0.55f, 0.3f), new Color(0.2f, 0.7f, 0.4f),
                 new Vector2(0, 25), new Vector2(400, 46), OnHostServerClicked);
 
