@@ -161,9 +161,9 @@ namespace RangerCity.Lobby
             }, new Color(0.2f, 0.14f, 0.09f));
 
             CreateNPC("Tang Xu Yu", "⛓️", new Vector3(-6, 0, -61.2f), new Color(0.2f, 0.4f, 0.7f), new[] {
-                "Tôi bị nhốt rồi, tôi sai rồi... 😭",
-                "Tôi có lỗi với mọi người! 🙇‍♂️",
-                "Tôi sẵn sàng làm trâu ngựa để chuộc lỗi lầm của tôi! 🐂🐎"
+                "Tôi bị nhốt rồi, tôi sai rồi...",
+                "Tôi có lỗi với mọi người!",
+                "Tôi sẵn sàng làm trâu ngựa để chuộc lỗi lầm của tôi!"
             }, new Color(1f, 0.8f, 0.65f), wanderRadius: 0.5f);
         }
 
@@ -232,6 +232,16 @@ namespace RangerCity.Lobby
             stars.SetActive(false);
 
             AddNameTag(npc, name);
+
+            if (name == "Tang Xu Yu")
+            {
+                var bubbleObj = new GameObject("DialogueBubble");
+                bubbleObj.transform.SetParent(npc.transform, false);
+                bubbleObj.transform.localPosition = new Vector3(0, 2.7f, 0);
+                
+                var bubble = bubbleObj.AddComponent<FloatingDialogueBubble>();
+                bubble.Setup(dialogues, 4.0f);
+            }
         }
 
         private void CreateFakePlayers()
@@ -405,9 +415,9 @@ namespace RangerCity.Lobby
             fistImg.color = Color.white;
 
             // Talk button at X = -30
-            var talkBtnObj = CreateUIButton("TalkButton", panel.transform, new Vector2(-30, 0), "", Color.clear, new Vector2(54, 54));
+            var talkBtnObj = CreateUIButton("TalkButton", panel.transform, new Vector2(-30, 0), "", new Color(0.25f, 0.25f, 0.35f, 0.9f), new Vector2(54, 54));
             
-            var talkIcon = new GameObject("TalkIcon");
+            var talkIcon = new GameObject("TalkText");
             talkIcon.transform.SetParent(talkBtnObj.transform, false);
             var talkRT = talkIcon.AddComponent<RectTransform>();
             talkRT.anchorMin = Vector2.zero;
@@ -415,9 +425,11 @@ namespace RangerCity.Lobby
             talkRT.offsetMin = talkRT.offsetMax = Vector2.zero;
             
             var talkTxt = talkIcon.AddComponent<TextMeshProUGUI>();
-            talkTxt.text = "💬";
-            talkTxt.fontSize = 32;
+            talkTxt.text = "Hỏi";
+            talkTxt.fontSize = 18;
+            talkTxt.fontStyle = FontStyles.Bold;
             talkTxt.alignment = TextAlignmentOptions.Center;
+            talkTxt.color = Color.white;
 
             // Target name label above buttons
             var nameObj = new GameObject("TargetName");
@@ -643,6 +655,64 @@ namespace RangerCity.Lobby
         {
             var field = obj.GetType().GetField(fieldName, System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
             if (field != null) field.SetValue(obj, value);
+        }
+    }
+
+    /// <summary>
+    /// Hiển thị bóng hội thoại (dialogue bubble) trên đầu nhân vật,
+    /// tự động chạy qua các câu thoại lặp đi lặp lại.
+    /// </summary>
+    public class FloatingDialogueBubble : MonoBehaviour
+    {
+        private string[] _lines;
+        private float _interval = 4.0f;
+        private TextMeshPro _tmp;
+        private int _currentIndex = 0;
+        private float _timer;
+
+        public void Setup(string[] lines, float interval = 4.0f)
+        {
+            _lines = lines;
+            _interval = interval;
+            _timer = interval;
+        }
+
+        private void Start()
+        {
+            _tmp = gameObject.AddComponent<TextMeshPro>();
+            _tmp.fontSize = 3.5f;
+            _tmp.alignment = TextAlignmentOptions.Center;
+            _tmp.enableWordWrapping = true;
+            _tmp.rectTransform.sizeDelta = new Vector2(5.5f, 2f);
+
+            // Đảm bảo đối tượng luôn xoay mặt về camera
+            gameObject.AddComponent<BillboardText>();
+
+            // Màu chữ sáng để dễ đọc
+            _tmp.color = new Color(0.95f, 0.95f, 1f);
+
+            UpdateText();
+        }
+
+        private void Update()
+        {
+            if (_lines == null || _lines.Length == 0) return;
+
+            _timer -= Time.deltaTime;
+            if (_timer <= 0f)
+            {
+                _timer = _interval;
+                _currentIndex = (_currentIndex + 1) % _lines.Length;
+                UpdateText();
+            }
+        }
+
+        private void UpdateText()
+        {
+            if (_lines == null || _currentIndex >= _lines.Length) return;
+
+            string rawText = _lines[_currentIndex];
+            _tmp.text = $"<color=#FFDD88>[ Tang Xu Yu ]</color>\n\"{rawText}\"";
         }
     }
 }
