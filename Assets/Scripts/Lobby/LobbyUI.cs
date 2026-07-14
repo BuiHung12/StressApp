@@ -888,7 +888,7 @@ namespace RangerCity.Lobby
         {
             if (_previewCharacter == null) return;
 
-            var model = _previewCharacter.transform.childCount > 0 ? _previewCharacter.transform.GetChild(0).gameObject : null;
+            var model = _previewCharacter.transform.Find("PreviewModel")?.gameObject;
             if (model == null) return;
 
             Color bodyColor = NetworkPlayer.BodyColorPalette[Mathf.Clamp(_selectedBodyColor, 0, NetworkPlayer.BodyColorPalette.Length - 1)];
