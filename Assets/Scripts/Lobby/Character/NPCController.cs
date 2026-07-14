@@ -66,8 +66,8 @@ namespace RangerCity.Lobby
 
         private void Update()
         {
-            // Only the server/host simulates the NPC AI and movement
-            if (NetworkServer.active)
+            // Simulate NPC AI on server, or locally if offline/disconnected
+            if (NetworkServer.active || !NetworkClient.active)
             {
                 if (_isHurt)
                 {
