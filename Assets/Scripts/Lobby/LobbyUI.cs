@@ -624,12 +624,12 @@ namespace RangerCity.Lobby
             var tabRow = CreatePanel(rightCol.transform, "TabRow", new Vector2(0, 192), new Vector2(420, 42));
             tabRow.GetComponent<Image>().color = Color.clear;
             _tabButtons = new Image[3];
-            string[] tabLabels = { "💇 Tóc", "👕 Áo", "👖 Quần" };
+            string[] tabLabels = { "TÓC", "ÁO", "QUẦN" };
             for (int i = 0; i < 3; i++)
             {
                 int tabIdx = i;
                 var tabBtn = CreatePanel(tabRow.transform, $"Tab_{i}",
-                    new Vector2(-135 + i * 135, 0), new Vector2(130, 36));
+                    new Vector2(-135 + i * 135, 0), new Vector2(130, 36), true); // RaycastTarget = true
                 _tabButtons[i] = tabBtn.GetComponent<Image>();
                 _tabButtons[i].color = i == 0 ? new Color(0.25f, 0.45f, 0.8f, 0.9f) : new Color(0.18f, 0.18f, 0.24f, 0.8f);
                 var btn = tabBtn.AddComponent<Button>();
@@ -638,17 +638,17 @@ namespace RangerCity.Lobby
                     Vector2.zero, new Vector2(120, 32), TextAlignmentOptions.Center, Color.white);
             }
 
-            // Tab contents
-            _tabHairContent = CreatePanel(rightCol.transform, "HairContent", new Vector2(0, 10), new Vector2(420, 320));
+            // Tab contents (Container panels don't intercept raycasts)
+            _tabHairContent = CreatePanel(rightCol.transform, "HairContent", new Vector2(0, 10), new Vector2(420, 320), false);
             _tabHairContent.GetComponent<Image>().color = Color.clear;
             BuildHairTab(_tabHairContent.transform);
 
-            _tabOutfitContent = CreatePanel(rightCol.transform, "OutfitContent", new Vector2(0, 10), new Vector2(420, 320));
+            _tabOutfitContent = CreatePanel(rightCol.transform, "OutfitContent", new Vector2(0, 10), new Vector2(420, 320), false);
             _tabOutfitContent.GetComponent<Image>().color = Color.clear;
             BuildOutfitTab(_tabOutfitContent.transform);
             _tabOutfitContent.SetActive(false);
 
-            _tabPantsContent = CreatePanel(rightCol.transform, "PantsContent", new Vector2(0, 10), new Vector2(420, 320));
+            _tabPantsContent = CreatePanel(rightCol.transform, "PantsContent", new Vector2(0, 10), new Vector2(420, 320), false);
             _tabPantsContent.GetComponent<Image>().color = Color.clear;
             BuildPantsTab(_tabPantsContent.transform);
             _tabPantsContent.SetActive(false);
@@ -657,7 +657,7 @@ namespace RangerCity.Lobby
             //  BOTTOM — Connection Buttons
             // ═══════════════════════════════════
 
-            var bottomBar = CreatePanel(card.transform, "BottomBar", new Vector2(220, -235), new Vector2(440, 100));
+            var bottomBar = CreatePanel(card.transform, "BottomBar", new Vector2(220, -235), new Vector2(440, 100), false);
             bottomBar.GetComponent<Image>().color = Color.clear;
 
             // Host button
@@ -666,7 +666,7 @@ namespace RangerCity.Lobby
                 new Vector2(0, 25), new Vector2(400, 46), OnHostServerClicked);
 
             // IP + Port + Join row
-            var joinRow = CreatePanel(bottomBar.transform, "JoinRow", new Vector2(0, -25), new Vector2(400, 42));
+            var joinRow = CreatePanel(bottomBar.transform, "JoinRow", new Vector2(0, -25), new Vector2(400, 42), false);
             joinRow.GetComponent<Image>().color = Color.clear;
 
             _addressInput = CreateInputFieldV2(joinRow.transform, "wool-delivery.gl.at.ply.gg", "",
@@ -696,8 +696,7 @@ namespace RangerCity.Lobby
                 float x = -130f + col * 130f;
                 float yPos = y - row * 75f;
 
-                var slot = CreateStyleSlot(parent, $"Hair_{i}", NetworkPlayer.HairStyleIcons[i],
-                    NetworkPlayer.HairStyleNames[i], new Vector2(x, yPos), new Vector2(110, 66),
+                var slot = CreateStyleSlot(parent, $"Hair_{i}", NetworkPlayer.HairStyleNames[i], new Vector2(x, yPos), new Vector2(110, 66),
                     i == _selectedHairStyle);
                 slot.GetComponent<Button>().onClick.AddListener(() => { _selectedHairStyle = idx; RefreshHairStyleHighlight(); UpdatePreview(); });
             }
@@ -723,8 +722,7 @@ namespace RangerCity.Lobby
                 float x = -130f + col * 130f;
                 float yPos = y - row * 75f;
 
-                var slot = CreateStyleSlot(parent, $"Outfit_{i}", NetworkPlayer.OutfitStyleIcons[i],
-                    NetworkPlayer.OutfitStyleNames[i], new Vector2(x, yPos), new Vector2(110, 66),
+                var slot = CreateStyleSlot(parent, $"Outfit_{i}", NetworkPlayer.OutfitStyleNames[i], new Vector2(x, yPos), new Vector2(110, 66),
                     i == _selectedOutfitStyle);
                 slot.GetComponent<Button>().onClick.AddListener(() => { _selectedOutfitStyle = idx; RefreshOutfitStyleHighlight(); UpdatePreview(); });
             }
@@ -748,8 +746,7 @@ namespace RangerCity.Lobby
                 int col = i;
                 float x = -145f + col * 97f;
 
-                var slot = CreateStyleSlot(parent, $"Pants_{i}", NetworkPlayer.PantsStyleIcons[i],
-                    NetworkPlayer.PantsStyleNames[i], new Vector2(x, y), new Vector2(85, 66),
+                var slot = CreateStyleSlot(parent, $"Pants_{i}", NetworkPlayer.PantsStyleNames[i], new Vector2(x, y), new Vector2(85, 66),
                     i == _selectedPantsStyle);
                 slot.GetComponent<Button>().onClick.AddListener(() => { _selectedPantsStyle = idx; RefreshPantsStyleHighlight(); UpdatePreview(); });
             }
@@ -793,38 +790,64 @@ namespace RangerCity.Lobby
             }
         }
 
-        // ── Style Slot (icon + label) ──
+        // ── Style Slot (label only for compatibility) ──
 
-        private GameObject CreateStyleSlot(Transform parent, string name, string icon, string label,
+        private GameObject CreateStyleSlot(Transform parent, string name, string label,
             Vector2 pos, Vector2 size, bool selected)
         {
-            var slot = CreatePanel(parent, name, pos, size);
+            var slot = CreatePanel(parent, name, pos, size, true); // RaycastTarget = true
             var slotImg = slot.GetComponent<Image>();
-            slotImg.color = selected ? new Color(0.25f, 0.45f, 0.8f, 0.6f) : new Color(0.15f, 0.15f, 0.2f, 0.7f);
+            slotImg.color = selected ? new Color(0.25f, 0.45f, 0.8f, 0.9f) : new Color(0.15f, 0.15f, 0.22f, 0.7f);
             slot.AddComponent<Button>();
 
-            MakeText(slot.transform, "Icon", icon, 22,
-                new Vector2(0, 8), new Vector2(size.x - 4, 30), TextAlignmentOptions.Center, Color.white);
-            MakeText(slot.transform, "Label", label, 10,
-                new Vector2(0, -18), new Vector2(size.x - 4, 18), TextAlignmentOptions.Center, new Color(0.7f, 0.7f, 0.8f));
+            // Clean bold styling label in slot center
+            MakeText(slot.transform, "Label", label, 14,
+                Vector2.zero, new Vector2(size.x - 10, size.y - 10), TextAlignmentOptions.Center, Color.white);
 
             return slot;
         }
 
-        // ── Preview Character ──
+        // ── Preview Character (RenderTexture 3D Cam) ──
+
+        private Camera _previewCamera;
+        private RenderTexture _previewRT;
 
         private void CreatePreviewCharacter(Transform parent)
         {
-            // The preview character is a 3D GameObject displayed through the scene camera.
-            // We place it far away from the main game area.
-            _previewCharacter = new GameObject("PreviewChar");
-            _previewCharacter.transform.position = new Vector3(100, 0, 100); // Far away
+            // Create RenderTexture
+            _previewRT = new RenderTexture(512, 512, 16);
 
-            // Build mini character
+            // RawImage to display target texture
+            var rawObj = new GameObject("PreviewRawImage");
+            rawObj.transform.SetParent(parent, false);
+            var rawRt = rawObj.AddComponent<RectTransform>();
+            rawRt.anchoredPosition = new Vector2(0, 30);
+            rawRt.sizeDelta = new Vector2(300, 320);
+            var rawImg = rawObj.AddComponent<RawImage>();
+            rawImg.texture = _previewRT;
+            rawImg.raycastTarget = false;
+
+            // 3D container far away from play area
+            _previewCharacter = new GameObject("PreviewChar");
+            _previewCharacter.transform.position = new Vector3(200f, 0f, 200f);
+
+            // Camera looking at the preview character
+            var camObj = new GameObject("PreviewCamera");
+            camObj.transform.SetParent(_previewCharacter.transform, false);
+            camObj.transform.localPosition = new Vector3(0f, 0.52f, 1.25f);
+            camObj.transform.localRotation = Quaternion.Euler(6f, 180f, 0f); // Look slightly down at torso
+
+            _previewCamera = camObj.AddComponent<Camera>();
+            _previewCamera.targetTexture = _previewRT;
+            _previewCamera.clearFlags = CameraClearFlags.SolidColor;
+            _previewCamera.backgroundColor = new Color(0.06f, 0.06f, 0.1f, 1f);
+            _previewCamera.orthographic = true;
+            _previewCamera.orthographicSize = 0.52f;
+
+            // Build mini character model
             var setup = FindAnyObjectByType<LobbySetup>();
             if (setup != null)
             {
-                // Use reflection to call CreateCharacterTopDown
                 var method = typeof(LobbySetup).GetMethod("CreateCharacterTopDown",
                     System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
                 if (method != null)
@@ -835,8 +858,10 @@ namespace RangerCity.Lobby
                     if (charObj != null)
                     {
                         charObj.transform.SetParent(_previewCharacter.transform, false);
+                        charObj.transform.localPosition = Vector3.zero;
+                        charObj.transform.localRotation = Quaternion.identity;
                         charObj.transform.localScale = Vector3.one * 0.45f;
-                        // Remove animator to prevent idle animation in preview
+
                         var anim = charObj.GetComponent<CharacterAnimator>();
                         if (anim != null) Destroy(anim);
                     }
@@ -845,7 +870,7 @@ namespace RangerCity.Lobby
 
             UpdatePreview();
 
-            // Rotate preview in LateUpdate via coroutine
+            // Rotate preview character
             StartCoroutine(RotatePreview());
         }
 
@@ -853,7 +878,7 @@ namespace RangerCity.Lobby
         {
             while (_previewCharacter != null && _connectionPanel != null && _connectionPanel.activeSelf)
             {
-                _previewRotation += 30f * Time.deltaTime;
+                _previewRotation += 35f * Time.deltaTime;
                 _previewCharacter.transform.rotation = Quaternion.Euler(0, _previewRotation, 0);
                 yield return null;
             }
@@ -904,7 +929,7 @@ namespace RangerCity.Lobby
                     var img = slot.GetComponent<Image>();
                     if (img != null)
                         img.color = i == _selectedHairStyle
-                            ? new Color(0.25f, 0.45f, 0.8f, 0.6f) : new Color(0.15f, 0.15f, 0.2f, 0.7f);
+                            ? new Color(0.25f, 0.45f, 0.8f, 0.9f) : new Color(0.15f, 0.15f, 0.22f, 0.7f);
                 }
             }
         }
@@ -920,7 +945,7 @@ namespace RangerCity.Lobby
                     var img = slot.GetComponent<Image>();
                     if (img != null)
                         img.color = i == _selectedOutfitStyle
-                            ? new Color(0.25f, 0.45f, 0.8f, 0.6f) : new Color(0.15f, 0.15f, 0.2f, 0.7f);
+                            ? new Color(0.25f, 0.45f, 0.8f, 0.9f) : new Color(0.15f, 0.15f, 0.22f, 0.7f);
                 }
             }
         }
@@ -936,7 +961,7 @@ namespace RangerCity.Lobby
                     var img = slot.GetComponent<Image>();
                     if (img != null)
                         img.color = i == _selectedPantsStyle
-                            ? new Color(0.25f, 0.45f, 0.8f, 0.6f) : new Color(0.15f, 0.15f, 0.2f, 0.7f);
+                            ? new Color(0.25f, 0.45f, 0.8f, 0.9f) : new Color(0.15f, 0.15f, 0.22f, 0.7f);
                 }
             }
         }
@@ -991,6 +1016,12 @@ namespace RangerCity.Lobby
         {
             if (_connectionPanel != null) _connectionPanel.SetActive(false);
             if (_previewCharacter != null) Destroy(_previewCharacter);
+            if (_previewCamera != null) Destroy(_previewCamera.gameObject);
+            if (_previewRT != null)
+            {
+                _previewRT.Release();
+                Destroy(_previewRT);
+            }
         }
 
         // ══════════════════════════════
@@ -999,12 +1030,18 @@ namespace RangerCity.Lobby
 
         private GameObject CreatePanel(Transform parent, string name, Vector2 pos, Vector2 size)
         {
+            return CreatePanel(parent, name, pos, size, false);
+        }
+
+        private GameObject CreatePanel(Transform parent, string name, Vector2 pos, Vector2 size, bool raycastTarget)
+        {
             var obj = new GameObject(name);
             obj.transform.SetParent(parent, false);
             var rt = obj.AddComponent<RectTransform>();
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
-            obj.AddComponent<Image>();
+            var img = obj.AddComponent<Image>();
+            img.raycastTarget = raycastTarget;
             return obj;
         }
 
@@ -1023,6 +1060,7 @@ namespace RangerCity.Lobby
             tmp.color = color;
             tmp.enableWordWrapping = false;
             tmp.overflowMode = TextOverflowModes.Ellipsis;
+            tmp.raycastTarget = false; // Never block raycast clicks
             return obj;
         }
 
@@ -1036,6 +1074,7 @@ namespace RangerCity.Lobby
             rt.sizeDelta = size;
             var img = obj.AddComponent<Image>();
             img.color = new Color(0.06f, 0.06f, 0.1f, 1f);
+            img.raycastTarget = true; // Clickable input
 
             // Text area
             var textObj = new GameObject("Text");
@@ -1047,6 +1086,7 @@ namespace RangerCity.Lobby
             txt.fontSize = 14;
             txt.color = Color.white;
             txt.enableWordWrapping = false;
+            txt.raycastTarget = false;
 
             // Placeholder
             if (!string.IsNullOrEmpty(placeholder))
@@ -1061,6 +1101,7 @@ namespace RangerCity.Lobby
                 phTxt.fontSize = 14;
                 phTxt.fontStyle = FontStyles.Italic;
                 phTxt.color = new Color(0.4f, 0.4f, 0.5f);
+                phTxt.raycastTarget = false;
 
                 var input = obj.AddComponent<TMP_InputField>();
                 input.textComponent = txt;
@@ -1082,12 +1123,8 @@ namespace RangerCity.Lobby
         private void CreateGradientButton(Transform parent, string name, string label,
             Color colorA, Color colorB, Vector2 pos, Vector2 size, UnityEngine.Events.UnityAction action)
         {
-            var btnObj = new GameObject(name);
-            btnObj.transform.SetParent(parent, false);
-            var rt = btnObj.AddComponent<RectTransform>();
-            rt.anchoredPosition = pos;
-            rt.sizeDelta = size;
-            var img = btnObj.AddComponent<Image>();
+            var btnObj = CreatePanel(parent, name, pos, size, true); // RaycastTarget = true
+            var img = btnObj.GetComponent<Image>();
             img.color = Color.Lerp(colorA, colorB, 0.5f);
 
             var btn = btnObj.AddComponent<Button>();
