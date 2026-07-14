@@ -673,8 +673,11 @@ namespace RangerCity.Lobby
             // Đảm bảo đối tượng luôn xoay mặt về camera
             gameObject.AddComponent<BillboardText>();
 
-            // Màu chữ sáng để dễ đọc
-            _tmp.color = new Color(0.95f, 0.95f, 1f);
+            // Màu chữ đen kèm viền trắng nổi bật cho bóng thoại
+            _tmp.color = Color.black;
+            _tmp.outlineColor = Color.white;
+            _tmp.outlineWidth = 0.25f;
+            _tmp.fontStyle = FontStyles.Bold;
 
             UpdateText();
         }
