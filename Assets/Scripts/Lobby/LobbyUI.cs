@@ -872,6 +872,16 @@ namespace RangerCity.Lobby
             _previewCamera.orthographic = true;
             _previewCamera.orthographicSize = 0.52f;
 
+            // Add local Point Light to illuminate the lit shaders beautifully
+            var lightObj = new GameObject("PreviewLight");
+            lightObj.transform.SetParent(camObj.transform, false);
+            lightObj.transform.localPosition = new Vector3(0.5f, 0.5f, -0.5f); // Angle light at character face/chest
+            var previewLight = lightObj.AddComponent<Light>();
+            previewLight.type = LightType.Point;
+            previewLight.range = 5f;
+            previewLight.intensity = 2f;
+            previewLight.color = Color.white;
+
             // Build mini character model
             var setup = FindAnyObjectByType<LobbySetup>();
             if (setup != null)

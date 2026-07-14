@@ -27,8 +27,18 @@ namespace RangerCity.Lobby
             // Find limbs
             _leftArm = transform.Find("LeftArm");
             _rightArm = transform.Find("RightArm");
-            _leftLeg = transform.Find("LeftLeg");
-            _rightLeg = transform.Find("RightLeg");
+
+            var legsContainer = transform.Find("LegsContainer");
+            if (legsContainer != null)
+            {
+                _leftLeg = legsContainer.Find("LeftLeg");
+                _rightLeg = legsContainer.Find("RightLeg");
+            }
+            else
+            {
+                _leftLeg = transform.Find("LeftLeg");
+                _rightLeg = transform.Find("RightLeg");
+            }
         }
 
         private void LateUpdate()

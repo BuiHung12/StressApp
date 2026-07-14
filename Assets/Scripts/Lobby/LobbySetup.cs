@@ -1910,55 +1910,116 @@ namespace RangerCity.Lobby
         {
             var character = new GameObject(charName);
 
+            // === NECK ===
+            var neck = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            neck.name = "Neck";
+            neck.transform.SetParent(character.transform);
+            neck.transform.localPosition = new Vector3(0, 1.1f, 0);
+            neck.transform.localScale = new Vector3(0.13f, 0.08f, 0.13f);
+            neck.GetComponent<Renderer>().material = CreateMat(skinColor);
+            Destroy(neck.GetComponent<Collider>());
+
             // === HEAD (sphere) ===
             var head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             head.name = "Head";
             head.transform.SetParent(character.transform);
-            head.transform.localPosition = new Vector3(0, 1.35f, 0);
+            head.transform.localPosition = new Vector3(0, 1.38f, 0);
             head.transform.localScale = new Vector3(0.45f, 0.45f, 0.45f);
             head.GetComponent<Renderer>().material = CreateMat(skinColor);
             Destroy(head.GetComponent<Collider>());
 
-            // === EYES (2 small white spheres + 2 tiny dark pupils) ===
+            // === NOSE ===
+            var nose = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            nose.name = "Nose";
+            nose.transform.SetParent(head.transform, false);
+            nose.transform.localPosition = new Vector3(0f, -0.05f, 0.52f);
+            nose.transform.localScale = new Vector3(0.12f, 0.12f, 0.12f);
+            nose.GetComponent<Renderer>().material = CreateMat(skinColor);
+            Destroy(nose.GetComponent<Collider>());
+
+            // === MOUTH ===
+            var mouth = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            mouth.name = "Mouth";
+            mouth.transform.SetParent(head.transform, false);
+            mouth.transform.localPosition = new Vector3(0f, -0.2f, 0.47f);
+            mouth.transform.localScale = new Vector3(0.12f, 0.03f, 0.08f);
+            mouth.GetComponent<Renderer>().material = CreateMat(new Color(0.85f, 0.35f, 0.35f));
+            Destroy(mouth.GetComponent<Collider>());
+
+            // === EARS ===
+            var earL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            earL.name = "EarL";
+            earL.transform.SetParent(head.transform, false);
+            earL.transform.localPosition = new Vector3(-0.52f, 0f, 0f);
+            earL.transform.localScale = new Vector3(0.12f, 0.16f, 0.1f);
+            earL.GetComponent<Renderer>().material = CreateMat(skinColor);
+            Destroy(earL.GetComponent<Collider>());
+
+            var earR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            earR.name = "EarR";
+            earR.transform.SetParent(head.transform, false);
+            earR.transform.localPosition = new Vector3(0.52f, 0f, 0f);
+            earR.transform.localScale = new Vector3(0.12f, 0.16f, 0.1f);
+            earR.GetComponent<Renderer>().material = CreateMat(skinColor);
+            Destroy(earR.GetComponent<Collider>());
+
+            // === EYES ===
             var eyeL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             eyeL.name = "EyeL";
             eyeL.transform.SetParent(head.transform, false);
-            eyeL.transform.localPosition = new Vector3(-0.22f, 0.08f, 0.82f);
-            eyeL.transform.localScale = new Vector3(0.28f, 0.3f, 0.15f);
+            eyeL.transform.localPosition = new Vector3(-0.2f, 0.06f, 0.44f);
+            eyeL.transform.localScale = new Vector3(0.12f, 0.16f, 0.08f);
             eyeL.GetComponent<Renderer>().material = CreateMat(Color.white);
             Destroy(eyeL.GetComponent<Collider>());
 
             var pupilL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             pupilL.name = "PupilL";
             pupilL.transform.SetParent(eyeL.transform, false);
-            pupilL.transform.localPosition = new Vector3(0f, 0f, 0.4f);
-            pupilL.transform.localScale = new Vector3(0.5f, 0.55f, 0.3f);
-            pupilL.GetComponent<Renderer>().material = CreateMat(new Color(0.12f, 0.12f, 0.15f));
+            pupilL.transform.localPosition = new Vector3(0f, 0f, 0.45f);
+            pupilL.transform.localScale = new Vector3(0.55f, 0.55f, 0.3f);
+            pupilL.GetComponent<Renderer>().material = CreateMat(new Color(0.1f, 0.1f, 0.12f));
             Destroy(pupilL.GetComponent<Collider>());
 
             var eyeR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             eyeR.name = "EyeR";
             eyeR.transform.SetParent(head.transform, false);
-            eyeR.transform.localPosition = new Vector3(0.22f, 0.08f, 0.82f);
-            eyeR.transform.localScale = new Vector3(0.28f, 0.3f, 0.15f);
+            eyeR.transform.localPosition = new Vector3(0.2f, 0.06f, 0.44f);
+            eyeR.transform.localScale = new Vector3(0.12f, 0.16f, 0.08f);
             eyeR.GetComponent<Renderer>().material = CreateMat(Color.white);
             Destroy(eyeR.GetComponent<Collider>());
 
             var pupilR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             pupilR.name = "PupilR";
             pupilR.transform.SetParent(eyeR.transform, false);
-            pupilR.transform.localPosition = new Vector3(0f, 0f, 0.4f);
-            pupilR.transform.localScale = new Vector3(0.5f, 0.55f, 0.3f);
-            pupilR.GetComponent<Renderer>().material = CreateMat(new Color(0.12f, 0.12f, 0.15f));
+            pupilR.transform.localPosition = new Vector3(0f, 0f, 0.45f);
+            pupilR.transform.localScale = new Vector3(0.55f, 0.55f, 0.3f);
+            pupilR.GetComponent<Renderer>().material = CreateMat(new Color(0.1f, 0.1f, 0.12f));
             Destroy(pupilR.GetComponent<Collider>());
 
-            // === HAIR CONTAINER (populated by ApplyHair) ===
+            // === HAIR CONTAINER ===
             var hairContainer = new GameObject("HairContainer");
             hairContainer.transform.SetParent(character.transform, false);
 
-            // === TORSO CONTAINER (populated by ApplyOutfit) ===
+            // === TORSO CONTAINER ===
             var torsoContainer = new GameObject("TorsoContainer");
             torsoContainer.transform.SetParent(character.transform, false);
+
+            // === BELT ===
+            var belt = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            belt.name = "Belt";
+            belt.transform.SetParent(character.transform, false);
+            belt.transform.localPosition = new Vector3(0f, 0.52f, 0f);
+            belt.transform.localScale = new Vector3(0.38f, 0.02f, 0.24f);
+            belt.GetComponent<Renderer>().material = CreateMat(new Color(0.15f, 0.15f, 0.15f));
+            Destroy(belt.GetComponent<Collider>());
+
+            var buckle = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            buckle.name = "Buckle";
+            buckle.transform.SetParent(belt.transform, false);
+            buckle.transform.localPosition = new Vector3(0f, 0f, 0.52f);
+            buckle.transform.localScale = new Vector3(0.2f, 1.2f, 0.1f);
+            buckle.GetComponent<Renderer>().material = CreateMat(new Color(0.9f, 0.75f, 0.2f));
+            Destroy(buckle.GetComponent<Collider>());
 
             // === LEFT ARM ===
             var leftArm = GameObject.CreatePrimitive(PrimitiveType.Capsule);
@@ -1969,6 +2030,15 @@ namespace RangerCity.Lobby
             leftArm.GetComponent<Renderer>().material = CreateMat(skinColor);
             Destroy(leftArm.GetComponent<Collider>());
 
+            // === LEFT HAND ===
+            var handL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            handL.name = "HandL";
+            handL.transform.SetParent(leftArm.transform, false);
+            handL.transform.localPosition = new Vector3(0f, -1.05f, 0f);
+            handL.transform.localScale = new Vector3(0.9f, 0.36f, 0.9f);
+            handL.GetComponent<Renderer>().material = CreateMat(skinColor);
+            Destroy(handL.GetComponent<Collider>());
+
             // === RIGHT ARM ===
             var rightArm = GameObject.CreatePrimitive(PrimitiveType.Capsule);
             rightArm.name = "RightArm";
@@ -1978,26 +2048,18 @@ namespace RangerCity.Lobby
             rightArm.GetComponent<Renderer>().material = CreateMat(skinColor);
             Destroy(rightArm.GetComponent<Collider>());
 
+            // === RIGHT HAND ===
+            var handR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            handR.name = "HandR";
+            handR.transform.SetParent(rightArm.transform, false);
+            handR.transform.localPosition = new Vector3(0f, -1.05f, 0f);
+            handR.transform.localScale = new Vector3(0.9f, 0.36f, 0.9f);
+            handR.GetComponent<Renderer>().material = CreateMat(skinColor);
+            Destroy(handR.GetComponent<Collider>());
+
             // === LEGS CONTAINER (populated by ApplyPants) ===
             var legsContainer = new GameObject("LegsContainer");
             legsContainer.transform.SetParent(character.transform, false);
-
-            // === SHOES ===
-            var leftShoe = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            leftShoe.name = "LeftShoe";
-            leftShoe.transform.SetParent(character.transform);
-            leftShoe.transform.localPosition = new Vector3(-0.1f, 0.04f, 0.04f);
-            leftShoe.transform.localScale = new Vector3(0.13f, 0.08f, 0.2f);
-            leftShoe.GetComponent<Renderer>().material = CreateMat(new Color(0.35f, 0.2f, 0.15f));
-            Destroy(leftShoe.GetComponent<Collider>());
-
-            var rightShoe = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            rightShoe.name = "RightShoe";
-            rightShoe.transform.SetParent(character.transform);
-            rightShoe.transform.localPosition = new Vector3(0.1f, 0.04f, 0.04f);
-            rightShoe.transform.localScale = new Vector3(0.13f, 0.08f, 0.2f);
-            rightShoe.GetComponent<Renderer>().material = CreateMat(new Color(0.35f, 0.2f, 0.15f));
-            Destroy(rightShoe.GetComponent<Collider>());
 
             // === SHADOW ===
             var shadow = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -2255,72 +2317,111 @@ namespace RangerCity.Lobby
             switch (style)
             {
                 case 0: // Jeans / Skinny Jeans
-                    AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                        new Vector3(-0.1f, 0.22f, 0), new Vector3(0.14f, 0.25f, 0.14f), color);
-                    AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                        new Vector3(0.1f, 0.22f, 0), new Vector3(0.14f, 0.25f, 0.14f), color);
+                    {
+                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(-0.1f, 0.22f, 0), new Vector3(0.14f, 0.25f, 0.14f), color);
+                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0.1f, 0.22f, 0), new Vector3(0.14f, 0.25f, 0.14f), color);
+                        AddShoeToLeg(leftLeg, "LeftShoe");
+                        AddShoeToLeg(rightLeg, "RightShoe");
+                    }
                     break;
 
                 case 1: // Shorts / Váy Ngắn (Skirt)
                     if (gender == 0) // Nam mặc shorts
                     {
-                        AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
+                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
                             new Vector3(-0.1f, 0.28f, 0), new Vector3(0.15f, 0.18f, 0.15f), color);
-                        AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
+                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
                             new Vector3(0.1f, 0.28f, 0), new Vector3(0.15f, 0.18f, 0.15f), color);
-                        AddPrimChild(container, "LeftShin", PrimitiveType.Capsule,
-                            new Vector3(-0.1f, 0.12f, 0), new Vector3(0.1f, 0.12f, 0.1f), new Color(1f, 0.88f, 0.7f));
-                        AddPrimChild(container, "RightShin", PrimitiveType.Capsule,
-                            new Vector3(0.1f, 0.12f, 0), new Vector3(0.1f, 0.12f, 0.1f), new Color(1f, 0.88f, 0.7f));
+
+                        var leftShin = AddPrimChild(leftLeg.transform, "LeftShin", PrimitiveType.Capsule,
+                            new Vector3(0f, -0.9f, 0f), new Vector3(0.66f, 0.66f, 0.66f), new Color(1f, 0.88f, 0.7f));
+                        var rightShin = AddPrimChild(rightLeg.transform, "RightShin", PrimitiveType.Capsule,
+                            new Vector3(0f, -0.9f, 0f), new Vector3(0.66f, 0.66f, 0.66f), new Color(1f, 0.88f, 0.7f));
+
+                        AddShoeToLeg(leftShin, "LeftShoe");
+                        AddShoeToLeg(rightShin, "RightShoe");
                     }
                     else // Nữ mặc váy ngắn
                     {
                         AddPrimChild(container, "Skirt", PrimitiveType.Cylinder,
                             new Vector3(0, 0.32f, 0), new Vector3(0.32f, 0.15f, 0.32f), color);
-                        AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                            new Vector3(-0.08f, 0.12f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
-                        AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                            new Vector3(0.08f, 0.12f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
+
+                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(-0.08f, 0.15f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
+                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0.08f, 0.15f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
+
+                        AddShoeToLeg(leftLeg, "LeftShoe");
+                        AddShoeToLeg(rightLeg, "RightShoe");
                     }
                     break;
 
                 case 2: // Cargo / Shorts Nữ
                     if (gender == 0) // Cargo
                     {
-                        AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
+                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
                             new Vector3(-0.1f, 0.22f, 0), new Vector3(0.16f, 0.25f, 0.16f), color);
-                        AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
+                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
                             new Vector3(0.1f, 0.22f, 0), new Vector3(0.16f, 0.25f, 0.16f), color);
-                        AddPrimChild(container, "PocketL", PrimitiveType.Cube,
-                            new Vector3(-0.18f, 0.22f, 0.02f), new Vector3(0.06f, 0.1f, 0.06f), color * 0.85f);
-                        AddPrimChild(container, "PocketR", PrimitiveType.Cube,
-                            new Vector3(0.18f, 0.22f, 0.02f), new Vector3(0.06f, 0.1f, 0.06f), color * 0.85f);
+
+                        AddPrimChild(leftLeg.transform, "PocketL", PrimitiveType.Cube,
+                            new Vector3(-0.55f, 0f, 0.1f), new Vector3(0.4f, 0.4f, 0.4f), color * 0.85f);
+                        AddPrimChild(rightLeg.transform, "PocketR", PrimitiveType.Cube,
+                            new Vector3(0.55f, 0f, 0.1f), new Vector3(0.4f, 0.4f, 0.4f), color * 0.85f);
+
+                        AddShoeToLeg(leftLeg, "LeftShoe");
+                        AddShoeToLeg(rightLeg, "RightShoe");
                     }
                     else // Shorts Nữ
                     {
-                        AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
+                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
                             new Vector3(-0.1f, 0.32f, 0), new Vector3(0.14f, 0.14f, 0.14f), color);
-                        AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
+                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
                             new Vector3(0.1f, 0.32f, 0), new Vector3(0.14f, 0.14f, 0.14f), color);
-                        AddPrimChild(container, "LeftShin", PrimitiveType.Capsule,
-                            new Vector3(-0.1f, 0.12f, 0), new Vector3(0.09f, 0.15f, 0.09f), new Color(1f, 0.88f, 0.7f));
-                        AddPrimChild(container, "RightShin", PrimitiveType.Capsule,
-                            new Vector3(0.1f, 0.12f, 0), new Vector3(0.09f, 0.15f, 0.09f), new Color(1f, 0.88f, 0.7f));
+
+                        var leftShin = AddPrimChild(leftLeg.transform, "LeftShin", PrimitiveType.Capsule,
+                            new Vector3(0f, -0.9f, 0f), new Vector3(0.66f, 0.66f, 0.66f), new Color(1f, 0.88f, 0.7f));
+                        var rightShin = AddPrimChild(rightLeg.transform, "RightShin", PrimitiveType.Capsule,
+                            new Vector3(0f, -0.9f, 0f), new Vector3(0.66f, 0.66f, 0.66f), new Color(1f, 0.88f, 0.7f));
+
+                        AddShoeToLeg(leftShin, "LeftShoe");
+                        AddShoeToLeg(rightShin, "RightShoe");
                     }
                     break;
 
                 case 3: // Joggers / Leggings
-                    AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                        new Vector3(-0.1f, 0.22f, 0), new Vector3(0.13f, 0.25f, 0.13f), color);
-                    AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                        new Vector3(0.1f, 0.22f, 0), new Vector3(0.13f, 0.25f, 0.13f), color);
+                    {
+                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(-0.1f, 0.22f, 0), new Vector3(0.13f, 0.25f, 0.13f), color);
+                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0.1f, 0.22f, 0), new Vector3(0.13f, 0.25f, 0.13f), color);
+                        AddShoeToLeg(leftLeg, "LeftShoe");
+                        AddShoeToLeg(rightLeg, "RightShoe");
+                    }
                     break;
             }
         }
 
+        private static void AddShoeToLeg(GameObject leg, string shoeName)
+        {
+            // Shoe body (dark charcoal)
+            var shoe = AddPrimChild(leg.transform, shoeName, PrimitiveType.Cube,
+                new Vector3(0f, -0.92f, 0.28f), new Vector3(0.92f, 0.32f, 1.42f), new Color(0.18f, 0.18f, 0.2f));
+
+            // Shoe sole (white)
+            AddPrimChild(shoe.transform, "Sole", PrimitiveType.Cube,
+                new Vector3(0f, -0.52f, 0f), new Vector3(1.08f, 0.2f, 1.05f), Color.white);
+
+            // Shoe laces (white)
+            AddPrimChild(shoe.transform, "Laces", PrimitiveType.Cube,
+                new Vector3(0f, 0.52f, 0.1f), new Vector3(0.65f, 0.1f, 0.4f), Color.white);
+        }
+
         // ── Primitive Child Helper ──
 
-        private static void AddPrimChild(Transform parent, string name, PrimitiveType type, Vector3 localPos, Vector3 localScale, Color color)
+        private static GameObject AddPrimChild(Transform parent, string name, PrimitiveType type, Vector3 localPos, Vector3 localScale, Color color)
         {
             var obj = GameObject.CreatePrimitive(type);
             obj.name = name;
@@ -2328,9 +2429,9 @@ namespace RangerCity.Lobby
             obj.transform.localPosition = localPos;
             obj.transform.localScale = localScale;
 
-            var shader = Shader.Find("Unlit/Color");
-            if (shader == null) shader = Shader.Find("Universal Render Pipeline/Unlit");
+            var shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null) shader = Shader.Find("Standard");
+            if (shader == null) shader = Shader.Find("Unlit/Color");
             var mat = new Material(shader);
             mat.color = color;
             if (color.a < 1f)
@@ -2467,11 +2568,9 @@ namespace RangerCity.Lobby
 
         private Material CreateMat(Color color)
         {
-            // Unlit/Color = flat cartoony colors (no shading, no lighting)
-            // This gives a Hay Day / cartoon look
-            var shader = Shader.Find("Unlit/Color");
-            if (shader == null) shader = Shader.Find("Universal Render Pipeline/Unlit");
+            var shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null) shader = Shader.Find("Standard");
+            if (shader == null) shader = Shader.Find("Unlit/Color");
 
             var mat = new Material(shader);
             mat.color = color;
