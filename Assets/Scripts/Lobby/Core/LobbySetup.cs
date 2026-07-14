@@ -149,9 +149,15 @@ namespace RangerCity.Lobby
                 "Nước hoa tốt nhất là mùi mồ hôi tự nhiên! 💦",
                 "Zhang Guang Yu là tri kỷ của tôi đấy, hai đứa thơm tho như nhau! 🤝"
             }, new Color(0.2f, 0.14f, 0.09f));
+
+            CreateNPC("Tang Xu Yu", "⛓️", new Vector3(-6, 0, -65.5f), new Color(0.2f, 0.4f, 0.7f), new[] {
+                "Tôi là Tang Xu Yu. Tôi bị giam ở đây vô thời hạn... 😭",
+                "Đừng nhìn tôi như vậy, tôi vô tội mà! 🚪",
+                "Có ai mang cho tôi một cái bánh mì giấu chìa khóa không? 🍞🔑"
+            }, new Color(1f, 0.8f, 0.65f), wanderRadius: 0.5f);
         }
 
-        private void CreateNPC(string name, string emoji, Vector3 pos, Color bodyColor, string[] dialogues, Color? skinColor = null)
+        private void CreateNPC(string name, string emoji, Vector3 pos, Color bodyColor, string[] dialogues, Color? skinColor = null, float wanderRadius = 3f)
         {
             Color skinCol = skinColor ?? new Color(1f, 0.88f, 0.7f);
             var npc = CharacterVisuals.CreateCharacterTopDown(name, bodyColor, skinCol);
@@ -164,7 +170,7 @@ namespace RangerCity.Lobby
             SetField(ctrl, "_moveSpeed", 0.3f);
             SetField(ctrl, "_wanderPauseMin", 5f);
             SetField(ctrl, "_wanderPauseMax", 10f);
-            SetField(ctrl, "_wanderRadius", 3f);
+            SetField(ctrl, "_wanderRadius", wanderRadius);
 
             var swollen = new GameObject("SwollenFace");
             swollen.transform.SetParent(npc.transform, false);
