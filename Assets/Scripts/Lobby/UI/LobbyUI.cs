@@ -144,6 +144,15 @@ namespace RangerCity.Lobby
 
         private void Update()
         {
+            if (_player == null)
+            {
+                var activePlayer = FindAnyObjectByType<PlayerController>();
+                if (activePlayer != null)
+                {
+                    SetPlayer(activePlayer);
+                }
+            }
+
             if (_currentTarget != null && _interactionPanel != null && _interactionPanel.activeSelf)
             {
                 UpdatePromptPosition();
@@ -159,6 +168,24 @@ namespace RangerCity.Lobby
             }
         }
 
+        public void StartDialogue(IInteractable target)
+        {
+            if (target == null) return;
+
+            _currentTarget = target;
+            _currentDialogueLines = target.GetDialogueLines();
+            if (_currentDialogueLines == null || _currentDialogueLines.Length == 0) return;
+
+            _currentLineIndex = 0;
+            _dialogueActive = true;
+
+            if (_dialogueNameText != null) _dialogueNameText.text = target.DisplayName;
+            if (_dialoguePanel != null) _dialoguePanel.SetActive(true);
+            if (_interactionPanel != null) _interactionPanel.SetActive(false);
+
+            ShowDialogueLine(_currentDialogueLines[0]);
+        }
+
         private void ShowInteractionPrompt(IInteractable target)
         {
             if (_dialogueActive) return;
@@ -168,8 +195,29 @@ namespace RangerCity.Lobby
             _interactionPanel.SetActive(true);
 
             if (_targetNameText != null) _targetNameText.text = target.DisplayName;
-            if (_talkButton != null) _talkButton.gameObject.SetActive(target.CanTalk);
-            if (_punchButton != null) _punchButton.gameObject.SetActive(target.CanBePunched);
+            
+            bool canTalk = target.CanTalk;
+            bool canPunch = target.CanBePunched;
+
+            if (_talkButton != null)
+            {
+                _talkButton.gameObject.SetActive(canTalk);
+                var talkRT = _talkButton.GetComponent<RectTransform>();
+                if (talkRT != null)
+                {
+                    talkRT.anchoredPosition = canPunch ? new Vector2(-30, 0) : new Vector2(0, 0);
+                }
+            }
+
+            if (_punchButton != null)
+            {
+                _punchButton.gameObject.SetActive(canPunch);
+                var punchRT = _punchButton.GetComponent<RectTransform>();
+                if (punchRT != null)
+                {
+                    punchRT.anchoredPosition = canTalk ? new Vector2(30, 0) : new Vector2(0, 0);
+                }
+            }
 
             Debug.Log($"[LobbyUI] Show prompt for: {target.DisplayName}");
             UpdatePromptPosition();
@@ -200,19 +248,7 @@ namespace RangerCity.Lobby
 
         private void OnTalkClicked()
         {
-            if (_currentTarget == null) return;
-
-            _currentDialogueLines = _currentTarget.GetDialogueLines();
-            if (_currentDialogueLines == null || _currentDialogueLines.Length == 0) return;
-
-            _currentLineIndex = 0;
-            _dialogueActive = true;
-
-            if (_dialogueNameText != null) _dialogueNameText.text = _currentTarget.DisplayName;
-            if (_dialoguePanel != null) _dialoguePanel.SetActive(true);
-            if (_interactionPanel != null) _interactionPanel.SetActive(false);
-
-            ShowDialogueLine(_currentDialogueLines[0]);
+            StartDialogue(_currentTarget);
         }
 
         private void ShowDialogueLine(string text)

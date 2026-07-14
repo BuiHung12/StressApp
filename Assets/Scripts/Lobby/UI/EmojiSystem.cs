@@ -92,29 +92,46 @@ namespace RangerCity.Lobby
             }
         }
 
+        private string GetDisplayEmojiText(string emoji)
+        {
+            switch (emoji)
+            {
+                case "❤️": return "<color=#FF3366>♥</color>";
+                case "😂": return "[ Haha ]";
+                case "😮": return "[ Wow ]";
+                case "👋": return "[ Hi! ]";
+                case "💪": return "[ Fight ]";
+                case "🔥": return "[ Fire ]";
+                case "⭐": return "<color=#FFCC00>★</color>";
+                case "😴": return "[ Zzz ]";
+                case "😡": return "[ Angry ]";
+                case "🎉": return "[ Yay! ]";
+                case "👍": return "[ Like ]";
+                case "😢": return "[ Sad ]";
+                default: return $"[ {emoji} ]";
+            }
+        }
+
         private void SpawnEmojiVisual(string emoji)
         {
-            // Xóa emoji cũ nếu có
             DestroyEmoji();
 
-            // Tạo emoji 3D text phía trên đầu nhân vật
-            _currentEmojiObj = new GameObject("EmojiDisplay");
+            _currentEmojiObj = new GameObject("EmojiVisual");
             _currentEmojiObj.transform.SetParent(transform, false);
 
-            // Tính vị trí trên đầu nhân vật (dựa trên scale)
-            float headHeight = 1.6f; // Chiều cao nhân vật
+            float headHeight = 2.4f;
             _emojiBasePos = new Vector3(0, headHeight, 0);
             _currentEmojiObj.transform.localPosition = _emojiBasePos;
 
             // TextMeshPro 3D cho emoji
             var tmp = _currentEmojiObj.AddComponent<TextMeshPro>();
-            tmp.text = emoji;
-            tmp.fontSize = 36;
+            tmp.text = GetDisplayEmojiText(emoji);
+            tmp.fontSize = 6;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.enableWordWrapping = false;
 
-            // Scale nhỏ lại cho vừa 3D world
-            _currentEmojiObj.transform.localScale = Vector3.one * _emojiScale;
+            // Scale to match parent (fully readable)
+            _currentEmojiObj.transform.localScale = Vector3.one;
 
             // Billboard — luôn quay mặt về camera
             _currentEmojiObj.AddComponent<BillboardText>();
@@ -122,7 +139,7 @@ namespace RangerCity.Lobby
             // Bắt đầu timer cho animation
             _emojiTimer = 0f;
 
-            Debug.Log($"[EmojiSystem] Showing emoji: {emoji} on {gameObject.name}");
+            Debug.Log($"[EmojiSystem] Showing emoji: {emoji} as '{tmp.text}' on {gameObject.name}");
         }
 
         private void DestroyEmoji()

@@ -391,9 +391,10 @@ namespace RangerCity.Lobby
             var panel = new GameObject("InteractionPanel");
             panel.transform.SetParent(parent, false);
             var panelRT = panel.AddComponent<RectTransform>();
-            panelRT.sizeDelta = new Vector2(54, 54);
+            panelRT.sizeDelta = new Vector2(100, 54);
 
-            var punchBtnObj = CreateUIButton("PunchButton", panel.transform, Vector2.zero, "", Color.clear, new Vector2(54, 54));
+            // Punch button at X = 30
+            var punchBtnObj = CreateUIButton("PunchButton", panel.transform, new Vector2(30, 0), "", Color.clear, new Vector2(54, 54));
             
             var fistIcon = new GameObject("FistIcon");
             fistIcon.transform.SetParent(punchBtnObj.transform, false);
@@ -403,14 +404,29 @@ namespace RangerCity.Lobby
             fistImg.sprite = CreateFistSprite();
             fistImg.color = Color.white;
 
-            var talkBtnObj = CreateUIButton("TalkButton", panel.transform, new Vector2(9999f, 9999f), "DummyTalk", Color.clear, Vector2.one);
-            talkBtnObj.SetActive(false);
+            // Talk button at X = -30
+            var talkBtnObj = CreateUIButton("TalkButton", panel.transform, new Vector2(-30, 0), "", Color.clear, new Vector2(54, 54));
+            
+            var talkIcon = new GameObject("TalkIcon");
+            talkIcon.transform.SetParent(talkBtnObj.transform, false);
+            var talkRT = talkIcon.AddComponent<RectTransform>();
+            talkRT.anchorMin = Vector2.zero;
+            talkRT.anchorMax = Vector2.one;
+            talkRT.offsetMin = talkRT.offsetMax = Vector2.zero;
+            
+            var talkTxt = talkIcon.AddComponent<TextMeshProUGUI>();
+            talkTxt.text = "💬";
+            talkTxt.fontSize = 32;
+            talkTxt.alignment = TextAlignmentOptions.Center;
 
+            // Target name label above buttons
             var nameObj = new GameObject("TargetName");
             nameObj.transform.SetParent(panel.transform, false);
-            nameObj.transform.localPosition = new Vector3(9999f, 9999f, 0);
+            nameObj.transform.localPosition = new Vector3(0, 42, 0);
             var nameTmp = nameObj.AddComponent<TextMeshProUGUI>();
             nameTmp.text = "";
+            nameTmp.fontSize = 18;
+            nameTmp.alignment = TextAlignmentOptions.Center;
 
             panel.SetActive(false);
             return panel;
