@@ -52,7 +52,13 @@ namespace RangerCity.Lobby
                 identity = player.AddComponent<NetworkIdentity>();
 
             if (identity.assetId == 0)
-                identity.assetId = 424242;
+            {
+                var field = typeof(NetworkIdentity).GetField("_assetId", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+                if (field != null)
+                {
+                    field.SetValue(identity, (uint)424242);
+                }
+            }
 
             if (player.GetComponent<NetworkPlayer>() == null)
                 player.AddComponent<NetworkPlayer>();
