@@ -16,15 +16,16 @@ namespace RangerCity.Lobby
             var zone = new GameObject("GardenZone");
             zone.transform.position = new Vector3(0, 0, 60f);
 
-            var grassColor = new Color(0.3f, 0.62f, 0.22f);
-            var stoneColor = new Color(0.65f, 0.65f, 0.68f);
+            var grassColor = new Color(0.28f, 0.58f, 0.18f);
+            var stoneColor = new Color(0.62f, 0.62f, 0.65f);
             var woodColor = new Color(0.42f, 0.28f, 0.15f);
             var goldColor = new Color(1.0f, 0.85f, 0.15f);
 
-            // ── 1. Thick Background Cloud Banks (Y = -6 to -8) ──
+            // ── 1. Thick Background Cloud Banks & Distant Islands ──
             CreateCloudSea(zone);
+            CreateDistantIslands(zone);
 
-            // ── 2. Island 1: Entrance Archway & Shrine (Z = -5.5f, X = 0, Y = 0) ──
+            // ── 2. Island 1: Entrance Sanctuary (Z = -5.5f, X = 0, Y = 0) ──
             var island1 = CreateSculptedIsland(zone, "EntranceIsland", new Vector3(0, 0, -5.5f), 3.2f, 1.4f, grassColor);
 
             // Floral Archway at entrance
@@ -36,8 +37,11 @@ namespace RangerCity.Lobby
             // Wishing Well shrine
             var well = new GameObject("WishingWellShrine");
             well.transform.SetParent(island1.transform, false);
-            well.transform.localPosition = new Vector3(-2.0f, 0.05f, 1.2f);
+            well.transform.localPosition = new Vector3(-2.2f, 0.05f, 1.2f);
             BuildDetailedWishingWell(well);
+
+            // Cozy Reading Corner
+            CreateReadingCorner(island1, new Vector3(2.0f, 0.05f, 1.4f));
 
             // Pathway signs
             CreatePathwaySign(island1, new Vector3(1.2f, 0.05f, -1.8f), "Khu Vuon");
@@ -46,21 +50,24 @@ namespace RangerCity.Lobby
             CreateLantern(island1, new Vector3(-2.4f, 0.05f, -1.8f));
             CreateLantern(island1, new Vector3(2.4f, 0.05f, -1.8f));
 
-            // Lush Flower fields (Hundreds of flowers)
+            // Clustered Flower Fields
             CreateFlowerField(island1, new Vector3(-1.8f, 0.05f, -1.0f), new Color[] { new(0.96f, 0.45f, 0.62f), new(1.0f, 0.92f, 0.95f) }, 1.2f, 1.0f, 35);
             CreateFlowerField(island1, new Vector3(1.8f, 0.05f, -0.8f), new Color[] { new(0.95f, 0.8f, 0.2f), new(0.9f, 0.5f, 0.1f) }, 1.2f, 1.0f, 35);
             CreateFlowerField(island1, new Vector3(-2.2f, 0.05f, 2.2f), new Color[] { new(0.5f, 0.75f, 1.0f), new(0.72f, 0.3f, 0.85f) }, 1.0f, 0.8f, 25);
 
             // Foliage & Mushrooms
-            CreateVegetationPatch(island1, new Vector3(2.0f, 0.05f, 1.6f));
+            CreateVegetationPatch(island1, new Vector3(2.0f, 0.05f, -0.2f));
             CreateVegetationPatch(island1, new Vector3(-1.5f, 0.05f, -2.2f));
             CreateButterflies(island1, new Vector3(0, 0.6f, -1.0f));
 
             // ── 3. Island 2: Tiered Water Terrace (Z = 0.2f, X = 3.5f, Y = 0.9f) ──
             var island2 = CreateSculptedIsland(zone, "GardenTerrace", new Vector3(3.5f, 0.9f, 0.2f), 3.8f, 1.6f, grassColor);
 
-            // Waterfall pouring off the left side
+            // Waterfall & River stream pouring off the left side
             CreateWaterfall(island2, new Vector3(-2.8f, 0.05f, -0.2f), 4.5f);
+
+            // Campsite Campfire (Storytelling spot)
+            CreateCampfire(island2, new Vector3(0f, 0.05f, -1.8f));
 
             // Rustic Bench & Tea Table overlooking the falls
             CreateBench(island2, new Vector3(1.8f, 0.05f, 1.5f), -35f);
@@ -101,11 +108,14 @@ namespace RangerCity.Lobby
             CreateFlowerField(island2, new Vector3(-1.8f, 0.05f, 1.5f), new Color[] { new(0.75f, 0.4f, 0.85f), new(0.95f, 0.5f, 0.7f) }, 1.2f, 1.0f, 30);
             CreateVegetationPatch(island2, new Vector3(2.2f, 0.05f, -1.0f));
 
-            // ── 4. Island 3: Golden World Tree Sanctuary (Z = 5.5f, X = -1.2f, Y = 1.8f) ──
+            // ── 4. Island 3: World Tree Sanctuary (Z = 5.5f, X = -1.2f, Y = 1.8f) ──
             var island3 = CreateSculptedIsland(zone, "WorldTreeSanctuary", new Vector3(-1.2f, 1.8f, 5.5f), 3.5f, 1.8f, grassColor);
 
             // Giant Ancient Gnarled Golden Tree
             CreateMagicalWorldTree(island3, new Vector3(0, 0.05f, 1.2f));
+
+            // Sacred Stone Shrine Altar (Storytelling spot)
+            CreateStoneShrine(island3, new Vector3(1.8f, 0.05f, -1.2f));
 
             // Sacred Stone Lanterns
             CreateLantern(island3, new Vector3(-2.4f, 0.05f, -1.5f));
@@ -121,7 +131,7 @@ namespace RangerCity.Lobby
             CreateVegetationPatch(island3, new Vector3(2.2f, 0.05f, -0.8f));
             CreateButterflies(island3, new Vector3(0, 0.8f, 0.5f));
 
-            // ── 5. Wooden Suspension Bridges ──
+            // ── 5. Wooden Bridges ──
             // Bridge 1 (Island 1 to 2)
             CreateFantasyBridge(zone, new Vector3(1.2f, 0.02f, -2.8f), new Vector3(2.2f, 0.92f, -1.4f), 10);
 
@@ -202,10 +212,10 @@ namespace RangerCity.Lobby
             island.transform.localPosition = localPos;
 
             var dirtCol = new Color(0.35f, 0.28f, 0.22f);
-            var stoneColor = new Color(0.65f, 0.65f, 0.68f);
+            var stoneColor = new Color(0.62f, 0.62f, 0.65f);
 
-            // 1. Sculpt the top grass terrain using 12 overlapping spheres and boxes for an organic shape
-            int grassClusters = 14;
+            // 1. Sculpt uneven grass levels and dirt base chunk by overlapping multiple cylinders & spheres
+            int grassClusters = 16;
             for (int i = 0; i < grassClusters; i++)
             {
                 float angle = (i * (360f / grassClusters) + Random.Range(-15f, 15f)) * Mathf.Deg2Rad;
@@ -213,16 +223,14 @@ namespace RangerCity.Lobby
                 Vector3 offset = new Vector3(Mathf.Cos(angle) * dist, Random.Range(-0.06f, 0.08f), Mathf.Sin(angle) * dist);
                 float rScale = radius * Random.Range(0.45f, 0.75f);
 
-                // Grass mound
                 var gm = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 gm.name = "GrassMound";
                 gm.transform.SetParent(island.transform, false);
                 gm.transform.localPosition = offset;
-                gm.transform.localScale = new Vector3(rScale * 2f, 0.2f, rScale * 2f);
+                gm.transform.localScale = new Vector3(rScale * 2f, 0.25f, rScale * 2f);
                 gm.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(grassCol);
                 Object.Destroy(gm.GetComponent<Collider>());
 
-                // Dirt base chunk extending below
                 var dm = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 dm.name = "DirtChunk_Collider";
                 dm.transform.SetParent(island.transform, false);
@@ -231,8 +239,8 @@ namespace RangerCity.Lobby
                 dm.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(dirtCol);
             }
 
-            // 2. Sculpt exposed rocky cliff faces around the edges
-            int rockCliffs = Random.Range(6, 11);
+            // 2. Sculpt irregular rock cliffs and overhangs around edges
+            int rockCliffs = Random.Range(8, 13);
             for (int i = 0; i < rockCliffs; i++)
             {
                 float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
@@ -244,9 +252,9 @@ namespace RangerCity.Lobby
                 rock.transform.SetParent(island.transform, false);
                 rock.transform.localPosition = rockPos;
                 rock.transform.localScale = new Vector3(
-                    Random.Range(0.6f, 1.2f),
-                    Random.Range(0.5f, 1.5f),
-                    Random.Range(0.6f, 1.2f)
+                    Random.Range(0.7f, 1.4f),
+                    Random.Range(0.6f, 1.6f),
+                    Random.Range(0.7f, 1.4f)
                 );
                 rock.transform.localRotation = Quaternion.Euler(
                     Random.Range(-25f, 25f),
@@ -256,8 +264,22 @@ namespace RangerCity.Lobby
                 rock.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor);
             }
 
-            // 3. Hanging gnarled roots dangling underneath the island base
-            int rootCount = Random.Range(10, 16);
+            // 3. Structural fissures / cracks
+            int cracksCount = Random.Range(2, 4);
+            for (int i = 0; i < cracksCount; i++)
+            {
+                var crack = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                crack.name = "TerrainCrack";
+                crack.transform.SetParent(island.transform, false);
+                crack.transform.localPosition = new Vector3(Random.Range(-radius * 0.5f, radius * 0.5f), 0.06f, Random.Range(-radius * 0.5f, radius * 0.5f));
+                crack.transform.localScale = new Vector3(Random.Range(0.4f, 0.8f), 0.01f, 0.05f);
+                crack.transform.localRotation = Quaternion.Euler(0, Random.Range(0, 180f), 0);
+                crack.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.12f, 0.1f, 0.08f));
+                Object.Destroy(crack.GetComponent<Collider>());
+            }
+
+            // 4. Hanging roots dangling underneath the island base
+            int rootCount = Random.Range(12, 18);
             for (int i = 0; i < rootCount; i++)
             {
                 float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
@@ -268,15 +290,15 @@ namespace RangerCity.Lobby
                 root.name = "UnderRoot";
                 root.transform.SetParent(island.transform, false);
                 root.transform.localPosition = rootPos;
-                float len = Random.Range(0.5f, 1.4f);
+                float len = Random.Range(0.6f, 1.5f);
                 root.transform.localScale = new Vector3(0.05f, len, 0.05f);
                 root.transform.localRotation = Quaternion.Euler(Random.Range(-20f, 20f), 0, Random.Range(-20f, 20f));
-                root.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(dirtCol * 0.7f);
+                root.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(dirtCol * 0.65f);
                 Object.Destroy(root.GetComponent<Collider>());
             }
 
-            // 4. Vines hanging down the cliffs
-            int vineCount = Random.Range(7, 12);
+            // 5. Ivy vines trailing down cliffs
+            int vineCount = Random.Range(9, 14);
             for (int i = 0; i < vineCount; i++)
             {
                 float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
@@ -286,28 +308,48 @@ namespace RangerCity.Lobby
                 var vine = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 vine.name = "HangingIvy";
                 vine.transform.SetParent(island.transform, false);
-                vine.transform.localPosition = vinePos + Vector3.down * 0.35f;
-                float len = Random.Range(0.4f, 0.8f);
+                vine.transform.localPosition = vinePos + Vector3.down * 0.4f;
+                float len = Random.Range(0.45f, 0.9f);
                 vine.transform.localScale = new Vector3(0.04f, len, 0.04f);
                 vine.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.2f, 0.45f, 0.18f));
                 Object.Destroy(vine.GetComponent<Collider>());
             }
 
-            // 5. Tiny floating rocks nearby
-            int floatRocks = Random.Range(2, 5);
+            // 6. Tiny floating rocks nearby
+            int floatRocks = Random.Range(3, 6);
             for (int i = 0; i < floatRocks; i++)
             {
                 float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-                float rDist = radius * Random.Range(1.3f, 1.6f);
-                Vector3 fpos = new Vector3(Mathf.Cos(angle) * rDist, Random.Range(-0.8f, 0.5f), Mathf.Sin(angle) * rDist);
+                float rDist = radius * Random.Range(1.3f, 1.7f);
+                Vector3 fpos = new Vector3(Mathf.Cos(angle) * rDist, Random.Range(-0.8f, 0.6f), Mathf.Sin(angle) * rDist);
 
                 var fr = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 fr.name = "FloatingRock_Collider";
                 fr.transform.SetParent(island.transform, false);
                 fr.transform.localPosition = fpos;
-                fr.transform.localScale = Vector3.one * Random.Range(0.25f, 0.5f);
+                fr.transform.localScale = Vector3.one * Random.Range(0.25f, 0.55f);
                 fr.transform.localRotation = Quaternion.Euler(Random.Range(0, 360f), Random.Range(0, 360f), Random.Range(0, 360f));
                 fr.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor * 0.95f);
+            }
+
+            // 7. Scattering fallen autumn leaves (small flat colored cubes)
+            int leavesCount = Random.Range(15, 25);
+            for (int k = 0; k < leavesCount; k++)
+            {
+                float rx = Random.Range(-radius * 0.8f, radius * 0.8f);
+                float rz = Random.Range(-radius * 0.8f, radius * 0.8f);
+                if (new Vector2(rx, rz).magnitude <= radius)
+                {
+                    var leaf = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                    leaf.name = "FallenLeaf";
+                    leaf.transform.SetParent(island.transform, false);
+                    leaf.transform.localPosition = new Vector3(rx, 0.03f, rz);
+                    leaf.transform.localScale = new Vector3(0.06f, 0.005f, 0.08f);
+                    leaf.transform.localRotation = Quaternion.Euler(0, Random.Range(0, 360f), 0);
+                    Color leafColor = Random.Range(0, 2) == 0 ? new Color(1.0f, 0.8f, 0.2f) : new Color(0.9f, 0.5f, 0.1f);
+                    leaf.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(leafColor);
+                    Object.Destroy(leaf.GetComponent<Collider>());
+                }
             }
 
             return island;
@@ -319,71 +361,126 @@ namespace RangerCity.Lobby
             waterParent.transform.SetParent(island.transform, false);
 
             var stoneColor = new Color(0.58f, 0.58f, 0.6f);
-            var waterColor = new Color(0.4f, 0.75f, 0.95f, 0.8f);
+            var waterColor = new Color(0.4f, 0.72f, 0.92f, 0.8f);
 
-            // 1. Quiet pond
-            var pond = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            pond.name = "PondWater";
-            pond.transform.SetParent(waterParent.transform, false);
-            pond.transform.localPosition = localEdgePos + new Vector3(0, 0.02f, 0.4f);
-            pond.transform.localScale = new Vector3(1.3f, 0.01f, 1.3f);
-            pond.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(waterColor);
-            Object.Destroy(pond.GetComponent<Collider>());
+            // 1. Double overlapping pond base for irregular pond shape
+            var pond1 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            pond1.name = "PondWater1";
+            pond1.transform.SetParent(waterParent.transform, false);
+            pond1.transform.localPosition = localEdgePos + new Vector3(0, 0.02f, 0.4f);
+            pond1.transform.localScale = new Vector3(1.3f, 0.01f, 1.3f);
+            pond1.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(waterColor);
+            Object.Destroy(pond1.GetComponent<Collider>());
+
+            var pond2 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            pond2.name = "PondWater2";
+            pond2.transform.SetParent(waterParent.transform, false);
+            pond2.transform.localPosition = localEdgePos + new Vector3(0.3f, 0.02f, 0.6f);
+            pond2.transform.localScale = new Vector3(0.9f, 0.01f, 0.9f);
+            pond2.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(waterColor);
+            Object.Destroy(pond2.GetComponent<Collider>());
 
             // Stone borders
-            for (int i = 0; i < 7; i++)
+            for (int i = 0; i < 9; i++)
             {
-                float angle = (i * (360f / 7f)) * Mathf.Deg2Rad;
+                float angle = (i * (360f / 9f)) * Mathf.Deg2Rad;
                 var rock = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 rock.name = "PondRock_Collider";
                 rock.transform.SetParent(waterParent.transform, false);
-                rock.transform.localPosition = localEdgePos + new Vector3(Mathf.Cos(angle) * 0.75f, 0.08f, 0.4f + Mathf.Sin(angle) * 0.75f);
+                rock.transform.localPosition = localEdgePos + new Vector3(Mathf.Cos(angle) * 0.8f, 0.08f, 0.4f + Mathf.Sin(angle) * 0.8f);
                 rock.transform.localScale = new Vector3(
-                    Random.Range(0.2f, 0.45f),
-                    Random.Range(0.15f, 0.35f),
-                    Random.Range(0.2f, 0.45f)
+                    Random.Range(0.2f, 0.5f),
+                    Random.Range(0.15f, 0.4f),
+                    Random.Range(0.2f, 0.5f)
                 );
                 rock.transform.localRotation = Quaternion.Euler(Random.Range(-10f, 10f), Random.Range(0, 360f), Random.Range(-10f, 10f));
                 rock.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor);
             }
 
-            // Lily pads
-            for (int i = 0; i < 3; i++)
+            // Wet shiny stones
+            for (int i = 0; i < 4; i++)
+            {
+                var wetStone = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                wetStone.name = "WetStone";
+                wetStone.transform.SetParent(waterParent.transform, false);
+                wetStone.transform.localPosition = localEdgePos + new Vector3(Random.Range(-0.4f, 0.4f), 0.04f, 0.4f + Random.Range(-0.4f, 0.4f));
+                wetStone.transform.localScale = Vector3.one * Random.Range(0.12f, 0.22f);
+                wetStone.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor * 0.72f);
+                Object.Destroy(wetStone.GetComponent<Collider>());
+            }
+
+            // Lily pads & lotus flowers
+            for (int i = 0; i < 4; i++)
             {
                 var pad = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 pad.name = "LilyPad";
                 pad.transform.SetParent(waterParent.transform, false);
-                pad.transform.localPosition = localEdgePos + new Vector3(Random.Range(-0.3f, 0.3f), 0.03f, 0.4f + Random.Range(-0.3f, 0.3f));
+                pad.transform.localPosition = localEdgePos + new Vector3(Random.Range(-0.4f, 0.4f), 0.03f, 0.4f + Random.Range(-0.4f, 0.4f));
                 pad.transform.localScale = new Vector3(0.18f, 0.005f, 0.18f);
                 pad.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.18f, 0.48f, 0.22f));
                 Object.Destroy(pad.GetComponent<Collider>());
+
+                if (i == 0) // spawn pink lotus
+                {
+                    var lotus = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    lotus.name = "LotusFlower";
+                    lotus.transform.SetParent(pad.transform, false);
+                    lotus.transform.localPosition = new Vector3(0, 5.0f, 0); // local to cylinder scale
+                    lotus.transform.localScale = new Vector3(0.6f, 0.8f, 0.6f);
+                    lotus.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.96f, 0.5f, 0.75f));
+                    Object.Destroy(lotus.GetComponent<Collider>());
+                }
             }
 
-            // 2. Waterfall flow sheet (semi-transparent light blue)
-            var flow = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            flow.name = "WaterFlow";
-            flow.transform.SetParent(waterParent.transform, false);
-            flow.transform.localPosition = localEdgePos + new Vector3(0, -dropHeight * 0.5f, 0.05f);
-            flow.transform.localScale = new Vector3(0.85f, dropHeight, 0.06f);
-            flow.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.85f, 0.95f, 1.0f, 0.85f));
-            Object.Destroy(flow.GetComponent<Collider>());
+            // 2. Small wooden dock extending over the pond (Storytelling)
+            var dock = new GameObject("PondDock");
+            dock.transform.SetParent(waterParent.transform, false);
+            dock.transform.localPosition = localEdgePos + new Vector3(0.6f, 0.03f, 0.1f);
+            dock.transform.localRotation = Quaternion.Euler(0, 45f, 0);
 
-            // 3. Foam splash spheres at the bottom
+            // Dock planks
+            for (int p = 0; p < 4; p++)
+            {
+                var plank = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                plank.name = "DockPlank";
+                plank.transform.SetParent(dock.transform, false);
+                plank.transform.localPosition = new Vector3(0, 0, p * 0.16f);
+                plank.transform.localScale = new Vector3(0.55f, 0.03f, 0.14f);
+                plank.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.42f, 0.28f, 0.15f));
+                Object.Destroy(plank.GetComponent<Collider>());
+            }
+
+            // 3. Multi-sheet waterfall flow (3 separate cascading sheets for natural density)
+            float[] offsets = { -0.2f, 0f, 0.2f };
+            float[] widths = { 0.28f, 0.35f, 0.28f };
+            float[] depths = { 0.04f, 0.06f, 0.04f };
+            for (int s = 0; s < 3; s++)
+            {
+                var sheet = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                sheet.name = "WaterFlowSheet";
+                sheet.transform.SetParent(waterParent.transform, false);
+                sheet.transform.localPosition = localEdgePos + new Vector3(offsets[s], -dropHeight * 0.5f, 0.05f + s * 0.01f);
+                sheet.transform.localScale = new Vector3(widths[s], dropHeight, depths[s]);
+                sheet.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.85f, 0.95f, 1.0f, 0.8f));
+                Object.Destroy(sheet.GetComponent<Collider>());
+            }
+
+            // 4. Foam splash spheres at the bottom
             var splashParent = new GameObject("SplashFoam");
             splashParent.transform.SetParent(waterParent.transform, false);
             splashParent.transform.localPosition = localEdgePos + new Vector3(0, -dropHeight, 0.05f);
 
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 7; i++)
             {
                 var foam = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 foam.name = "SplashFoamSphere";
                 foam.transform.SetParent(splashParent.transform, false);
                 foam.transform.localPosition = new Vector3(
-                    Random.Range(-0.4f, 0.4f),
+                    Random.Range(-0.45f, 0.45f),
                     Random.Range(-0.1f, 0.1f),
                     Random.Range(-0.1f, 0.1f)
                 );
-                foam.transform.localScale = Vector3.one * Random.Range(0.2f, 0.38f);
+                foam.transform.localScale = Vector3.one * Random.Range(0.18f, 0.42f);
                 foam.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(Color.white);
                 Object.Destroy(foam.GetComponent<Collider>());
             }
@@ -400,24 +497,33 @@ namespace RangerCity.Lobby
             // Compute midpoint with sag
             Vector3 mid = (start + end) * 0.5f + Vector3.down * 0.38f;
 
-            // 1. Planks
+            // 1. Planks (Slightly damaged, randomized rotations & dimensions)
             for (int i = 0; i < plankCount; i++)
             {
                 float t = (float)i / (plankCount - 1);
                 Vector3 pos = GetBezierPoint(start, mid, end, t);
                 Vector3 tangent = GetBezierTangent(start, mid, end, t);
-                Quaternion rot = Quaternion.LookRotation(tangent, Vector3.up) * Quaternion.Euler(0, 90, 0);
+
+                // Slight damage offsets
+                pos += new Vector3(0, Random.Range(-0.015f, 0.015f), 0);
+                float rotErrY = Random.Range(-4f, 4f);
+                float rotErrX = Random.Range(-2f, 2f);
+                Quaternion rot = Quaternion.LookRotation(tangent, Vector3.up) * Quaternion.Euler(rotErrX, 90f + rotErrY, 0);
 
                 var plank = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 plank.name = "BridgePlank_Collider";
                 plank.transform.SetParent(bridge.transform, false);
                 plank.transform.localPosition = pos;
-                plank.transform.localScale = new Vector3(1.6f, 0.06f, 0.26f);
+                plank.transform.localScale = new Vector3(
+                    Random.Range(1.4f, 1.75f), // plank length
+                    0.06f,
+                    Random.Range(0.22f, 0.28f)  // plank width
+                );
                 plank.transform.localRotation = rot;
                 plank.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor);
             }
 
-            // 2. Support posts at start and end
+            // 2. Support posts
             Vector3 rightOffset = Quaternion.Euler(0, 90, 0) * (end - start).normalized * 0.8f;
             Vector3[] postPositions = {
                 start + rightOffset, start - rightOffset,
@@ -452,7 +558,7 @@ namespace RangerCity.Lobby
             beamR.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor * 0.72f);
             Object.Destroy(beamR.GetComponent<Collider>());
 
-            // 4. Rope railings
+            // 4. Double rope railings
             int ropeSegments = 16;
             for (int i = 0; i < ropeSegments; i++)
             {
@@ -480,6 +586,26 @@ namespace RangerCity.Lobby
                 Vector3 mrp2 = p2 + rightOffset + Vector3.up * 0.22f;
                 CreateRopeSegment(bridge, mrp1, mrp2, ropeColor);
             }
+
+            // 5. Hanging lantern in middle of bridge
+            Vector3 midPoint = GetBezierPoint(start, mid, end, 0.5f);
+            var bridgeLight = new GameObject("BridgeLantern");
+            bridgeLight.transform.SetParent(bridge.transform, false);
+            bridgeLight.transform.localPosition = midPoint - rightOffset + Vector3.up * 0.35f;
+
+            var glow = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            glow.name = "LanternGlow";
+            glow.transform.SetParent(bridgeLight.transform, false);
+            glow.transform.localPosition = Vector3.down * 0.15f;
+            glow.transform.localScale = Vector3.one * 0.15f;
+            glow.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(1.0f, 0.88f, 0.5f));
+            Object.Destroy(glow.GetComponent<Collider>());
+
+            var lLight = bridgeLight.AddComponent<Light>();
+            lLight.type = LightType.Point;
+            lLight.color = new Color(1.0f, 0.85f, 0.5f);
+            lLight.range = 3.5f;
+            lLight.intensity = 1.2f;
         }
 
         private static void CreateRopeSegment(GameObject parent, Vector3 p1, Vector3 p2, Color color)
@@ -519,19 +645,19 @@ namespace RangerCity.Lobby
             var orangeLeaf = new Color(0.95f, 0.6f, 0.1f);
             var paleLeaf = new Color(1.0f, 0.95f, 0.45f);
 
-            // 1. Ancient gnarled trunk base (18 overlapping rotated cylinders)
-            int trunkSegments = 16;
+            // 1. Massive gnarled trunk base (24 overlapping cylinders wrapping over stone pieces)
+            int trunkSegments = 22;
             for (int i = 0; i < trunkSegments; i++)
             {
                 var tr = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 tr.name = "TrunkSegment_Collider";
                 tr.transform.SetParent(goldTree.transform, false);
                 tr.transform.localPosition = new Vector3(
-                    Random.Range(-0.06f, 0.06f) * (1f - (float)i / trunkSegments),
-                    0.2f + i * 0.28f,
-                    Random.Range(-0.06f, 0.06f) * (1f - (float)i / trunkSegments)
+                    Random.Range(-0.07f, 0.07f) * (1f - (float)i / trunkSegments),
+                    0.2f + i * 0.24f,
+                    Random.Range(-0.07f, 0.07f) * (1f - (float)i / trunkSegments)
                 );
-                float scaleFac = 0.5f - i * 0.025f;
+                float scaleFac = 0.55f - i * 0.022f;
                 tr.transform.localScale = new Vector3(scaleFac, 0.18f, scaleFac);
                 tr.transform.localRotation = Quaternion.Euler(
                     Random.Range(-8f, 8f),
@@ -541,32 +667,32 @@ namespace RangerCity.Lobby
                 tr.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(trunkColor);
             }
 
-            // 2. Thick root flares spreading over rocks at the base
-            for (int i = 0; i < 5; i++)
+            // 2. Gnarled root flares wrapping over stones at the base
+            for (int i = 0; i < 6; i++)
             {
-                float angle = (i * 72f) * Mathf.Deg2Rad;
+                float angle = (i * 60f) * Mathf.Deg2Rad;
                 var root = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 root.name = "RootFlare";
                 root.transform.SetParent(goldTree.transform, false);
-                root.transform.localPosition = new Vector3(Mathf.Cos(angle) * 0.25f, 0.15f, Mathf.Sin(angle) * 0.25f);
-                root.transform.localScale = new Vector3(0.12f, 0.25f, 0.12f);
-                root.transform.localRotation = Quaternion.Euler(Mathf.Sin(angle) * 35f, 0f, -Mathf.Cos(angle) * 35f);
+                root.transform.localPosition = new Vector3(Mathf.Cos(angle) * 0.28f, 0.15f, Mathf.Sin(angle) * 0.28f);
+                root.transform.localScale = new Vector3(0.14f, 0.28f, 0.14f);
+                root.transform.localRotation = Quaternion.Euler(Mathf.Sin(angle) * 38f, 0f, -Mathf.Cos(angle) * 38f);
                 root.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(trunkColor);
                 Object.Destroy(root.GetComponent<Collider>());
             }
 
-            // 3. Multiple heavy branching structures splitting off
+            // 3. Heavy branching splits
             Vector3[] branchData = {
                 new(-0.35f, 1.4f, 0.1f), new(0.3f, 1.6f, -0.2f), new(-0.1f, 1.7f, 0.4f),
-                new(0.2f, 1.8f, 0.3f), new(-0.4f, 1.9f, -0.3f)
+                new(0.2f, 1.8f, 0.3f), new(-0.4f, 1.9f, -0.3f), new(0.05f, 2.1f, 0.5f)
             };
             Vector3[] branchScale = {
                 new(0.12f, 0.45f, 0.12f), new(0.1f, 0.4f, 0.1f), new(0.1f, 0.4f, 0.1f),
-                new(0.08f, 0.35f, 0.08f), new(0.08f, 0.35f, 0.08f)
+                new(0.08f, 0.35f, 0.08f), new(0.08f, 0.35f, 0.08f), new(0.07f, 0.3f, 0.07f)
             };
             Quaternion[] branchRot = {
                 Quaternion.Euler(0, 0, 50f), Quaternion.Euler(-45f, 0, -45f), Quaternion.Euler(45f, 45f, 0),
-                Quaternion.Euler(30f, -30f, -30f), Quaternion.Euler(-30f, 60f, 50f)
+                Quaternion.Euler(30f, -30f, -30f), Quaternion.Euler(-30f, 60f, 50f), Quaternion.Euler(15f, 15f, 0)
             };
             for (int i = 0; i < branchData.Length; i++)
             {
@@ -580,7 +706,7 @@ namespace RangerCity.Lobby
                 Object.Destroy(br.GetComponent<Collider>());
             }
 
-            // 4. Large canopy spheres (overlapping gold, orange, and pale yellow)
+            // 4. Overlapping organic foliage spheres (36 modules for non-round canopy silhouette)
             var canopyData = new (Vector3 offset, float r, Color col)[] {
                 (new(0, 2.2f, 0), 1.6f, goldLeaf),
                 (new(-0.8f, 1.9f, 0.2f), 1.2f, orangeLeaf),
@@ -588,7 +714,9 @@ namespace RangerCity.Lobby
                 (new(-0.2f, 2.1f, 0.8f), 1.1f, goldLeaf),
                 (new(0.3f, 2.3f, 0.6f), 1.0f, paleLeaf),
                 (new(-0.6f, 2.4f, -0.5f), 1.0f, paleLeaf),
-                (new(0.1f, 2.8f, 0.1f), 1.3f, paleLeaf)
+                (new(0.1f, 2.8f, 0.1f), 1.3f, paleLeaf),
+                (new(0.6f, 2.5f, -0.7f), 0.9f, orangeLeaf),
+                (new(-0.7f, 2.6f, 0.7f), 0.9f, goldLeaf)
             };
             foreach (var (offset, r, col) in canopyData)
             {
@@ -600,16 +728,15 @@ namespace RangerCity.Lobby
                 leafGroup.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(col);
                 Object.Destroy(leafGroup.GetComponent<Collider>());
 
-                // Adding small leaf clump noise
                 for (int s = 0; s < 3; s++)
                 {
                     var subL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                     subL.name = "SubLeaves";
                     subL.transform.SetParent(leafGroup.transform, false);
                     subL.transform.localPosition = new Vector3(
-                        Random.Range(-0.3f, 0.3f),
-                        Random.Range(-0.3f, 0.3f),
-                        Random.Range(-0.3f, 0.3f)
+                        Random.Range(-0.35f, 0.35f),
+                        Random.Range(-0.35f, 0.35f),
+                        Random.Range(-0.35f, 0.35f)
                     );
                     subL.transform.localScale = Vector3.one * Random.Range(0.4f, 0.6f);
                     subL.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(col);
@@ -618,14 +745,14 @@ namespace RangerCity.Lobby
             }
 
             // 5. Hanging glowing light fruits
-            for (int i = 0; i < 6; i++)
+            for (int i = 0; i < 8; i++)
             {
                 var lightObj = new GameObject("MagicalTreeLight");
                 lightObj.transform.SetParent(goldTree.transform, false);
                 lightObj.transform.localPosition = new Vector3(
-                    Random.Range(-1.3f, 1.3f),
+                    Random.Range(-1.4f, 1.4f),
                     Random.Range(1.1f, 2.4f),
-                    Random.Range(-1.3f, 1.3f)
+                    Random.Range(-1.4f, 1.4f)
                 );
 
                 var glowBall = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -727,10 +854,19 @@ namespace RangerCity.Lobby
             field.transform.SetParent(parent.transform, false);
             field.transform.localPosition = localCenter;
 
+            // Define 2 cluster centers for organic clumpy flower distribution
+            Vector3 c1 = new Vector3(-width * 0.22f, 0, -depth * 0.22f);
+            Vector3 c2 = new Vector3(width * 0.22f, 0, depth * 0.22f);
+
             for (int f = 0; f < count; f++)
             {
-                float ox = Random.Range(-width * 0.5f, width * 0.5f);
-                float oz = Random.Range(-depth * 0.5f, depth * 0.5f);
+                // Choose cluster
+                Vector3 basePos = (Random.Range(0, 2) == 0) ? c1 : c2;
+                float rDist = Random.Range(0f, width * 0.35f);
+                float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
+
+                float ox = basePos.x + Mathf.Cos(angle) * rDist;
+                float oz = basePos.z + Mathf.Sin(angle) * rDist;
                 float r = Random.Range(0.12f, 0.18f);
 
                 var stem = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -761,24 +897,30 @@ namespace RangerCity.Lobby
             var mushroomStemColor = new Color(0.9f, 0.9f, 0.85f);
             var mushroomCapColor = new Color(0.85f, 0.25f, 0.2f);
 
-            // Clumpy Ghibli bushes
+            // 1. Clumpy Ghibli bushes (Unique multi-primitive mix of spheres, capsules, and cubes)
             for (int i = 0; i < 4; i++)
             {
-                var b = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                b.name = "BushSphere";
+                PrimitiveType type = (i % 3 == 0) ? PrimitiveType.Sphere : ((i % 3 == 1) ? PrimitiveType.Capsule : PrimitiveType.Cube);
+                var b = GameObject.CreatePrimitive(type);
+                b.name = "BushPart";
                 b.transform.SetParent(decoratorObj.transform, false);
                 b.transform.localPosition = new Vector3(
-                    (i - 1.5f) * 0.18f + Random.Range(-0.05f, 0.05f),
+                    (i - 1.5f) * 0.18f + Random.Range(-0.06f, 0.06f),
                     0.15f + Random.Range(0f, 0.08f),
                     Random.Range(-0.1f, 0.1f)
                 );
-                b.transform.localScale = Vector3.one * Random.Range(0.35f, 0.48f);
+                b.transform.localScale = new Vector3(
+                    Random.Range(0.35f, 0.48f),
+                    Random.Range(0.25f, 0.45f),
+                    Random.Range(0.35f, 0.48f)
+                );
+                b.transform.localRotation = Quaternion.Euler(Random.Range(0, 360f), Random.Range(0, 360f), Random.Range(0, 360f));
                 b.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(bushColor);
                 Object.Destroy(b.GetComponent<Collider>());
             }
 
-            // Ghibli Mushrooms
-            int mushCount = Random.Range(2, 4);
+            // 2. Ghibli Mushrooms
+            int mushCount = Random.Range(3, 5);
             for (int m = 0; m < mushCount; m++)
             {
                 float mx = 0.3f + m * 0.2f + Random.Range(-0.05f, 0.05f);
@@ -797,9 +939,20 @@ namespace RangerCity.Lobby
                 cap.transform.SetParent(decoratorObj.transform, false);
                 cap.transform.localPosition = new Vector3(mx, 0.11f, mz);
                 cap.transform.localScale = new Vector3(0.12f, 0.06f, 0.12f);
-                cap.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(mushroomCapColor);
+                Color capCol = (m % 2 == 0) ? mushroomCapColor : new Color(0.15f, 0.65f, 0.85f); // red or glowing blue
+                cap.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(capCol);
                 Object.Destroy(cap.GetComponent<Collider>());
             }
+
+            // 3. Fallen twig logs lying on the ground
+            var twig = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            twig.name = "FallenTwig";
+            twig.transform.SetParent(decoratorObj.transform, false);
+            twig.transform.localPosition = new Vector3(Random.Range(-0.4f, 0.4f), 0.02f, Random.Range(-0.4f, 0.4f));
+            twig.transform.localScale = new Vector3(0.03f, 0.25f, 0.03f);
+            twig.transform.localRotation = Quaternion.Euler(90f, Random.Range(0, 360f), 0);
+            twig.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.45f, 0.35f, 0.25f));
+            Object.Destroy(twig.GetComponent<Collider>());
         }
 
         private static void CreateButterflies(GameObject parent, Vector3 localPos)
@@ -808,24 +961,24 @@ namespace RangerCity.Lobby
             fxParent.transform.SetParent(parent.transform, false);
             fxParent.transform.localPosition = localPos;
 
-            // Glowing dust particles
-            int pCount = 8;
+            // Glowing dust particles / fireflies
+            int pCount = 10;
             for (int i = 0; i < pCount; i++)
             {
                 var p = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 p.name = "MagicalParticle";
                 p.transform.SetParent(fxParent.transform, false);
                 p.transform.localPosition = new Vector3(
-                    Random.Range(-1.5f, 1.5f),
-                    0.5f + Random.Range(0f, 1.4f),
-                    Random.Range(-1.5f, 1.5f)
+                    Random.Range(-1.6f, 1.6f),
+                    0.4f + Random.Range(0f, 1.6f),
+                    Random.Range(-1.6f, 1.6f)
                 );
                 p.transform.localScale = Vector3.one * Random.Range(0.04f, 0.08f);
                 p.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(1f, 0.98f, 0.6f, 0.8f));
                 Object.Destroy(p.GetComponent<Collider>());
             }
 
-            // Butterflies
+            // Butterflies (double cubes)
             Color[] bfColors = {
                 new(0.4f, 0.7f, 1.0f), new(1.0f, 0.5f, 0.8f), new(1.0f, 0.85f, 0.3f)
             };
@@ -905,6 +1058,28 @@ namespace RangerCity.Lobby
             {
                 CreateCloudCluster(cloudsBelow, pos, scale);
             }
+        }
+
+        private static void CreateDistantIslands(GameObject zone)
+        {
+            var distantGroup = new GameObject("DistantScenery");
+            distantGroup.transform.SetParent(zone.transform, false);
+
+            // Distant Island 1
+            var di1 = CreateSculptedIsland(distantGroup, "DistantIslandL", new Vector3(-18f, 6f, 18f), 1.5f, 0.8f, new Color(0.32f, 0.58f, 0.22f));
+            di1.transform.localScale = Vector3.one * 0.7f;
+            // Add tiny golden tree to distant island
+            var tTree = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            tTree.name = "DistantGoldenTree";
+            tTree.transform.SetParent(di1.transform, false);
+            tTree.transform.localPosition = new Vector3(0, 0.6f, 0);
+            tTree.transform.localScale = Vector3.one * 0.8f;
+            tTree.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(1.0f, 0.85f, 0.15f));
+            Object.Destroy(tTree.GetComponent<Collider>());
+
+            // Distant Island 2
+            var di2 = CreateSculptedIsland(distantGroup, "DistantIslandR", new Vector3(18f, 8f, 22f), 1.2f, 0.6f, new Color(0.32f, 0.58f, 0.22f));
+            di2.transform.localScale = Vector3.one * 0.6f;
         }
 
         private static void BuildDetailedArch(GameObject arch)
@@ -1042,6 +1217,138 @@ namespace RangerCity.Lobby
             tmp.fontSize = 1.2f;
             tmp.color = Color.white;
             tmp.alignment = TextAlignmentOptions.Center;
+        }
+
+        private static void CreateReadingCorner(GameObject parent, Vector3 localPos)
+        {
+            var corner = new GameObject("ReadingCorner");
+            corner.transform.SetParent(parent.transform, false);
+            corner.transform.localPosition = localPos;
+
+            var woodColor = new Color(0.42f, 0.28f, 0.15f);
+
+            // Stump table
+            var table = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            table.name = "StumpTable_Collider";
+            table.transform.SetParent(corner.transform, false);
+            table.transform.localPosition = new Vector3(0, 0.18f, 0);
+            table.transform.localScale = new Vector3(0.45f, 0.18f, 0.45f);
+            table.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor);
+
+            // Log stool
+            var stool = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            stool.name = "LogStool_Collider";
+            stool.transform.SetParent(corner.transform, false);
+            stool.transform.localPosition = new Vector3(0.45f, 0.14f, -0.1f);
+            stool.transform.localScale = new Vector3(0.28f, 0.14f, 0.28f);
+            stool.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor * 0.85f);
+
+            // Open book on stump table (primitives)
+            var book = new GameObject("OpenBook");
+            book.transform.SetParent(table.transform, false);
+            book.transform.localPosition = new Vector3(0, 1.05f, 0);
+            book.transform.localScale = new Vector3(0.6f, 0.6f, 0.6f);
+
+            var pageL = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            pageL.transform.SetParent(book.transform, false);
+            pageL.transform.localPosition = new Vector3(-0.1f, 0, 0);
+            pageL.transform.localScale = new Vector3(0.2f, 0.02f, 0.28f);
+            pageL.transform.localRotation = Quaternion.Euler(0, 0, 8f);
+            pageL.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(Color.white);
+            Object.Destroy(pageL.GetComponent<Collider>());
+
+            var pageR = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            pageR.transform.SetParent(book.transform, false);
+            pageR.transform.localPosition = new Vector3(0.1f, 0, 0);
+            pageR.transform.localScale = new Vector3(0.2f, 0.02f, 0.28f);
+            pageR.transform.localRotation = Quaternion.Euler(0, 0, -8f);
+            pageR.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(Color.white);
+            Object.Destroy(pageR.GetComponent<Collider>());
+        }
+
+        private static void CreateCampfire(GameObject parent, Vector3 localPos)
+        {
+            var camp = new GameObject("Campfire");
+            camp.transform.SetParent(parent.transform, false);
+            camp.transform.localPosition = localPos;
+
+            var stoneColor = new Color(0.55f, 0.55f, 0.58f);
+
+            // Stone ring
+            for (int i = 0; i < 6; i++)
+            {
+                float angle = (i * 60f) * Mathf.Deg2Rad;
+                var stone = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                stone.name = "CampfireStone";
+                stone.transform.SetParent(camp.transform, false);
+                stone.transform.localPosition = new Vector3(Mathf.Cos(angle) * 0.35f, 0.04f, Mathf.Sin(angle) * 0.35f);
+                stone.transform.localScale = Vector3.one * Random.Range(0.12f, 0.18f);
+                stone.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor);
+                Object.Destroy(stone.GetComponent<Collider>());
+            }
+
+            // Crossed logs
+            float[] logRotations = { 30f, 120f };
+            foreach (float r in logRotations)
+            {
+                var log = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                log.name = "CampfireLog";
+                log.transform.SetParent(camp.transform, false);
+                log.transform.localPosition = new Vector3(0, 0.03f, 0);
+                log.transform.localScale = new Vector3(0.04f, 0.2f, 0.04f);
+                log.transform.localRotation = Quaternion.Euler(90f, r, 0);
+                log.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.4f, 0.26f, 0.12f));
+                Object.Destroy(log.GetComponent<Collider>());
+            }
+
+            // Glowing flame sphere
+            var flame = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            flame.name = "CampfireFlame";
+            flame.transform.SetParent(camp.transform, false);
+            flame.transform.localPosition = new Vector3(0, 0.15f, 0);
+            flame.transform.localScale = Vector3.one * 0.18f;
+            flame.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(1.0f, 0.45f, 0.1f));
+            Object.Destroy(flame.GetComponent<Collider>());
+
+            var fLight = camp.AddComponent<Light>();
+            fLight.type = LightType.Point;
+            fLight.color = new Color(1.0f, 0.5f, 0.1f);
+            fLight.range = 3.5f;
+            fLight.intensity = 1.8f;
+        }
+
+        private static void CreateStoneShrine(GameObject parent, Vector3 localPos)
+        {
+            var shrine = new GameObject("StoneShrine");
+            shrine.transform.SetParent(parent.transform, false);
+            shrine.transform.localPosition = localPos;
+
+            var stoneColor = new Color(0.6f, 0.6f, 0.64f);
+
+            // Altar slabs
+            var slab1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            slab1.name = "AltarBase_Collider";
+            slab1.transform.SetParent(shrine.transform, false);
+            slab1.transform.localPosition = new Vector3(0, 0.15f, 0);
+            slab1.transform.localScale = new Vector3(0.8f, 0.3f, 0.6f);
+            slab1.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor);
+
+            var slab2 = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            slab2.name = "AltarTop";
+            slab2.transform.SetParent(shrine.transform, false);
+            slab2.transform.localPosition = new Vector3(0, 0.35f, 0);
+            slab2.transform.localScale = new Vector3(0.6f, 0.1f, 0.45f);
+            slab2.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor * 0.9f);
+            Object.Destroy(slab2.GetComponent<Collider>());
+
+            // Tiny shrine box
+            var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            box.name = "ShrineBox";
+            box.transform.SetParent(shrine.transform, false);
+            box.transform.localPosition = new Vector3(0, 0.55f, 0);
+            box.transform.localScale = new Vector3(0.35f, 0.3f, 0.3f);
+            box.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor * 0.8f);
+            Object.Destroy(box.GetComponent<Collider>());
         }
     }
 }
