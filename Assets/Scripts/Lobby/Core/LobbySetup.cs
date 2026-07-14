@@ -151,9 +151,10 @@ namespace RangerCity.Lobby
             }, new Color(0.2f, 0.14f, 0.09f));
 
             CreateNPC("Tang Xu Yu", "⛓️", new Vector3(-6, 0, -65.5f), new Color(0.2f, 0.4f, 0.7f), new[] {
-                "Tôi là Tang Xu Yu. Tôi bị giam ở đây vô thời hạn... 😭",
-                "Đừng nhìn tôi như vậy, tôi vô tội mà! 🚪",
-                "Có ai mang cho tôi một cái bánh mì giấu chìa khóa không? 🍞🔑"
+                "Ủa ai khóa cửa nhốt tôi vậy? À nãy tôi tự đi vào mà quên mang chìa khóa... 🔑🤡",
+                "Trong này mát mẻ phết, lại còn miễn phí tiền điện nước nữa! 💅",
+                "Ê bồ, trưa nay nhà tù có phục vụ món sườn xào chua ngọt không ta? 🍛",
+                "Đừng có đấm tôi nha, đấm phát là tôi lăn ra ăn vạ méo mồm liền á! 🥴"
             }, new Color(1f, 0.8f, 0.65f), wanderRadius: 0.5f);
         }
 
