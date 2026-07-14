@@ -19,6 +19,7 @@ namespace RangerCity.Lobby
             var grassColor = new Color(0.3f, 0.62f, 0.22f);
             var stoneColor = new Color(0.65f, 0.65f, 0.68f);
             var woodColor = new Color(0.42f, 0.28f, 0.15f);
+            var goldColor = new Color(1.0f, 0.85f, 0.15f);
 
             // ── 1. Thick Background Cloud Banks (Y = -6 to -8) ──
             CreateCloudSea(zone);
