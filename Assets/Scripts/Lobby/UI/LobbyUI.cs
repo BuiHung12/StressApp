@@ -138,7 +138,7 @@ namespace RangerCity.Lobby
                 _player.OnJailEnd += HideJailNotification;
                 _player.OnCoinsChanged += UpdateCoinUI;
 
-                UpdateCoinUI(_player.Coins);
+                UpdateCoinUI(_player.RangerCoins);
             }
         }
 
