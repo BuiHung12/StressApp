@@ -44,7 +44,7 @@ namespace RangerCity.Lobby
         private void LateUpdate()
         {
             float speed = (transform.position - _lastPos).magnitude / Time.deltaTime;
-            _isMoving = speed > 0.4f;
+            _isMoving = speed > 0.05f;
             _lastPos = transform.position;
 
             if (_isMoving)
