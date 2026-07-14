@@ -41,6 +41,9 @@ namespace RangerCity.Lobby
             // Cozy Reading Stole (Reading corner)
             CreateReadingStump(island1, new Vector3(2.0f, 0.05f, 1.4f));
 
+            // Pathway signs
+            CreatePathwaySign(island1, new Vector3(1.2f, 0.05f, -1.8f), "Khu Vuon");
+
             // Fairy lanterns
             CreateFairyLantern(island1, new Vector3(-2.4f, 0.05f, -1.8f));
             CreateFairyLantern(island1, new Vector3(2.4f, 0.05f, -1.8f));
@@ -200,7 +203,7 @@ namespace RangerCity.Lobby
             var dirtCol = new Color(0.35f, 0.28f, 0.22f);
             var stoneColor = new Color(0.62f, 0.62f, 0.65f);
 
-            // 1. Sculpting irregular, tiered terrain shape using multiple grass spheres & dirt cylinders
+            // 1. Sculpting irregular, tiered terrain shape
             int grassClusters = 16;
             for (int i = 0; i < grassClusters; i++)
             {
@@ -225,7 +228,7 @@ namespace RangerCity.Lobby
                 dm.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(dirtCol);
             }
 
-            // 2. Ruined stone platforms embedded in the grass
+            // 2. Ruined stone platforms
             int ruinsCount = Random.Range(3, 6);
             for (int i = 0; i < ruinsCount; i++)
             {
@@ -246,7 +249,7 @@ namespace RangerCity.Lobby
                 slab.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor * 0.85f);
             }
 
-            // 3. Exposed granite cliff rocks around edges to break cylinders
+            // 3. Exposed granite cliff rocks
             int rockCliffs = Random.Range(8, 13);
             for (int i = 0; i < rockCliffs; i++)
             {
@@ -271,7 +274,7 @@ namespace RangerCity.Lobby
                 rock.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor);
             }
 
-            // 4. Roots hanging from below
+            // 4. Roots hanging
             int rootCount = Random.Range(12, 18);
             for (int i = 0; i < rootCount; i++)
             {
@@ -290,7 +293,7 @@ namespace RangerCity.Lobby
                 Object.Destroy(root.GetComponent<Collider>());
             }
 
-            // 5. Ivy vines trailing down cliffs
+            // 5. Ivy vines
             int vineCount = Random.Range(9, 14);
             for (int i = 0; i < vineCount; i++)
             {
@@ -308,7 +311,7 @@ namespace RangerCity.Lobby
                 Object.Destroy(vine.GetComponent<Collider>());
             }
 
-            // 6. Tiny floating rocks nearby
+            // 6. Tiny floating rocks
             int floatRocks = Random.Range(3, 6);
             for (int i = 0; i < floatRocks; i++)
             {
@@ -325,7 +328,7 @@ namespace RangerCity.Lobby
                 fr.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor * 0.95f);
             }
 
-            // 7. Fallen leaves decoration
+            // 7. Fallen leaves
             int leavesCount = Random.Range(15, 25);
             for (int k = 0; k < leavesCount; k++)
             {
@@ -390,7 +393,7 @@ namespace RangerCity.Lobby
                 rock.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor);
             }
 
-            // Wet shiny stones
+            // Wet stones
             for (int i = 0; i < 4; i++)
             {
                 var wetStone = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -607,7 +610,7 @@ namespace RangerCity.Lobby
 
             Vector3 diff = p2 - p1;
             segment.transform.localPosition = p1 + diff * 0.5f;
-            segment.transform.localScale = new Vector3(0.03f, diff.magnitude * 0.5f, 0.03f); // Cylinder height is 2
+            segment.transform.localScale = new Vector3(0.03f, diff.magnitude * 0.5f, 0.03f);
             segment.transform.localRotation = Quaternion.FromToRotation(Vector3.up, diff.normalized);
 
             segment.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(color);
@@ -636,7 +639,7 @@ namespace RangerCity.Lobby
             var orangeLeaf = new Color(0.95f, 0.6f, 0.1f);
             var paleLeaf = new Color(1.0f, 0.95f, 0.45f);
 
-            // 1. Ruined archway that the tree wraps around (Storytelling centerpiece)
+            // 1. Ruined archway
             var archway = new GameObject("AncientArchway");
             archway.transform.SetParent(goldTree.transform, false);
             archway.transform.localPosition = Vector3.zero;
@@ -659,7 +662,7 @@ namespace RangerCity.Lobby
             lintel.transform.localScale = new Vector3(1.1f, 0.12f, 0.18f);
             lintel.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.55f, 0.55f, 0.58f));
 
-            // 2. Gnarled ancient trunk wrapping around the arches (24 segments)
+            // 2. Gnarled ancient trunk wrapping columns
             int trunkSegments = 24;
             for (int i = 0; i < trunkSegments; i++)
             {
@@ -667,7 +670,6 @@ namespace RangerCity.Lobby
                 tr.name = "TrunkSegment_Collider";
                 tr.transform.SetParent(goldTree.transform, false);
                 
-                // Wrap math: spiral around the arch posts
                 float wrapAngle = i * 0.4f;
                 float tx = Mathf.Cos(wrapAngle) * 0.2f + (i < 12 ? -0.45f : 0.45f);
                 float tz = Mathf.Sin(wrapAngle) * 0.12f;
@@ -680,7 +682,7 @@ namespace RangerCity.Lobby
                 tr.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(trunkColor);
             }
 
-            // 3. Thick root flares spreading over archway base
+            // 3. Thick root flares
             for (int i = 0; i < 5; i++)
             {
                 float angle = (i * 72f) * Mathf.Deg2Rad;
@@ -719,7 +721,7 @@ namespace RangerCity.Lobby
                 Object.Destroy(br.GetComponent<Collider>());
             }
 
-            // 5. Layered canopy (32 spheres)
+            // 5. Layered canopy
             var canopyData = new (Vector3 offset, float r, Color col)[] {
                 (new(0, 2.3f, 0), 1.6f, goldLeaf),
                 (new(-0.8f, 2.0f, 0.2f), 1.2f, orangeLeaf),
@@ -867,7 +869,6 @@ namespace RangerCity.Lobby
             field.transform.SetParent(parent.transform, false);
             field.transform.localPosition = localCenter;
 
-            // Define 2 random sub-cluster centers
             Vector3 c1 = new Vector3(-radius * 0.22f, 0, -radius * 0.22f);
             Vector3 c2 = new Vector3(radius * 0.22f, 0, radius * 0.22f);
 
@@ -951,7 +952,7 @@ namespace RangerCity.Lobby
                 cap.transform.SetParent(decoratorObj.transform, false);
                 cap.transform.localPosition = new Vector3(mx, 0.11f, mz);
                 cap.transform.localScale = new Vector3(0.12f, 0.06f, 0.12f);
-                Color capCol = (m % 2 == 0) ? mushroomCapColor : new Color(0.15f, 0.65f, 0.85f); // red or glowing blue
+                Color capCol = (m % 2 == 0) ? mushroomCapColor : new Color(0.15f, 0.65f, 0.85f);
                 cap.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(capCol);
                 Object.Destroy(cap.GetComponent<Collider>());
             }
@@ -1052,10 +1053,10 @@ namespace RangerCity.Lobby
             }
         }
 
-        private static void CreateSkyBackground(GameObject zone)
+        private static void CreateSkyBackground(GameObject parent)
         {
             var cloudsBelow = new GameObject("SeaOfClouds");
-            cloudsBelow.transform.SetParent(zone.transform, false);
+            cloudsBelow.transform.SetParent(parent.transform, false);
 
             var cloudBelowData = new (Vector3 pos, Vector3 scale)[] {
                 (new(-8f, -4.5f, -6f), new(5.5f, 1.4f, 4.5f)),
@@ -1128,7 +1129,7 @@ namespace RangerCity.Lobby
                 flL.transform.SetParent(arch.transform, false);
                 flL.transform.localPosition = new Vector3(-1.1f + Random.Range(-0.05f, 0.05f), fy, Random.Range(-0.05f, 0.05f));
                 flL.transform.localScale = Vector3.one * Random.Range(0.12f, 0.22f);
-                flL.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(flowerColors[i % 2]);
+                flL.GetComponent<Renderer>().material = flowerColors[i % 2];
                 Object.Destroy(flL.GetComponent<Collider>());
 
                 var flR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -1136,7 +1137,7 @@ namespace RangerCity.Lobby
                 flR.transform.SetParent(arch.transform, false);
                 flR.transform.localPosition = new Vector3(1.1f + Random.Range(-0.05f, 0.05f), fy, Random.Range(-0.05f, 0.05f));
                 flR.transform.localScale = Vector3.one * Random.Range(0.12f, 0.22f);
-                flR.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(flowerColors[i % 2]);
+                flR.GetComponent<Renderer>().material = flowerColors[i % 2];
                 Object.Destroy(flR.GetComponent<Collider>());
             }
         }
@@ -1238,7 +1239,6 @@ namespace RangerCity.Lobby
 
             var woodColor = new Color(0.42f, 0.28f, 0.15f);
 
-            // Stump table
             var table = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             table.name = "StumpTable_Collider";
             table.transform.SetParent(corner.transform, false);
@@ -1246,7 +1246,6 @@ namespace RangerCity.Lobby
             table.transform.localScale = new Vector3(0.45f, 0.18f, 0.45f);
             table.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor);
 
-            // Log stool
             var stool = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             stool.name = "LogStool_Collider";
             stool.transform.SetParent(corner.transform, false);
@@ -1254,7 +1253,6 @@ namespace RangerCity.Lobby
             stool.transform.localScale = new Vector3(0.28f, 0.14f, 0.28f);
             stool.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodColor * 0.85f);
 
-            // Open book on table
             var book = new GameObject("OpenBook");
             book.transform.SetParent(table.transform, false);
             book.transform.localPosition = new Vector3(0, 1.05f, 0);
@@ -1285,7 +1283,6 @@ namespace RangerCity.Lobby
 
             var stoneColor = new Color(0.55f, 0.55f, 0.58f);
 
-            // Stone ring
             for (int i = 0; i < 6; i++)
             {
                 float angle = (i * 60f) * Mathf.Deg2Rad;
@@ -1298,7 +1295,6 @@ namespace RangerCity.Lobby
                 Object.Destroy(stone.GetComponent<Collider>());
             }
 
-            // Crossed logs
             float[] logRotations = { 30f, 120f };
             foreach (float r in logRotations)
             {
@@ -1312,7 +1308,6 @@ namespace RangerCity.Lobby
                 Object.Destroy(log.GetComponent<Collider>());
             }
 
-            // Glowing flame sphere
             var flame = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             flame.name = "CampfireFlame";
             flame.transform.SetParent(camp.transform, false);
@@ -1336,7 +1331,6 @@ namespace RangerCity.Lobby
 
             var stoneColor = new Color(0.6f, 0.6f, 0.64f);
 
-            // Altar slabs
             var slab1 = GameObject.CreatePrimitive(PrimitiveType.Cube);
             slab1.name = "AltarBase_Collider";
             slab1.transform.SetParent(shrine.transform, false);
@@ -1352,7 +1346,6 @@ namespace RangerCity.Lobby
             slab2.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(stoneColor * 0.9f);
             Object.Destroy(slab2.GetComponent<Collider>());
 
-            // Shrine box
             var box = GameObject.CreatePrimitive(PrimitiveType.Cube);
             box.name = "ShrineBox";
             box.transform.SetParent(shrine.transform, false);
