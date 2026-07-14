@@ -14,7 +14,6 @@ namespace RangerCity.Lobby
         [Header("Punch")]
         [SerializeField] private float _punchRange = 2.2f;
         [SerializeField] private float _punchCooldown = 0.5f;
-        [SerializeField] private float _punchKnockbackForce = 6f;
 
         [Header("Interaction")]
         [SerializeField] private float _interactionRange = 2.5f;
@@ -25,7 +24,6 @@ namespace RangerCity.Lobby
         [SerializeField] private float _worldMinZ = -14f;
         [SerializeField] private float _worldMaxZ = 14f;
 
-        // State
         private Camera _mainCamera;
         private Vector3 _moveTarget;
         private bool _isClickMoving;
@@ -34,7 +32,6 @@ namespace RangerCity.Lobby
         private IInteractable _nearestInteractable;
         private Vector3 _lastMoveDir = Vector3.forward;
 
-        // Animator
         private Animator _animator;
         private static readonly int AnimSpeed = Animator.StringToHash("Speed");
         private static readonly int AnimPunch = Animator.StringToHash("Punch");
@@ -43,18 +40,13 @@ namespace RangerCity.Lobby
         public System.Action<IInteractable> OnNearInteractable;
         public System.Action OnLeaveInteractable;
         public System.Action OnPunchHit;
-        public System.Action<float> OnJailStart;  // param = jail duration
+        public System.Action<float> OnJailStart;
         public System.Action OnJailEnd;
-        public System.Action<int> OnCoinsChanged; // param = current coin count
+        public System.Action<int> OnCoinsChanged;
 
-        // Jail state
         private bool _isJailed;
         private float _jailTimer;
-
-        // Ranger Coins Economy
         private int _rangerCoins = 50;
-
-        // Teleport cooldown
         private float _teleportCooldownTimer;
 
         public float InteractionRange => _interactionRange;
@@ -62,26 +54,34 @@ namespace RangerCity.Lobby
         public bool IsJailed => _isJailed;
         public int RangerCoins => _rangerCoins;
 
+        // Cached portals
+        private GameObject _gardenPortal, _prisonPortal, _fishingPortal, _studyPortal;
+        private GameObject _gardenRet, _prisonRet, _fishingRet, _studyRet;
+
         private void Start()
         {
             _mainCamera = Camera.main;
             _animator = GetComponent<Animator>();
+
+            _gardenPortal = GameObject.Find("GardenPortal");
+            _prisonPortal = GameObject.Find("PrisonPortal");
+            _fishingPortal = GameObject.Find("FishingPortal");
+            _studyPortal = GameObject.Find("StudyPortal");
+            _gardenRet = GameObject.Find("GardenReturnPortal");
+            _prisonRet = GameObject.Find("PrisonReturnPortal");
+            _fishingRet = GameObject.Find("FishingReturnPortal");
+            _studyRet = GameObject.Find("StudyReturnPortal");
         }
 
         private void Update()
         {
-            // Teleport cooldown countdown
             if (_teleportCooldownTimer > 0f) _teleportCooldownTimer -= Time.deltaTime;
 
-            // Jail freeze
             if (_isJailed)
             {
                 _jailTimer -= Time.deltaTime;
-                if (_jailTimer <= 0f)
-                {
-                    ReleaseFromJail();
-                }
-                return; // Block all input while jailed
+                if (_jailTimer <= 0f) ReleaseFromJail();
+                return;
             }
 
             if (_isPunching) return;
@@ -94,39 +94,25 @@ namespace RangerCity.Lobby
             DetectNearbyInteractables();
         }
 
-        // ── Keyboard Movement (WASD / Arrows) ──
-
         private void HandleKeyboardMovement()
         {
             float h = 0f, v = 0f;
-
             if (Input.GetKey(KeyCode.W) || Input.GetKey(KeyCode.UpArrow)) v = 1f;
             if (Input.GetKey(KeyCode.S) || Input.GetKey(KeyCode.DownArrow)) v = -1f;
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) h = -1f;
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) h = 1f;
 
             Vector3 dir = new Vector3(h, 0f, v).normalized;
-
             if (dir.sqrMagnitude > 0.01f)
             {
-                _isClickMoving = false; // Cancel click-to-move
+                _isClickMoving = false;
                 _lastMoveDir = dir;
 
-                // Move X
-                Vector3 moveX = new Vector3(dir.x, 0, 0) * _moveSpeed * Time.deltaTime;
-                Vector3 targetPosX = ClampToWorld(transform.position + moveX);
-                if (IsValidPosition(targetPosX))
-                {
-                    transform.position = targetPosX;
-                }
+                Vector3 targetPosX = ClampToWorld(transform.position + new Vector3(dir.x, 0, 0) * _moveSpeed * Time.deltaTime);
+                if (IsValidPosition(targetPosX)) transform.position = targetPosX;
 
-                // Move Z
-                Vector3 moveZ = new Vector3(0, 0, dir.z) * _moveSpeed * Time.deltaTime;
-                Vector3 targetPosZ = ClampToWorld(transform.position + moveZ);
-                if (IsValidPosition(targetPosZ))
-                {
-                    transform.position = targetPosZ;
-                }
+                Vector3 targetPosZ = ClampToWorld(transform.position + new Vector3(0, 0, dir.z) * _moveSpeed * Time.deltaTime);
+                if (IsValidPosition(targetPosZ)) transform.position = targetPosZ;
 
                 if (_animator) _animator.SetFloat(AnimSpeed, 1f);
             }
@@ -136,20 +122,16 @@ namespace RangerCity.Lobby
             }
         }
 
-        // ── Click-to-Move ──
-
         private void HandleClickMovement()
         {
             if (Input.GetMouseButtonDown(0) && _mainCamera != null)
             {
-                // Ignore if over UI
                 if (UnityEngine.EventSystems.EventSystem.current != null &&
                     UnityEngine.EventSystems.EventSystem.current.IsPointerOverGameObject())
                     return;
 
                 Ray ray = _mainCamera.ScreenPointToRay(Input.mousePosition);
                 Plane groundPlane = new Plane(Vector3.up, Vector3.zero);
-
                 if (groundPlane.Raycast(ray, out float dist))
                 {
                     _moveTarget = ray.GetPoint(dist);
@@ -166,33 +148,18 @@ namespace RangerCity.Lobby
                 if (dir.magnitude > 0.15f)
                 {
                     Vector3 moveDir = dir.normalized;
-                    
-                    // Move X
-                    Vector3 moveX = new Vector3(moveDir.x, 0, 0) * _moveSpeed * Time.deltaTime;
-                    Vector3 targetPosX = ClampToWorld(transform.position + moveX);
-                    bool movedX = false;
-                    if (IsValidPosition(targetPosX))
-                    {
-                        transform.position = targetPosX;
-                        movedX = true;
-                    }
+                    bool moved = false;
 
-                    // Move Z
-                    Vector3 moveZ = new Vector3(0, 0, moveDir.z) * _moveSpeed * Time.deltaTime;
-                    Vector3 targetPosZ = ClampToWorld(transform.position + moveZ);
-                    bool movedZ = false;
-                    if (IsValidPosition(targetPosZ))
-                    {
-                        transform.position = targetPosZ;
-                        movedZ = true;
-                    }
+                    Vector3 targetPosX = ClampToWorld(transform.position + new Vector3(moveDir.x, 0, 0) * _moveSpeed * Time.deltaTime);
+                    if (IsValidPosition(targetPosX)) { transform.position = targetPosX; moved = true; }
+
+                    Vector3 targetPosZ = ClampToWorld(transform.position + new Vector3(0, 0, moveDir.z) * _moveSpeed * Time.deltaTime);
+                    if (IsValidPosition(targetPosZ)) { transform.position = targetPosZ; moved = true; }
 
                     _lastMoveDir = moveDir;
-
                     if (_animator) _animator.SetFloat(AnimSpeed, 1f);
 
-                    // If we got completely blocked, cancel click-movement
-                    if (!movedX && !movedZ)
+                    if (!moved)
                     {
                         _isClickMoving = false;
                         if (_animator) _animator.SetFloat(AnimSpeed, 0f);
@@ -206,16 +173,10 @@ namespace RangerCity.Lobby
             }
         }
 
-        // ── Punch ──
-
         private void HandlePunch()
         {
             _punchCooldownTimer -= Time.deltaTime;
-
-            if (Input.GetKeyDown(KeyCode.Space) && _punchCooldownTimer <= 0f)
-            {
-                ExecutePunch();
-            }
+            if (Input.GetKeyDown(KeyCode.Space) && _punchCooldownTimer <= 0f) ExecutePunch();
         }
 
         public void ExecutePunch()
@@ -225,13 +186,10 @@ namespace RangerCity.Lobby
             _punchCooldownTimer = _punchCooldown;
             _isPunching = true;
             _isClickMoving = false;
-
             if (_animator) _animator.SetTrigger(AnimPunch);
 
-            // Find nearest target in range
             MonoBehaviour closestTarget = null;
             float closestDist = _punchRange;
-
             var allObjects = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None);
             foreach (var obj in allObjects)
             {
@@ -249,26 +207,20 @@ namespace RangerCity.Lobby
 
             if (closestTarget != null)
             {
-                // Trigger Cartoon Fight Cloud!
                 FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
                 OnPunchHit?.Invoke();
-                
-                // Send to jail after fight cloud ends
                 Invoke(nameof(GoToJail), 1.6f);
             }
-
             Invoke(nameof(EndPunch), 0.35f);
         }
 
         private void GoToJail()
         {
             float jailDuration = 15f;
-            // Teleport Attacker (Player) inside the jail cell 3 (X = 2, Z = -62)
             transform.position = new Vector3(2f, 0.05f, -62f);
             _isJailed = true;
             _jailTimer = jailDuration;
             _isClickMoving = false;
-
             OnJailStart?.Invoke(jailDuration);
         }
 
@@ -277,14 +229,11 @@ namespace RangerCity.Lobby
         private void ReleaseFromJail()
         {
             _isJailed = false;
-
-            // Teleport Attacker (Player) back to Lobby near Prison Portal
-            var lobbyPortal = GameObject.Find("PrisonPortal");
+            var lobbyPortal = _prisonPortal ?? GameObject.Find("PrisonPortal");
             Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(0, 0, 1.2f) : new Vector3(0, 0.05f, -9.5f);
             dest.y = 0.05f;
             transform.position = dest;
-
-            _teleportCooldownTimer = 1.0f; // Prevent re-triggering portal immediately
+            _teleportCooldownTimer = 1.0f;
             OnJailEnd?.Invoke();
         }
 
@@ -298,46 +247,26 @@ namespace RangerCity.Lobby
         {
             if (Input.GetKeyDown(KeyCode.E))
             {
-                // Find nearest GardenPlot or CloudLayer
                 float interactDist = 2.0f;
-                
-                // Check Garden Plots
                 var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
                 GardenPlot closestPlot = null;
                 float minPlotDist = interactDist;
                 foreach (var plot in plots)
                 {
                     float dist = Vector3.Distance(transform.position, plot.transform.position);
-                    if (dist < minPlotDist)
-                    {
-                        minPlotDist = dist;
-                        closestPlot = plot;
-                    }
+                    if (dist < minPlotDist) { minPlotDist = dist; closestPlot = plot; }
                 }
-                if (closestPlot != null)
-                {
-                    closestPlot.TryInteract(this);
-                    return;
-                }
+                if (closestPlot != null) { closestPlot.TryInteract(this); return; }
 
-                // Check Cloud Layers
                 var clouds = FindObjectsByType<CloudLayer>(FindObjectsSortMode.None);
                 CloudLayer closestCloud = null;
                 float minCloudDist = interactDist;
                 foreach (var cloud in clouds)
                 {
                     float dist = Vector3.Distance(transform.position, cloud.transform.position);
-                    if (dist < minCloudDist)
-                    {
-                        minCloudDist = dist;
-                        closestCloud = cloud;
-                    }
+                    if (dist < minCloudDist) { minCloudDist = dist; closestCloud = cloud; }
                 }
-                if (closestCloud != null)
-                {
-                    closestCloud.TryInteract(this);
-                    return;
-                }
+                if (closestCloud != null) { closestCloud.TryInteract(this); return; }
             }
         }
 
@@ -345,75 +274,35 @@ namespace RangerCity.Lobby
         {
             if (_teleportCooldownTimer > 0f) return;
 
-            float portalRadius = 1.0f; // Bán kính nhạy hơn để kích hoạt mượt mà
+            float portalRadius = 1.0f;
             Vector3 currentPos = transform.position;
 
-            // Tìm các cổng dịch chuyển tại sảnh
-            GameObject gardenPortal = GameObject.Find("GardenPortal");
-            GameObject prisonPortal = GameObject.Find("PrisonPortal");
-            GameObject fishingPortal = GameObject.Find("FishingPortal");
-            GameObject studyPortal = GameObject.Find("StudyPortal");
+            var gP = _gardenPortal ?? GameObject.Find("GardenPortal");
+            var pP = _prisonPortal ?? GameObject.Find("PrisonPortal");
+            var fP = _fishingPortal ?? GameObject.Find("FishingPortal");
+            var sP = _studyPortal ?? GameObject.Find("StudyPortal");
 
-            // Tìm các cổng quay lại tại các Zone
-            GameObject gardenRet = GameObject.Find("GardenReturnPortal");
-            GameObject prisonRet = GameObject.Find("PrisonReturnPortal");
-            GameObject fishingRet = GameObject.Find("FishingReturnPortal");
-            GameObject studyRet = GameObject.Find("StudyReturnPortal");
+            var gR = _gardenRet ?? GameObject.Find("GardenReturnPortal");
+            var pR = _prisonRet ?? GameObject.Find("PrisonReturnPortal");
+            var fR = _fishingRet ?? GameObject.Find("FishingReturnPortal");
+            var sR = _studyRet ?? GameObject.Find("StudyReturnPortal");
 
-            // Kiểm tra khoảng cách để dịch chuyển
-            if (gardenPortal != null && Vector3.Distance(currentPos, gardenPortal.transform.position) < portalRadius)
-            {
-                Teleport(new Vector3(0, 0.05f, 56f));
-            }
-            else if (prisonPortal != null && Vector3.Distance(currentPos, prisonPortal.transform.position) < portalRadius)
-            {
-                Teleport(new Vector3(0, 0.05f, -56f));
-            }
-            else if (fishingPortal != null && Vector3.Distance(currentPos, fishingPortal.transform.position) < portalRadius)
-            {
-                Teleport(new Vector3(56f, 0.05f, 0));
-            }
-            else if (studyPortal != null && Vector3.Distance(currentPos, studyPortal.transform.position) < portalRadius)
-            {
-                Teleport(new Vector3(-56f, 0.05f, 0));
-            }
-            else if (gardenRet != null && Vector3.Distance(currentPos, gardenRet.transform.position) < portalRadius)
-            {
-                var lobbyPortal = GameObject.Find("GardenPortal");
-                Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(0, 0, -1.2f) : new Vector3(0, 0.05f, 9.5f);
-                dest.y = 0.05f;
-                Teleport(dest);
-            }
-            else if (prisonRet != null && Vector3.Distance(currentPos, prisonRet.transform.position) < portalRadius)
-            {
-                var lobbyPortal = GameObject.Find("PrisonPortal");
-                Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(0, 0, 1.2f) : new Vector3(0, 0.05f, -9.5f);
-                dest.y = 0.05f;
-                Teleport(dest);
-            }
-            else if (fishingRet != null && Vector3.Distance(currentPos, fishingRet.transform.position) < portalRadius)
-            {
-                var lobbyPortal = GameObject.Find("FishingPortal");
-                Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(-1.2f, 0, 0) : new Vector3(9.5f, 0.05f, 0);
-                dest.y = 0.05f;
-                Teleport(dest);
-            }
-            else if (studyRet != null && Vector3.Distance(currentPos, studyRet.transform.position) < portalRadius)
-            {
-                var lobbyPortal = GameObject.Find("StudyPortal");
-                Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(1.2f, 0, 0) : new Vector3(-9.5f, 0.05f, 0);
-                dest.y = 0.05f;
-                Teleport(dest);
-            }
+            if (gP != null && Vector3.Distance(currentPos, gP.transform.position) < portalRadius) Teleport(new Vector3(0, 0.05f, 56f));
+            else if (pP != null && Vector3.Distance(currentPos, pP.transform.position) < portalRadius) Teleport(new Vector3(0, 0.05f, -56f));
+            else if (fP != null && Vector3.Distance(currentPos, fP.transform.position) < portalRadius) Teleport(new Vector3(56f, 0.05f, 0));
+            else if (sP != null && Vector3.Distance(currentPos, sP.transform.position) < portalRadius) Teleport(new Vector3(-56f, 0.05f, 0));
+            else if (gR != null && Vector3.Distance(currentPos, gR.transform.position) < portalRadius) Teleport(gP != null ? gP.transform.position + new Vector3(0, 0, -1.2f) : new Vector3(0, 0.05f, 9.5f));
+            else if (pR != null && Vector3.Distance(currentPos, pR.transform.position) < portalRadius) Teleport(pP != null ? pP.transform.position + new Vector3(0, 0, 1.2f) : new Vector3(0, 0.05f, -9.5f));
+            else if (fR != null && Vector3.Distance(currentPos, fR.transform.position) < portalRadius) Teleport(fP != null ? fP.transform.position + new Vector3(-1.2f, 0, 0) : new Vector3(9.5f, 0.05f, 0));
+            else if (sR != null && Vector3.Distance(currentPos, sR.transform.position) < portalRadius) Teleport(sP != null ? sP.transform.position + new Vector3(1.2f, 0, 0) : new Vector3(-9.5f, 0.05f, 0));
         }
 
         private void Teleport(Vector3 destination)
         {
             transform.position = destination;
             _isClickMoving = false;
-            _teleportCooldownTimer = 1.0f; // 1 second cooldown
+            _teleportCooldownTimer = 1.0f;
             
-            // Trigger teleporter UI flash or visual feedback
             var flash = new GameObject("TeleportFlash");
             flash.transform.position = destination + Vector3.up * 0.5f;
             var light = flash.AddComponent<Light>();
@@ -422,9 +311,6 @@ namespace RangerCity.Lobby
             light.intensity = 3f;
             Destroy(flash, 0.25f);
         }
-
-
-        // ── Interaction Detection ──
 
         private void DetectNearbyInteractables()
         {
@@ -439,22 +325,14 @@ namespace RangerCity.Lobby
                 if (interactable == null) continue;
 
                 float dist = Vector3.Distance(transform.position, obj.transform.position);
-                if (dist < closestDist)
-                {
-                    closestDist = dist;
-                    closest = interactable;
-                }
+                if (dist < closestDist) { closestDist = dist; closest = interactable; }
             }
 
             if (closest != _nearestInteractable)
             {
                 if (_nearestInteractable != null) OnLeaveInteractable?.Invoke();
                 _nearestInteractable = closest;
-                if (closest != null)
-                {
-                    Debug.Log($"[Player] Near: {closest.DisplayName} dist={closestDist:F1} range={_interactionRange}");
-                    OnNearInteractable?.Invoke(closest);
-                }
+                if (closest != null) OnNearInteractable?.Invoke(closest);
             }
         }
 
@@ -462,8 +340,6 @@ namespace RangerCity.Lobby
 
         private bool IsValidPosition(Vector3 pos)
         {
-            // Characters are capsule/spheres of size 1.2 units (radius 0.6)
-            // Use radius 0.5f to allow walking close to walls but not clipping into them
             Collider[] hits = Physics.OverlapSphere(pos + Vector3.up * 0.5f, 0.45f);
             foreach (var hit in hits)
             {
@@ -485,43 +361,15 @@ namespace RangerCity.Lobby
 
         private Vector3 ClampToWorld(Vector3 pos)
         {
-            // Dynamic Clamping based on current region
             float z = pos.z;
             float x = pos.x;
 
-            if (z > 40f)
-            {
-                // Garden Zone (supports cloud heights and stairs)
-                pos.x = Mathf.Clamp(x, -8f, 8f);
-                pos.z = Mathf.Clamp(z, 52f, 68f);
-            }
-            else if (z < -40f)
-            {
-                // Prison Zone
-                pos.x = Mathf.Clamp(x, -8f, 8f);
-                pos.z = Mathf.Clamp(z, -68f, -52f);
-            }
-            else if (x > 40f)
-            {
-                // Fishing Zone
-                pos.x = Mathf.Clamp(x, 52f, 68f);
-                pos.z = Mathf.Clamp(z, -8f, 8f);
-            }
-            else if (x < -40f)
-            {
-                // Study Zone
-                pos.x = Mathf.Clamp(x, -68f, -52f);
-                pos.z = Mathf.Clamp(z, -8f, 8f);
-            }
-            else
-            {
-                // Main Lobby
-                pos.x = Mathf.Clamp(x, _worldMinX, _worldMaxX);
-                pos.z = Mathf.Clamp(z, _worldMinZ, _worldMaxZ);
-            }
+            if (z > 40f) { pos.x = Mathf.Clamp(x, -8f, 8f); pos.z = Mathf.Clamp(z, 52f, 68f); }
+            else if (z < -40f) { pos.x = Mathf.Clamp(x, -8f, 8f); pos.z = Mathf.Clamp(z, -68f, -52f); }
+            else if (x > 40f) { pos.x = Mathf.Clamp(x, 52f, 68f); pos.z = Mathf.Clamp(z, -8f, 8f); }
+            else if (x < -40f) { pos.x = Mathf.Clamp(x, -68f, -52f); pos.z = Mathf.Clamp(z, -8f, 8f); }
+            else { pos.x = Mathf.Clamp(x, _worldMinX, _worldMaxX); pos.z = Mathf.Clamp(z, _worldMinZ, _worldMaxZ); }
 
-            // Keep vertical position flat relative to ground, but allow stair heights
-            // We clamp y inside the movement code naturally, or let pos.y stay as is
             return pos;
         }
 
