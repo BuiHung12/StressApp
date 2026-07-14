@@ -35,14 +35,27 @@ namespace RangerCity.Lobby
         [SyncVar(hook = nameof(OnEmojiChanged))]
         private string _currentEmoji = "";
 
-        /// <summary>
-        /// Người chơi local gọi hàm này để thả emoji.
-        /// Gửi command lên server, server broadcast cho tất cả.
-        /// </summary>
         public void ShowEmoji(int emojiIndex)
         {
             if (emojiIndex < 0 || emojiIndex >= AvailableEmojis.Length) return;
-            CmdShowEmoji(AvailableEmojis[emojiIndex]);
+
+            string emoji = AvailableEmojis[emojiIndex];
+            if (NetworkClient.active)
+            {
+                CmdShowEmoji(emoji);
+            }
+            else
+            {
+                // Fallback offline
+                SpawnEmojiVisual(emoji);
+                CancelInvoke(nameof(LocalClearEmoji));
+                Invoke(nameof(LocalClearEmoji), _emojiDuration);
+            }
+        }
+
+        private void LocalClearEmoji()
+        {
+            DestroyEmoji();
         }
 
         /// <summary>
