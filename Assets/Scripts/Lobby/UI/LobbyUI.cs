@@ -228,7 +228,7 @@ namespace RangerCity.Lobby
             MonoBehaviour targetMB = _currentTarget as MonoBehaviour;
             if (targetMB == null) return;
 
-            float heightOffset = 2.4f * targetMB.transform.localScale.y;
+            float heightOffset = 2.8f * targetMB.transform.localScale.y;
             Vector3 worldPos = targetMB.transform.position + Vector3.up * heightOffset;
             Vector3 screenPos = _mainCamera.WorldToScreenPoint(worldPos);
 

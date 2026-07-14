@@ -573,6 +573,9 @@ namespace RangerCity.Lobby
             tmp.fontSize = 4;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = Color.white;
+            tmp.outlineColor = Color.black;
+            tmp.outlineWidth = 0.25f;
+            tmp.fontStyle = FontStyles.Bold;
             tmp.GetComponent<RectTransform>().sizeDelta = new Vector2(5, 1);
 
             tag.AddComponent<BillboardText>();
