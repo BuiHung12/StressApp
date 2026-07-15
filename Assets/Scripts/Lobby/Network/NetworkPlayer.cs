@@ -51,6 +51,7 @@ namespace RangerCity.Lobby
         private float _syncTimer;
         private float _syncTimerLocal;
         private Vector3 _smoothVelocity;
+        private bool _appearanceDirty = false;
 
         // ── Preset Palettes ──
 
@@ -154,6 +155,16 @@ namespace RangerCity.Lobby
             // Gửi tất cả customization lên server (thêm gender)
             CmdSetFullCustomization(gender, bodyCol, hairStyleIdx, hairCol, outfitIdx, pantsStyleIdx, pantsCol);
 
+            // Gán giá trị cục bộ ngay lập tức để người chơi nhìn thấy nhân vật của mình thay đổi không cần chờ server sync
+            Gender = gender;
+            BodyColor = bodyCol;
+            HairStyle = hairStyleIdx;
+            HairColor = hairCol;
+            OutfitStyle = outfitIdx;
+            PantsStyle = pantsStyleIdx;
+            PantsColor = pantsCol;
+            _appearanceDirty = true;
+
             // Gửi Device ID
             string deviceId = SystemInfo.deviceUniqueIdentifier;
             CmdSetDeviceId(deviceId);
@@ -184,6 +195,13 @@ namespace RangerCity.Lobby
         private void Update()
         {
             if (netIdentity == null || netIdentity.netId == 0) return;
+
+            // Cập nhật đồ họa nhân vật nếu có thay đổi từ SyncVar
+            if (_appearanceDirty)
+            {
+                _appearanceDirty = false;
+                CharacterVisuals.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+            }
 
             // Broadcast the positions and rotations of all NPCs from the server
             // Run only from the first player instance to avoid redundant network updates
@@ -293,12 +311,12 @@ namespace RangerCity.Lobby
         // Generic appearance hook — any customization SyncVar change triggers full re-apply
         private void OnAppearanceChanged(int oldVal, int newVal)
         {
-            CharacterVisuals.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+            _appearanceDirty = true;
         }
 
         private void OnAppearanceChanged(Color oldVal, Color newVal)
         {
-            CharacterVisuals.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+            _appearanceDirty = true;
         }
 
         // ── NPC Position/State Synchronizer ──
