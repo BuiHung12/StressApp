@@ -62,12 +62,12 @@ def main():
 
     # Create Editor folder
     try:
-        sftp.mkdir("/home/hung/Applications/project2/Assets/Editor")
+        sftp.mkdir("/home/hung/Applications/resolve_stress_project/project2/Assets/Editor")
     except:
         pass
 
     # Write auto-import script
-    with sftp.open("/home/hung/Applications/project2/Assets/Editor/AutoImportTMP.cs", "w") as f:
+    with sftp.open("/home/hung/Applications/resolve_stress_project/project2/Assets/Editor/AutoImportTMP.cs", "w") as f:
         f.write(IMPORT_SCRIPT)
     print("  ✅ AutoImportTMP.cs uploaded to Editor/")
 

@@ -20,7 +20,7 @@ def main():
     # Also check if all .cs files are on server
     print("=== Script files on server ===")
     stdin, stdout, stderr = client.exec_command(
-        'ls -la /home/hung/Applications/project2/Assets/Scripts/Lobby/*.cs'
+        'ls -la /home/hung/Applications/resolve_stress_project/project2/Assets/Scripts/Lobby/*.cs'
     )
     print(stdout.read().decode())
 

@@ -12,7 +12,7 @@ def main():
 
     print("=== LobbySetup component properties ===")
     stdin, stdout, stderr = client.exec_command(
-        "grep -A 20 'm_EditorClassIdentifier: RangerCity.Lobby.LobbySetup' /home/hung/Applications/project2/Assets/Scenes/Lobby.unity"
+        "grep -A 20 'm_EditorClassIdentifier: RangerCity.Lobby.LobbySetup' /home/hung/Applications/resolve_stress_project/project2/Assets/Scenes/Lobby.unity"
     )
     print(stdout.read().decode('utf-8', errors='replace'))
 

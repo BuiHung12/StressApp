@@ -10,7 +10,7 @@ def main():
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(SERVER, port=22, username=USER, password=PASSWORD, timeout=15)
 
-    stdin, stdout, stderr = client.exec_command('find /home/hung/Applications/project2/Assets/Scripts/Lobby/ -maxdepth 3')
+    stdin, stdout, stderr = client.exec_command('find /home/hung/Applications/resolve_stress_project/project2/Assets/Scripts/Lobby/ -maxdepth 3')
     print("Remote directory structure:")
     print(stdout.read().decode())
 

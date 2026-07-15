@@ -12,13 +12,13 @@ def main():
 
     print("=== Search for character scale or variables in Lobby.unity ===")
     stdin, stdout, stderr = client.exec_command(
-        "grep -nC 5 -i 'scale' /home/hung/Applications/project2/Assets/Scenes/Lobby.unity"
+        "grep -nC 5 -i 'scale' /home/hung/Applications/resolve_stress_project/project2/Assets/Scenes/Lobby.unity"
     )
     print(stdout.read().decode('utf-8', errors='replace'))
 
     print("=== Search for LobbySetup component in Lobby.unity ===")
     stdin, stdout, stderr = client.exec_command(
-        "grep -nC 15 -i 'LobbySetup' /home/hung/Applications/project2/Assets/Scenes/Lobby.unity"
+        "grep -nC 15 -i 'LobbySetup' /home/hung/Applications/resolve_stress_project/project2/Assets/Scenes/Lobby.unity"
     )
     print(stdout.read().decode('utf-8', errors='replace'))
 

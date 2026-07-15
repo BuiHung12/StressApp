@@ -24,6 +24,10 @@ namespace RangerCity.Lobby
         private float _previewRotation;
 
         // Tab UI
+        private int _activeTab = 0; // 0=hair, 1=outfit, 2=pants
+        private GameObject _tabHairContent;
+        private GameObject _tabOutfitContent;
+        private GameObject _tabPantsContent;
         private Image[] _tabButtons;
         private Image[] _genderButtons;
 

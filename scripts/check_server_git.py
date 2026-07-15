@@ -13,7 +13,7 @@ def main():
 
     print("Checking git on server...")
     stdin, stdout, stderr = client.exec_command(
-        'cd /home/hung/Applications/project2 && git status'
+        'cd /home/hung/Applications/resolve_stress_project/project2 && git status'
     )
     print("STDOUT:")
     print(stdout.read().decode())
