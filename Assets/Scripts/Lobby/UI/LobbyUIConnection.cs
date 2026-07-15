@@ -1,4 +1,5 @@
 using System.Collections;
+using System.IO;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
@@ -42,6 +43,9 @@ namespace RangerCity.Lobby
             var canvas = GetComponentInParent<Canvas>();
             if (canvas == null) canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null) return;
+
+            // Load DB config file
+            LoadDbConfig();
 
             // Only trigger database load once
             if (!_hasLoadedFromDatabase)
@@ -817,6 +821,39 @@ namespace RangerCity.Lobby
                 _connectionPanel.SetActive(wasActive);
             }
         }
+
+        private void LoadDbConfig()
+        {
+            string path = Path.Combine(Application.dataPath, "db_config.json");
+            if (File.Exists(path))
+            {
+                try
+                {
+                    string json = File.ReadAllText(path);
+                    DbConfig config = JsonUtility.FromJson<DbConfig>(json);
+                    if (config != null)
+                    {
+                        _apiBaseUrl = $"http://{config.apiHost}:{config.apiPort}/api/player";
+                        Debug.Log($"[LobbyUIConnection] Loaded DB Config: {_apiBaseUrl}");
+                    }
+                }
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"[LobbyUIConnection] Failed to parse db_config.json: {e.Message}");
+                }
+            }
+            else
+            {
+                try
+                {
+                    DbConfig config = new DbConfig();
+                    string json = JsonUtility.ToJson(config, true);
+                    File.WriteAllText(path, json);
+                    Debug.Log($"[LobbyUIConnection] Created default db_config.json at: {path}");
+                }
+                catch {}
+            }
+        }
     }
 
     [System.Serializable]
@@ -831,5 +868,12 @@ namespace RangerCity.Lobby
         public int outfitStyle;
         public int pantsStyle;
         public int pantsColorIndex;
+    }
+
+    [System.Serializable]
+    public class DbConfig
+    {
+        public string apiHost = "100.89.39.103";
+        public string apiPort = "5000";
     }
 }
