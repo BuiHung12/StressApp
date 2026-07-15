@@ -35,6 +35,7 @@ namespace RangerCity.Lobby
         private string _apiBaseUrl = "http://100.89.39.103:5000/api/player";
         private bool _isSyncingWithServer = false;
         private bool _hasLoadedFromDatabase = false;
+        private bool _isConnecting = false;
 
         private void CreateConnectionUI()
         {
@@ -518,25 +519,47 @@ namespace RangerCity.Lobby
             PlayerPrefs.SetInt("PlayerPantsStyle", _selectedPantsStyle);
             PlayerPrefs.SetInt("PlayerPantsColor", _selectedPantsColor);
             PlayerPrefs.Save();
-
-            // Save to database server
-            StartCoroutine(SaveToDatabaseServerCoroutine());
         }
 
         private void OnHostServerClicked()
         {
+            StartCoroutine(HostServerAfterSaveCoroutine());
+        }
+
+        private IEnumerator HostServerAfterSaveCoroutine()
+        {
+            if (_isConnecting) yield break;
+            _isConnecting = true;
+
             SavePlayerPrefs();
+
+            // Wait for database sync to finish
+            yield return StartCoroutine(SaveToDatabaseServerCoroutine());
+
             var setup = FindAnyObjectByType<NetworkSetup>();
             if (setup != null)
             {
                 setup.StartAsHost();
                 CloseConnectionPanel();
             }
+            _isConnecting = false;
         }
 
         private void OnJoinServerClicked()
         {
+            StartCoroutine(JoinServerAfterSaveCoroutine());
+        }
+
+        private IEnumerator JoinServerAfterSaveCoroutine()
+        {
+            if (_isConnecting) yield break;
+            _isConnecting = true;
+
             SavePlayerPrefs();
+
+            // Wait for database sync to finish
+            yield return StartCoroutine(SaveToDatabaseServerCoroutine());
+
             var setup = FindAnyObjectByType<NetworkSetup>();
             if (setup != null)
             {
@@ -552,6 +575,7 @@ namespace RangerCity.Lobby
                 setup.StartAsClient(address);
                 CloseConnectionPanel();
             }
+            _isConnecting = false;
         }
 
         private void CloseConnectionPanel()
