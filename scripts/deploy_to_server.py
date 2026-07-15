@@ -9,7 +9,7 @@ SERVER = "100.89.39.103"
 USER = "hung"
 PASSWORD = "1234"
 LOCAL_PROJECT = r"d:\WORK\project\Applications\project2"
-REMOTE_PROJECT = "/home/hung/project2"
+REMOTE_PROJECT = "/home/hung/Applications/project2"
 
 def ssh_connect():
     """Connect to server via SSH."""
@@ -248,7 +248,7 @@ def main():
             print("\n📋 Next steps:")
             print("  1. Open TeamViewer to server")
             print("  2. Open Unity Hub")
-            print("  3. Add project: /home/hung/project2")
+            print("  3. Add project: /home/hung/Applications/project2")
             print("  4. Open project with Unity 6000.0.23f1")
             print("  5. Open scene: Assets/Scenes/Lobby.unity")
             print("  6. Bake NavMesh: Window > AI > Navigation > Bake")

@@ -12,7 +12,7 @@ def main():
 
     print("=== MonoBehaviour lines 98 to 140 ===")
     stdin, stdout, stderr = client.exec_command(
-        "sed -n '98,140p' /home/hung/project2/Assets/Scenes/Lobby.unity"
+        "sed -n '98,140p' /home/hung/Applications/project2/Assets/Scenes/Lobby.unity"
     )
     print(stdout.read().decode('utf-8', errors='replace'))
 

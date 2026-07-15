@@ -2,6 +2,7 @@ using System.Collections;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using UnityEngine.Networking;
 
 namespace RangerCity.Lobby
 {
@@ -18,23 +19,31 @@ namespace RangerCity.Lobby
 
         // Preview
         private GameObject _previewCharacter;
-        private float _previewRotation = 0f;
         private Camera _previewCamera;
         private RenderTexture _previewRT;
+        private float _previewRotation;
 
         // Tab UI
-        private int _activeTab = 0; // 0=hair, 1=outfit, 2=pants
-        private GameObject _tabHairContent;
-        private GameObject _tabOutfitContent;
-        private GameObject _tabPantsContent;
         private Image[] _tabButtons;
         private Image[] _genderButtons;
+
+        // Centralized DB Integration
+        private string _apiBaseUrl = "http://100.89.39.103:5000/api/player";
+        private bool _isSyncingWithServer = false;
+        private bool _hasLoadedFromDatabase = false;
 
         private void CreateConnectionUI()
         {
             var canvas = GetComponentInParent<Canvas>();
             if (canvas == null) canvas = FindAnyObjectByType<Canvas>();
             if (canvas == null) return;
+
+            // Only trigger database load once
+            if (!_hasLoadedFromDatabase)
+            {
+                _hasLoadedFromDatabase = true;
+                StartCoroutine(LoadFromDatabaseServerCoroutine());
+            }
 
             // Load saved prefs
             _selectedGender = PlayerPrefs.GetInt("PlayerGender", 0);
@@ -505,6 +514,9 @@ namespace RangerCity.Lobby
             PlayerPrefs.SetInt("PlayerPantsStyle", _selectedPantsStyle);
             PlayerPrefs.SetInt("PlayerPantsColor", _selectedPantsColor);
             PlayerPrefs.Save();
+
+            // Save to database server
+            StartCoroutine(SaveToDatabaseServerCoroutine());
         }
 
         private void OnHostServerClicked()
@@ -655,5 +667,141 @@ namespace RangerCity.Lobby
 
             MakeText(btnObj.transform, "Label", label, 15, Vector2.zero, size, TextAlignmentOptions.Center, Color.white);
         }
+
+        private IEnumerator LoadFromDatabaseServerCoroutine()
+        {
+            if (_isSyncingWithServer) yield break;
+            _isSyncingWithServer = true;
+
+            string deviceId = SystemInfo.deviceUniqueIdentifier;
+            string url = $"{_apiBaseUrl}?deviceId={UnityWebRequest.EscapeURL(deviceId)}";
+
+            Debug.Log($"[LobbyUIConnection] Querying database server for device: {deviceId}...");
+            using (UnityWebRequest webRequest = UnityWebRequest.Get(url))
+            {
+                webRequest.timeout = 3; // 3 seconds timeout
+                yield return webRequest.SendWebRequest();
+
+                _isSyncingWithServer = false;
+
+                if (webRequest.result == UnityWebRequest.Result.Success)
+                {
+                    string json = webRequest.downloadHandler.text;
+                    Debug.Log($"[LobbyUIConnection] Database loaded: {json}");
+                    try
+                    {
+                        ServerPlayerData serverData = JsonUtility.FromJson<ServerPlayerData>(json);
+                        if (serverData != null)
+                        {
+                            _selectedGender = serverData.gender;
+                            _selectedBodyColor = serverData.bodyColorIndex;
+                            _selectedHairStyle = serverData.hairStyle;
+                            _selectedHairColor = serverData.hairColorIndex;
+                            _selectedOutfitStyle = serverData.outfitStyle;
+                            _selectedPantsStyle = serverData.pantsStyle;
+                            _selectedPantsColor = serverData.pantsColorIndex;
+
+                            // Cache to PlayerPrefs
+                            PlayerPrefs.SetString("PlayerName", serverData.name);
+                            PlayerPrefs.SetInt("PlayerGender", _selectedGender);
+                            PlayerPrefs.SetInt("PlayerColorIndex", _selectedBodyColor);
+                            PlayerPrefs.SetInt("PlayerHairStyle", _selectedHairStyle);
+                            PlayerPrefs.SetInt("PlayerHairColor", _selectedHairColor);
+                            PlayerPrefs.SetInt("PlayerOutfitStyle", _selectedOutfitStyle);
+                            PlayerPrefs.SetInt("PlayerPantsStyle", _selectedPantsStyle);
+                            PlayerPrefs.SetInt("PlayerPantsColor", _selectedPantsColor);
+                            PlayerPrefs.Save();
+
+                            Debug.Log($"[LobbyUIConnection] Rebuilding UI with loaded data for player: {serverData.name}");
+                            RebuildConnectionUI();
+                        }
+                    }
+                    catch (System.Exception e)
+                    {
+                        Debug.LogError($"[LobbyUIConnection] Failed to parse player JSON: {e.Message}");
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[LobbyUIConnection] Database server unreachable or player not found. Using local PlayerPrefs fallback. Error: {webRequest.error}");
+                }
+            }
+        }
+
+        private IEnumerator SaveToDatabaseServerCoroutine()
+        {
+            string deviceId = SystemInfo.deviceUniqueIdentifier;
+            string playerName = _nameInput != null ? _nameInput.text : "Ranger";
+
+            ServerPlayerData data = new ServerPlayerData();
+            data.deviceId = deviceId;
+            data.name = playerName;
+            data.gender = _selectedGender;
+            data.bodyColorIndex = _selectedBodyColor;
+            data.hairStyle = _selectedHairStyle;
+            data.hairColorIndex = _selectedHairColor;
+            data.outfitStyle = _selectedOutfitStyle;
+            data.pantsStyle = _selectedPantsStyle;
+            data.pantsColorIndex = _selectedPantsColor;
+
+            string json = JsonUtility.ToJson(data);
+
+            using (UnityWebRequest webRequest = new UnityWebRequest(_apiBaseUrl, "POST"))
+            {
+                byte[] bodyRaw = System.Text.Encoding.UTF8.GetBytes(json);
+                webRequest.uploadHandler = new UploadHandlerRaw(bodyRaw);
+                webRequest.downloadHandler = new DownloadHandlerBuffer();
+                webRequest.SetRequestHeader("Content-Type", "application/json");
+                webRequest.timeout = 3;
+
+                yield return webRequest.SendWebRequest();
+
+                if (webRequest.result == UnityWebRequest.Result.Success)
+                {
+                    Debug.Log($"[LobbyUIConnection] Successfully saved character configuration for device: {deviceId} to database server.");
+                }
+                else
+                {
+                    Debug.LogWarning($"[LobbyUIConnection] Failed to save character to database server (using local fallback). Error: {webRequest.error}");
+                }
+            }
+        }
+
+        private void RebuildConnectionUI()
+        {
+            if (_connectionPanel == null) return;
+
+            bool wasActive = _connectionPanel.activeSelf;
+
+            if (_previewCharacter != null) Destroy(_previewCharacter);
+            if (_previewCamera != null) Destroy(_previewCamera.gameObject);
+            if (_previewRT != null)
+            {
+                _previewRT.Release();
+                Destroy(_previewRT);
+            }
+            if (_connectionPanel != null) Destroy(_connectionPanel);
+
+            CreateConnectionUI();
+
+            if (_connectionPanel != null)
+            {
+                _connectionPanel.SetActive(wasActive);
+            }
+        }
+    }
+
+    [System.Serializable]
+    public class ServerPlayerData
+    {
+        public string deviceId;
+        public string name;
+        public int gender;
+        public int bodyColorIndex;
+        public int hairStyle;
+        public int hairColorIndex;
+        public int outfitStyle;
+        public int pantsStyle;
+        public int pantsColorIndex;
     }
 }

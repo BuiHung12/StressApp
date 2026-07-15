@@ -7,7 +7,7 @@ import time
 SERVER = "100.89.39.103"
 USER = "hung"
 PASSWORD = "1234"
-REMOTE_PROJECT = "/home/hung/project2"
+REMOTE_PROJECT = "/home/hung/Applications/project2"
 UNITY = "/home/hung/Unity/Hub/Editor/6000.0.23f1/Editor/Unity"
 
 def main():
@@ -18,7 +18,7 @@ def main():
     print("Connected!")
     
     # Run Unity in batch mode to import and compile
-    log_file = "/home/hung/project2/unity_compile.log"
+    log_file = "/home/hung/Applications/project2/unity_compile.log"
     cmd = (
         f"{UNITY} "
         f"-projectPath {REMOTE_PROJECT} "

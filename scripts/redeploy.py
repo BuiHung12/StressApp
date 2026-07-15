@@ -6,7 +6,7 @@ SERVER = "100.89.39.103"
 USER = "hung"
 PASSWORD = "1234"
 LOCAL_DIR = r"d:\WORK\project\Applications\project2\Assets\Scripts\Lobby"
-REMOTE_DIR = "/home/hung/project2/Assets/Scripts/Lobby"
+REMOTE_DIR = "/home/hung/Applications/project2/Assets/Scripts/Lobby"
 
 def main():
     client = paramiko.SSHClient()
@@ -48,7 +48,7 @@ def main():
 
     # Also upload manifest.json for Mirror package
     local_manifest = r"d:\WORK\project\Applications\project2\Packages\manifest.json"
-    remote_manifest = "/home/hung/project2/Packages/manifest.json"
+    remote_manifest = "/home/hung/Applications/project2/Packages/manifest.json"
     sftp.put(local_manifest, remote_manifest)
     print(f"  [OK] manifest.json (Mirror package)")
 
