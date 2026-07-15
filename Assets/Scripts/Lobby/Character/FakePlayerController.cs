@@ -85,12 +85,14 @@ namespace RangerCity.Lobby
                     else
                     {
                         // Blocked by obstacle, cancel current wander and choose another target later
+                        Debug.Log($"[FakePlayerController] {_displayName} wandering blocked at: {transform.position}");
                         _isMovingAI = false;
                         _moveTimer = Random.Range(_pauseMin, _pauseMax);
                     }
                 }
                 else
                 {
+                    Debug.Log($"[FakePlayerController] {_displayName} finished wandering at: {transform.position}");
                     _isMovingAI = false;
                     _moveTimer = Random.Range(_pauseMin, _pauseMax);
                 }
@@ -103,6 +105,7 @@ namespace RangerCity.Lobby
                     Vector2 rnd = Random.insideUnitCircle * _wanderRadius;
                     _moveTarget = _homePosition + new Vector3(rnd.x, 0, rnd.y);
                     _isMovingAI = true;
+                    Debug.Log($"[FakePlayerController] {_displayName} started wandering to: {_moveTarget}");
                 }
             }
         }

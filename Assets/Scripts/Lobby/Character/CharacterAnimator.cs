@@ -43,7 +43,9 @@ namespace RangerCity.Lobby
 
         private void LateUpdate()
         {
-            float displacement = (transform.position - _lastPos).magnitude;
+            Vector3 diff = transform.position - _lastPos;
+            diff.y = 0f; // Ignore vertical bobbing for movement detection to prevent animation feedback loop
+            float displacement = diff.magnitude;
             
             // Bỏ qua các sai số dịch chuyển siêu nhỏ (dưới 2 milimet) do nội suy mạng (SmoothDamp)
             if (displacement < 0.002f)

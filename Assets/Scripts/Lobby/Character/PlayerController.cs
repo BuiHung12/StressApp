@@ -27,6 +27,7 @@ namespace RangerCity.Lobby
         private Camera _mainCamera;
         private Vector3 _moveTarget;
         private bool _isClickMoving;
+        private bool _wasKeyboardMoving;
         private float _punchCooldownTimer;
         private bool _isPunching;
         private IInteractable _nearestInteractable;
@@ -105,6 +106,11 @@ namespace RangerCity.Lobby
             Vector3 dir = new Vector3(h, 0f, v).normalized;
             if (dir.sqrMagnitude > 0.01f)
             {
+                if (!_wasKeyboardMoving)
+                {
+                    Debug.Log($"[PlayerController] Keyboard movement started in direction: {dir}");
+                    _wasKeyboardMoving = true;
+                }
                 _isClickMoving = false;
                 _lastMoveDir = dir;
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 12f);
@@ -119,7 +125,16 @@ namespace RangerCity.Lobby
             }
             else if (!_isClickMoving)
             {
+                if (_wasKeyboardMoving)
+                {
+                    Debug.Log($"[PlayerController] Keyboard movement stopped at position: {transform.position}");
+                    _wasKeyboardMoving = false;
+                }
                 if (_animator) _animator.SetFloat(AnimSpeed, 0f);
+            }
+            else
+            {
+                _wasKeyboardMoving = false;
             }
         }
 
@@ -138,6 +153,7 @@ namespace RangerCity.Lobby
                     _moveTarget = ray.GetPoint(dist);
                     _moveTarget.y = 0.03f;
                     _isClickMoving = true;
+                    Debug.Log($"[PlayerController] Click to move started. Target destination: {_moveTarget}");
                 }
             }
 
@@ -145,30 +161,52 @@ namespace RangerCity.Lobby
             {
                 Vector3 dir = (_moveTarget - transform.position);
                 dir.y = 0f;
+                float dist = dir.magnitude;
 
-                if (dir.magnitude > 0.15f)
+                if (dist > 0.15f)
                 {
-                    Vector3 moveDir = dir.normalized;
-                    transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDir), Time.deltaTime * 12f);
-                    bool moved = false;
-
-                    Vector3 targetPosX = ClampToWorld(transform.position + new Vector3(moveDir.x, 0, 0) * _moveSpeed * Time.deltaTime);
-                    if (IsValidPosition(targetPosX)) { transform.position = targetPosX; moved = true; }
-
-                    Vector3 targetPosZ = ClampToWorld(transform.position + new Vector3(0, 0, moveDir.z) * _moveSpeed * Time.deltaTime);
-                    if (IsValidPosition(targetPosZ)) { transform.position = targetPosZ; moved = true; }
-
-                    _lastMoveDir = moveDir;
-                    if (_animator) _animator.SetFloat(AnimSpeed, 1f);
-
-                    if (!moved)
+                    float step = _moveSpeed * Time.deltaTime;
+                    if (dist <= step)
                     {
+                        Vector3 finalPos = ClampToWorld(_moveTarget);
+                        if (IsValidPosition(finalPos))
+                        {
+                            transform.position = finalPos;
+                            Debug.Log($"[PlayerController] Click to move complete. Snapped to destination: {finalPos}");
+                        }
+                        else
+                        {
+                            Debug.Log($"[PlayerController] Click to move stopped. Destination {finalPos} is invalid/blocked.");
+                        }
                         _isClickMoving = false;
                         if (_animator) _animator.SetFloat(AnimSpeed, 0f);
+                    }
+                    else
+                    {
+                        Vector3 moveDir = dir.normalized;
+                        transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDir), Time.deltaTime * 12f);
+                        bool moved = false;
+
+                        Vector3 targetPosX = ClampToWorld(transform.position + new Vector3(moveDir.x, 0, 0) * step);
+                        if (IsValidPosition(targetPosX)) { transform.position = targetPosX; moved = true; }
+
+                        Vector3 targetPosZ = ClampToWorld(transform.position + new Vector3(0, 0, moveDir.z) * step);
+                        if (IsValidPosition(targetPosZ)) { transform.position = targetPosZ; moved = true; }
+
+                        _lastMoveDir = moveDir;
+                        if (_animator) _animator.SetFloat(AnimSpeed, 1f);
+
+                        if (!moved)
+                        {
+                            Debug.Log($"[PlayerController] Click to move stopped. Character is blocked at: {transform.position}");
+                            _isClickMoving = false;
+                            if (_animator) _animator.SetFloat(AnimSpeed, 0f);
+                        }
                     }
                 }
                 else
                 {
+                    Debug.Log($"[PlayerController] Click to move complete. Reached target range: {transform.position}");
                     _isClickMoving = false;
                     if (_animator) _animator.SetFloat(AnimSpeed, 0f);
                 }
@@ -219,6 +257,7 @@ namespace RangerCity.Lobby
         private void GoToJail()
         {
             float jailDuration = 15f;
+            Debug.Log($"[PlayerController] Player sent to jail at (2, 0.03, -62) for {jailDuration}s.");
             transform.position = new Vector3(2f, 0.03f, -62f);
             _isJailed = true;
             _jailTimer = jailDuration;
@@ -234,6 +273,7 @@ namespace RangerCity.Lobby
             var lobbyPortal = _prisonPortal ?? GameObject.Find("PrisonPortal");
             Vector3 dest = lobbyPortal != null ? lobbyPortal.transform.position + new Vector3(0, 0, 1.2f) : new Vector3(0, 0.03f, -9.5f);
             dest.y = 0.03f;
+            Debug.Log($"[PlayerController] Player released from jail. Moving to: {dest}");
             transform.position = dest;
             _teleportCooldownTimer = 1.0f;
             OnJailEnd?.Invoke();
@@ -301,6 +341,7 @@ namespace RangerCity.Lobby
 
         private void Teleport(Vector3 destination)
         {
+            Debug.Log($"[PlayerController] Teleporting player to: {destination}");
             transform.position = destination;
             _isClickMoving = false;
             _teleportCooldownTimer = 1.0f;

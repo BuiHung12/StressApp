@@ -123,12 +123,14 @@ namespace RangerCity.Lobby
                     else
                     {
                         // Blocked by obstacle, cancel current wander and choose another target later
+                        Debug.Log($"[NPCController] {_displayName} wandering blocked at: {transform.position}");
                         _isWandering = false;
                         _wanderTimer = Random.Range(_wanderPauseMin, _wanderPauseMax);
                     }
                 }
                 else
                 {
+                    Debug.Log($"[NPCController] {_displayName} finished wandering at: {transform.position}");
                     _isWandering = false;
                     _wanderTimer = Random.Range(_wanderPauseMin, _wanderPauseMax);
                 }
@@ -142,6 +144,7 @@ namespace RangerCity.Lobby
                     Vector2 rnd = Random.insideUnitCircle * _wanderRadius;
                     _wanderTarget = _homePosition + new Vector3(rnd.x, 0, rnd.y);
                     _isWandering = true;
+                    Debug.Log($"[NPCController] {_displayName} started wandering to: {_wanderTarget}");
                 }
             }
         }

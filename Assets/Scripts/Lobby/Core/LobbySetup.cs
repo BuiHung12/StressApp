@@ -154,15 +154,13 @@ namespace RangerCity.Lobby
                 "Người ta bảo tôi đen hôi, nhưng tôi thấy mình men lỳ!"
             }, new Color(0.25f, 0.18f, 0.12f));
 
-            CreateNPC("Yan Min Sheng", "😷", new Vector3(6, 0.03f, -2), new Color(0.15f, 0.1f, 0.08f), new[] {
-                "Yan Min Sheng xin chào! Chắc bạn ngửi thấy mùi tôi rồi nhỉ?",
-                "Nước hoa tốt nhất là mùi mồ hôi tự nhiên!",
-                "Zhang Guang Yu là tri kỷ của tôi đấy, hai đứa thơm tho như nhau!"
-            }, new Color(0.2f, 0.14f, 0.09f));
+            CreateNPC("Yan Min Sheng", "😷", new Vector3(6f, 0.03f, -61.2f), new Color(0.15f, 0.1f, 0.08f), new[] {
+                "Xin lỗi Xiao Ling từ nay tui không dám giao việc linh tinh cho Xiao Ling nữa huhuhu"
+            }, new Color(0.2f, 0.14f, 0.09f), wanderRadius: 0.5f);
 
             CreateNPC("Tang Xu Yu", "⛓️", new Vector3(-6, 0.03f, -61.2f), new Color(0.2f, 0.4f, 0.7f), new[] {
                 "Tôi bị nhốt rồi, tôi sai rồi...",
-                "Tôi có lỗi với mọi người!",
+                "Xin lỗi Xiao Ling từ nay tui không dám giao việc linh tinh cho Xiao Ling nữa huhuhu.",
                 "Tôi sẵn sàng làm trâu ngựa để chuộc lỗi lầm của tôi!"
             }, new Color(1f, 0.8f, 0.65f), wanderRadius: 0.5f);
         }

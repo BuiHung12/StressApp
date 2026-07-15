@@ -10,12 +10,8 @@ def main():
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(SERVER, port=22, username=USER, password=PASSWORD, timeout=15)
 
-    print("=== Last 50 lines of Unity Editor.log ===")
-    stdin, stdout, stderr = client.exec_command('tail -n 50 /home/hung/.config/unity3d/Editor.log')
-    print(stdout.read().decode('utf-8', errors='replace'))
-
-    print("=== Custom logs containing [LobbyUI] or [Player] ===")
-    stdin, stdout, stderr = client.exec_command('grep -E "\\[LobbyUI\\]|\\[Player\\]" /home/hung/.config/unity3d/Editor.log | tail -30')
+    print("=== Custom movement logs (Player, NPC, FakePlayer) ===")
+    stdin, stdout, stderr = client.exec_command('grep -E "\\[PlayerController\\]|\\[NPCController\\]|\\[FakePlayerController\\]" /home/hung/.config/unity3d/Editor.log | tail -n 150')
     print(stdout.read().decode('utf-8', errors='replace'))
 
     client.close()
