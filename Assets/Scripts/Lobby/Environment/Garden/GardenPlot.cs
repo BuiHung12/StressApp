@@ -30,11 +30,14 @@ namespace RangerCity.Lobby
         private Material _redMat;
         private Material _brownMat;
 
+        private Camera _cachedCamera;
+
         private void Start()
         {
             CreateMaterials();
             CreateVisuals();
             UpdateVisuals();
+            _cachedCamera = Camera.main;
         }
 
         private void Update()
@@ -53,29 +56,19 @@ namespace RangerCity.Lobby
                 }
             }
 
-            // Simple distance check to orient billboard towards camera
-            if (_billboardObj != null && Camera.main != null)
+            // Orient billboard towards camera (using cached ref)
+            if (_billboardObj != null && _cachedCamera != null)
             {
-                _billboardObj.transform.rotation = Quaternion.LookRotation(Camera.main.transform.forward);
+                _billboardObj.transform.rotation = Quaternion.LookRotation(_cachedCamera.transform.forward);
             }
         }
 
         private void CreateMaterials()
         {
-            // Helper to find or create simple unlit color materials
-            _greenMat = CreateMat(new Color(0.2f, 0.8f, 0.3f));
-            _redMat = CreateMat(new Color(0.9f, 0.15f, 0.15f));
-            _brownMat = CreateMat(new Color(0.45f, 0.3f, 0.15f));
-        }
-
-        private Material CreateMat(Color c)
-        {
-            var shader = Shader.Find("Unlit/Color");
-            if (shader == null) shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null) shader = Shader.Find("Standard");
-            var mat = new Material(shader);
-            mat.color = c;
-            return mat;
+            // Use ZoneFactory cached materials instead of creating new ones per plot
+            _greenMat = ZoneFactory.CreateMat(new Color(0.2f, 0.8f, 0.3f));
+            _redMat = ZoneFactory.CreateMat(new Color(0.9f, 0.15f, 0.15f));
+            _brownMat = ZoneFactory.CreateMat(new Color(0.45f, 0.3f, 0.15f));
         }
 
         private void CreateVisuals()
@@ -95,7 +88,7 @@ namespace RangerCity.Lobby
             potOuter.transform.SetParent(transform, false);
             potOuter.transform.localPosition = new Vector3(0, 0.04f, 0);
             potOuter.transform.localScale = new Vector3(0.58f, 0.04f, 0.58f);
-            potOuter.GetComponent<Renderer>().material = CreateMat(new Color(0.7f, 0.45f, 0.35f));
+            potOuter.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.7f, 0.45f, 0.35f));
             Destroy(potOuter.GetComponent<Collider>());
 
             // Sprout plant (Small green sphere)
@@ -160,7 +153,7 @@ namespace RangerCity.Lobby
             bg.transform.SetParent(_billboardObj.transform, false);
             bg.transform.localPosition = new Vector3(0, 0, 0.01f);
             bg.transform.localScale = new Vector3(1.2f, 0.32f, 0.005f);
-            bg.GetComponent<Renderer>().material = CreateMat(new Color(0.1f, 0.1f, 0.1f, 0.8f));
+            bg.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.1f, 0.1f, 0.1f, 0.8f));
             Destroy(bg.GetComponent<Collider>());
         }
 
@@ -178,13 +171,15 @@ namespace RangerCity.Lobby
             switch (_state)
             {
                 case PlotState.Empty:
-                    _billboardText.text = "[+] Gieo Hạt\n(Phím E)";
+                    string hintE = Application.isMobilePlatform ? "Nhấn 💬" : "Phím E";
+                    _billboardText.text = $"[+] Gieo Hạt\n({hintE})";
                     break;
                 case PlotState.Growing:
                     _billboardText.text = $"Đang Lớn\n({Mathf.Ceil(_growthTimer):0}s)";
                     break;
                 case PlotState.Ripe:
-                    _billboardText.text = "[*] Thu Hoạch\n(Phím E)";
+                    string hintH = Application.isMobilePlatform ? "Nhấn 💬" : "Phím E";
+                    _billboardText.text = $"[*] Thu Hoạch\n({hintH})";
                     break;
             }
         }
@@ -197,6 +192,13 @@ namespace RangerCity.Lobby
                 _state = PlotState.Growing;
                 _growthTimer = _growthDuration;
                 UpdateVisuals();
+
+                // Sync to other players
+                var netPlayer = player.GetComponent<Mirror.NetworkIdentity>()?.GetComponent<NetworkPlayer>();
+                if (netPlayer != null && netPlayer.isLocalPlayer)
+                {
+                    netPlayer.CmdPlantSeed(GetPlotIndex());
+                }
             }
             else if (_state == PlotState.Ripe)
             {
@@ -207,6 +209,13 @@ namespace RangerCity.Lobby
                 // Add coins to player
                 player.AddCoins(_harvestReward);
 
+                // Sync to other players
+                var netPlayer = player.GetComponent<Mirror.NetworkIdentity>()?.GetComponent<NetworkPlayer>();
+                if (netPlayer != null && netPlayer.isLocalPlayer)
+                {
+                    netPlayer.CmdHarvestPlot(GetPlotIndex());
+                }
+
                 // Spawn harvest feedback effect
                 var flash = new GameObject("HarvestFlash");
                 flash.transform.position = transform.position + Vector3.up * 0.3f;
@@ -216,6 +225,31 @@ namespace RangerCity.Lobby
                 light.intensity = 2f;
                 Destroy(flash, 0.2f);
             }
+        }
+
+        /// <summary>
+        /// Called by NetworkPlayer RPC to force state on remote clients.
+        /// </summary>
+        public void ForceSetState(PlotState newState)
+        {
+            _state = newState;
+            if (newState == PlotState.Growing)
+                _growthTimer = _growthDuration;
+            UpdateVisuals();
+        }
+
+        /// <summary>
+        /// Returns index of this plot among all GardenPlots in the scene.
+        /// Used for network sync identification.
+        /// </summary>
+        public int GetPlotIndex()
+        {
+            var all = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i] == this) return i;
+            }
+            return -1;
         }
     }
 }

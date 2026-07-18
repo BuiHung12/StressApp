@@ -69,6 +69,9 @@ PlayerSettings:
     tvOS: 0
     Android: 0
   overrideDefaultApplicationIdentifier: 1
+  applicationIdentifier:
+    Android: com.rangercity.lobby
+    iPhone: com.rangercity.lobby
   AndroidBundleVersionCode: 1
   AndroidMinSdkVersion: 24
   AndroidTargetSdkVersion: 0
@@ -102,9 +105,11 @@ PlayerSettings:
   scriptingBackend:
     Android: 1
     Standalone: 1
+    iPhone: 1
   il2cppCompilerConfiguration: {}
   managedStrippingLevel:
     Android: 1
+    iPhone: 1
   incrementalIl2cppBuild: {}
   suppressCommonWarnings: 1
   allowUnsafeCode: 0

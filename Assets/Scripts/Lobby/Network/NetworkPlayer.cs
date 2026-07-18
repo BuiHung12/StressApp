@@ -188,8 +188,16 @@ namespace RangerCity.Lobby
                 if (pc != null) pc.enabled = false;
             }
 
+            // Register in EntityRegistry for O(1) lookups
+            EntityRegistry.RegisterNetworkPlayer(this);
+
             // Apply current appearance on join
             CharacterVisuals.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
+        }
+
+        private void OnDestroy()
+        {
+            EntityRegistry.UnregisterNetworkPlayer(this);
         }
 
         private void Update()
@@ -203,9 +211,9 @@ namespace RangerCity.Lobby
                 CharacterVisuals.ApplyCustomization(gameObject, Gender, HairStyle, HairColor, OutfitStyle, BodyColor, PantsStyle, PantsColor);
             }
 
-            // Broadcast the positions and rotations of all NPCs from the server
-            // Run only from the first player instance to avoid redundant network updates
-            if (isServer && IsFirstServerPlayer())
+            // Broadcast NPC and FakePlayer positions from server
+            // Use EntityRegistry instead of FindObjectsByType for O(1) check
+            if (isServer && EntityRegistry.IsFirstServerPlayer(this))
             {
                 _syncTimer += Time.deltaTime;
                 if (_syncTimer >= _syncInterval)
@@ -231,13 +239,6 @@ namespace RangerCity.Lobby
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, _syncRotationY, 0), Time.deltaTime * 10f);
                 UpdateRemoteAnimation();
             }
-        }
-
-        private bool IsFirstServerPlayer()
-        {
-            var players = FindObjectsByType<NetworkPlayer>(FindObjectsSortMode.None);
-            if (players == null || players.Length == 0) return false;
-            return players[0] == this;
         }
 
         private bool IsMoving()
@@ -319,46 +320,129 @@ namespace RangerCity.Lobby
             _appearanceDirty = true;
         }
 
-        // ── NPC Position/State Synchronizer ──
+        // ── NPC & FakePlayer Position/State Synchronizer ──
 
         private void SyncNPCsToServer()
         {
-            var npcs = FindObjectsByType<NPCController>(FindObjectsSortMode.None);
-            if (npcs == null || npcs.Length == 0) return;
-
-            string[] names = new string[npcs.Length];
-            Vector3[] positions = new Vector3[npcs.Length];
-            float[] rotationsY = new float[npcs.Length];
-            bool[] isHurts = new bool[npcs.Length];
-
-            for (int i = 0; i < npcs.Length; i++)
+            // === Sync NPCs ===
+            var npcs = EntityRegistry.AllNPCs;
+            if (npcs.Count > 0)
             {
-                names[i] = npcs[i].DisplayName;
-                positions[i] = npcs[i].transform.position;
-                rotationsY[i] = npcs[i].transform.eulerAngles.y;
-                isHurts[i] = npcs[i].IsHurt;
+                string[] names = new string[npcs.Count];
+                Vector3[] positions = new Vector3[npcs.Count];
+                float[] rotationsY = new float[npcs.Count];
+                bool[] isHurts = new bool[npcs.Count];
+
+                for (int i = 0; i < npcs.Count; i++)
+                {
+                    names[i] = npcs[i].DisplayName;
+                    positions[i] = npcs[i].transform.position;
+                    rotationsY[i] = npcs[i].transform.eulerAngles.y;
+                    isHurts[i] = npcs[i].IsHurt;
+                }
+
+                RpcSyncNPCs(names, positions, rotationsY, isHurts);
             }
 
-            RpcSyncNPCs(names, positions, rotationsY, isHurts);
+            // === Sync FakePlayers ===
+            var fakePlayers = EntityRegistry.AllFakePlayers;
+            if (fakePlayers.Count > 0)
+            {
+                string[] fpNames = new string[fakePlayers.Count];
+                Vector3[] fpPositions = new Vector3[fakePlayers.Count];
+                float[] fpRotationsY = new float[fakePlayers.Count];
+
+                for (int i = 0; i < fakePlayers.Count; i++)
+                {
+                    fpNames[i] = fakePlayers[i].DisplayName;
+                    fpPositions[i] = fakePlayers[i].transform.position;
+                    fpRotationsY[i] = fakePlayers[i].transform.eulerAngles.y;
+                }
+
+                RpcSyncFakePlayers(fpNames, fpPositions, fpRotationsY);
+            }
         }
 
         [ClientRpc]
         private void RpcSyncNPCs(string[] names, Vector3[] positions, float[] rotationsY, bool[] isHurts)
         {
-            // Clients (excluding Server/Host, who already runs the simulation locally) apply sync data
             if (isServer) return;
 
             for (int i = 0; i < names.Length; i++)
             {
-                var npcObj = GameObject.Find(names[i]);
-                if (npcObj != null)
+                // O(1) lookup via EntityRegistry instead of O(n) GameObject.Find
+                var npcCtrl = EntityRegistry.GetNPC(names[i]);
+                if (npcCtrl != null)
                 {
-                    var npcCtrl = npcObj.GetComponent<NPCController>();
-                    if (npcCtrl != null)
-                    {
-                        npcCtrl.SetSyncData(positions[i], rotationsY[i], isHurts[i]);
-                    }
+                    npcCtrl.SetSyncData(positions[i], rotationsY[i], isHurts[i]);
                 }
+            }
+        }
+
+        [ClientRpc]
+        private void RpcSyncFakePlayers(string[] names, Vector3[] positions, float[] rotationsY)
+        {
+            if (isServer) return;
+
+            for (int i = 0; i < names.Length; i++)
+            {
+                var fp = EntityRegistry.GetFakePlayer(names[i]);
+                if (fp != null)
+                {
+                    fp.SetSyncData(positions[i], rotationsY[i]);
+                }
+            }
+        }
+
+        // ── GardenPlot Sync ──
+
+        [Command]
+        public void CmdPlantSeed(int plotIndex)
+        {
+            RpcPlantSeed(plotIndex);
+        }
+
+        [ClientRpc]
+        private void RpcPlantSeed(int plotIndex)
+        {
+            var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
+            if (plotIndex >= 0 && plotIndex < plots.Length)
+            {
+                plots[plotIndex].ForceSetState(PlotState.Growing);
+            }
+        }
+
+        [Command]
+        public void CmdHarvestPlot(int plotIndex)
+        {
+            RpcHarvestPlot(plotIndex);
+        }
+
+        [ClientRpc]
+        private void RpcHarvestPlot(int plotIndex)
+        {
+            var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
+            if (plotIndex >= 0 && plotIndex < plots.Length)
+            {
+                plots[plotIndex].ForceSetState(PlotState.Empty);
+            }
+        }
+
+        // ── CloudLayer Unlock Sync ──
+
+        [Command]
+        public void CmdUnlockCloud(int cloudIndex)
+        {
+            RpcUnlockCloud(cloudIndex);
+        }
+
+        [ClientRpc]
+        private void RpcUnlockCloud(int cloudIndex)
+        {
+            var clouds = FindObjectsByType<CloudLayer>(FindObjectsSortMode.None);
+            if (cloudIndex >= 0 && cloudIndex < clouds.Length)
+            {
+                clouds[cloudIndex].ForceUnlock();
             }
         }
     }

@@ -48,6 +48,7 @@ namespace RangerCity.Lobby
         private bool _isJailed;
         private float _jailTimer;
         private int _rangerCoins = 50;
+        private int _npcPunchCount = 0;
         private float _teleportCooldownTimer;
 
         public float InteractionRange => _interactionRange;
@@ -62,7 +63,7 @@ namespace RangerCity.Lobby
         private void Start()
         {
             _mainCamera = Camera.main;
-            _animator = GetComponent<Animator>();
+            _animator = GetComponentInChildren<Animator>();
 
             _gardenPortal = GameObject.Find("GardenPortal");
             _prisonPortal = GameObject.Find("PrisonPortal");
@@ -103,33 +104,34 @@ namespace RangerCity.Lobby
             if (Input.GetKey(KeyCode.A) || Input.GetKey(KeyCode.LeftArrow)) h = -1f;
             if (Input.GetKey(KeyCode.D) || Input.GetKey(KeyCode.RightArrow)) h = 1f;
 
+            // === Mobile joystick input ===
+            if (VirtualJoystick.Instance != null)
+            {
+                Vector2 joyDir = VirtualJoystick.Instance.Direction;
+                if (joyDir.sqrMagnitude > 0.01f)
+                {
+                    h = joyDir.x;
+                    v = joyDir.y;
+                }
+            }
+
             Vector3 dir = new Vector3(h, 0f, v).normalized;
             if (dir.sqrMagnitude > 0.01f)
             {
-                if (!_wasKeyboardMoving)
-                {
-                    Debug.Log($"[PlayerController] Keyboard movement started in direction: {dir}");
-                    _wasKeyboardMoving = true;
-                }
+                _wasKeyboardMoving = true;
                 _isClickMoving = false;
                 _lastMoveDir = dir;
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(dir), Time.deltaTime * 12f);
 
-                Vector3 targetPosX = ClampToWorld(transform.position + new Vector3(dir.x, 0, 0) * _moveSpeed * Time.deltaTime);
-                if (IsValidPosition(targetPosX)) transform.position = targetPosX;
-
-                Vector3 targetPosZ = ClampToWorld(transform.position + new Vector3(0, 0, dir.z) * _moveSpeed * Time.deltaTime);
-                if (IsValidPosition(targetPosZ)) transform.position = targetPosZ;
+                Vector3 targetPos = transform.position + dir * _moveSpeed * Time.deltaTime;
+                targetPos = ResolveCollisions(targetPos);
+                transform.position = ClampToWorld(targetPos);
 
                 if (_animator) _animator.SetFloat(AnimSpeed, 1f);
             }
             else if (!_isClickMoving)
             {
-                if (_wasKeyboardMoving)
-                {
-                    Debug.Log($"[PlayerController] Keyboard movement stopped at position: {transform.position}");
-                    _wasKeyboardMoving = false;
-                }
+                _wasKeyboardMoving = false;
                 if (_animator) _animator.SetFloat(AnimSpeed, 0f);
             }
             else
@@ -169,15 +171,9 @@ namespace RangerCity.Lobby
                     if (dist <= step)
                     {
                         Vector3 finalPos = ClampToWorld(_moveTarget);
-                        if (IsValidPosition(finalPos))
-                        {
-                            transform.position = finalPos;
-                            Debug.Log($"[PlayerController] Click to move complete. Snapped to destination: {finalPos}");
-                        }
-                        else
-                        {
-                            Debug.Log($"[PlayerController] Click to move stopped. Destination {finalPos} is invalid/blocked.");
-                        }
+                        finalPos = ResolveCollisions(finalPos);
+                        transform.position = finalPos;
+                        Debug.Log($"[PlayerController] Click to move complete. Snapped to destination: {finalPos}");
                         _isClickMoving = false;
                         if (_animator) _animator.SetFloat(AnimSpeed, 0f);
                     }
@@ -185,18 +181,17 @@ namespace RangerCity.Lobby
                     {
                         Vector3 moveDir = dir.normalized;
                         transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDir), Time.deltaTime * 12f);
-                        bool moved = false;
-
-                        Vector3 targetPosX = ClampToWorld(transform.position + new Vector3(moveDir.x, 0, 0) * step);
-                        if (IsValidPosition(targetPosX)) { transform.position = targetPosX; moved = true; }
-
-                        Vector3 targetPosZ = ClampToWorld(transform.position + new Vector3(0, 0, moveDir.z) * step);
-                        if (IsValidPosition(targetPosZ)) { transform.position = targetPosZ; moved = true; }
+                        
+                        Vector3 prevPos = transform.position;
+                        Vector3 targetPos = transform.position + moveDir * step;
+                        targetPos = ResolveCollisions(targetPos);
+                        transform.position = ClampToWorld(targetPos);
 
                         _lastMoveDir = moveDir;
                         if (_animator) _animator.SetFloat(AnimSpeed, 1f);
 
-                        if (!moved)
+                        // Stuck detection (moved less than 10% of step)
+                        if (Vector3.Distance(prevPos, transform.position) < step * 0.1f)
                         {
                             Debug.Log($"[PlayerController] Click to move stopped. Character is blocked at: {transform.position}");
                             _isClickMoving = false;
@@ -231,25 +226,52 @@ namespace RangerCity.Lobby
             MonoBehaviour closestTarget = null;
             float closestDist = _punchRange;
 
-            var npcs = FindObjectsByType<NPCController>(FindObjectsSortMode.None);
+            // Find closest NPC (O(n) on registry, not full scene scan)
+            var npcs = EntityRegistry.AllNPCs;
             foreach (var npc in npcs)
             {
                 float dist = Vector3.Distance(transform.position, npc.transform.position);
                 if (dist < closestDist) { closestDist = dist; closestTarget = npc; }
             }
 
-            var fakePlayers = FindObjectsByType<FakePlayerController>(FindObjectsSortMode.None);
+            // Find closest Fake Player
+            var fakePlayers = EntityRegistry.AllFakePlayers;
             foreach (var fp in fakePlayers)
             {
                 float dist = Vector3.Distance(transform.position, fp.transform.position);
                 if (dist < closestDist) { closestDist = dist; closestTarget = fp; }
             }
 
+            // Find closest actual Player (other than self)
+            var players = EntityRegistry.AllNetworkPlayers;
+            foreach (var p in players)
+            {
+                if (p == null || p.gameObject == this.gameObject) continue;
+                float dist = Vector3.Distance(transform.position, p.transform.position);
+                if (dist < closestDist) { closestDist = dist; closestTarget = p; }
+            }
+
             if (closestTarget != null)
             {
                 FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
                 OnPunchHit?.Invoke();
-                Invoke(nameof(GoToJail), 1.6f);
+
+                if (closestTarget is NPCController)
+                {
+                    _npcPunchCount++;
+                    Debug.Log($"[PlayerController] Punched NPC. Progress: {_npcPunchCount}/3");
+                    if (_npcPunchCount >= 3)
+                    {
+                        _npcPunchCount = 0;
+                        Invoke(nameof(GoToJail), 1.6f);
+                    }
+                }
+                else // PlayerController or FakePlayerController
+                {
+                    Debug.Log("[PlayerController] Punched a player/fake player! Sending to jail immediately.");
+                    _npcPunchCount = 0;
+                    Invoke(nameof(GoToJail), 1.6f);
+                }
             }
             Invoke(nameof(EndPunch), 0.35f);
         }
@@ -289,26 +311,45 @@ namespace RangerCity.Lobby
         {
             if (Input.GetKeyDown(KeyCode.E))
             {
-                float interactDist = 2.0f;
-                var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
-                GardenPlot closestPlot = null;
-                float minPlotDist = interactDist;
-                foreach (var plot in plots)
-                {
-                    float dist = Vector3.Distance(transform.position, plot.transform.position);
-                    if (dist < minPlotDist) { minPlotDist = dist; closestPlot = plot; }
-                }
-                if (closestPlot != null) { closestPlot.TryInteract(this); return; }
+                ExecuteInteraction();
+            }
+        }
 
-                var clouds = FindObjectsByType<CloudLayer>(FindObjectsSortMode.None);
-                CloudLayer closestCloud = null;
-                float minCloudDist = interactDist;
-                foreach (var cloud in clouds)
+        /// <summary>
+        /// Thực hiện tương tác với đối tượng gần nhất.
+        /// Gọi bởi phím E (PC) hoặc nút Interact (mobile).
+        /// </summary>
+        public void ExecuteInteraction()
+        {
+            float interactDist = 2.0f;
+            var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
+            GardenPlot closestPlot = null;
+            float minPlotDist = interactDist;
+            foreach (var plot in plots)
+            {
+                float dist = Vector3.Distance(transform.position, plot.transform.position);
+                if (dist < minPlotDist) { minPlotDist = dist; closestPlot = plot; }
+            }
+            if (closestPlot != null) { closestPlot.TryInteract(this); return; }
+
+            var clouds = FindObjectsByType<CloudLayer>(FindObjectsSortMode.None);
+            CloudLayer closestCloud = null;
+            float minCloudDist = interactDist;
+            foreach (var cloud in clouds)
+            {
+                float dist = Vector3.Distance(transform.position, cloud.transform.position);
+                if (dist < minCloudDist) { minCloudDist = dist; closestCloud = cloud; }
+            }
+            if (closestCloud != null) { closestCloud.TryInteract(this); return; }
+
+            // Nếu không có plot/cloud, thử talk với NPC gần nhất
+            if (_nearestInteractable != null)
+            {
+                var lobbyUI = FindAnyObjectByType<LobbyUI>();
+                if (lobbyUI != null)
                 {
-                    float dist = Vector3.Distance(transform.position, cloud.transform.position);
-                    if (dist < minCloudDist) { minCloudDist = dist; closestCloud = cloud; }
+                    lobbyUI.StartDialogue(_nearestInteractable);
                 }
-                if (closestCloud != null) { closestCloud.TryInteract(this); return; }
             }
         }
 
@@ -360,14 +401,14 @@ namespace RangerCity.Lobby
             IInteractable closest = null;
             float closestDist = _interactionRange;
 
-            var npcs = FindObjectsByType<NPCController>(FindObjectsSortMode.None);
+            var npcs = EntityRegistry.AllNPCs;
             foreach (var npc in npcs)
             {
                 float dist = Vector3.Distance(transform.position, npc.transform.position);
                 if (dist < closestDist) { closestDist = dist; closest = npc; }
             }
 
-            var fakePlayers = FindObjectsByType<FakePlayerController>(FindObjectsSortMode.None);
+            var fakePlayers = EntityRegistry.AllFakePlayers;
             foreach (var fp in fakePlayers)
             {
                 float dist = Vector3.Distance(transform.position, fp.transform.position);
@@ -386,23 +427,7 @@ namespace RangerCity.Lobby
 
         private bool IsValidPosition(Vector3 pos)
         {
-            Collider[] hits = Physics.OverlapSphere(pos + Vector3.up * 0.5f, 0.45f);
-            foreach (var hit in hits)
-            {
-                if (hit.transform.root == transform.root) continue;
-                if (hit.isTrigger) continue;
-
-                string name = hit.gameObject.name;
-                if (name.Contains("Collider") || name.Contains("Obstacle") || name.Contains("Walls") ||
-                    name.Contains("Tree") || name.Contains("Post") || name.Contains("Picket") ||
-                    name.Contains("Seat") || name.Contains("Base") || name.Contains("Pillar") ||
-                    name.Contains("Bowl") || name.Contains("Bench") || name.Contains("Fountain") ||
-                    name.Contains("Fence") || name.Contains("House") || name.Contains("Shop"))
-                {
-                    return false;
-                }
-            }
-            return true;
+            return CollisionUtils.IsValidPosition(pos, transform.root);
         }
 
         private Vector3 ClampToWorld(Vector3 pos)
@@ -417,6 +442,55 @@ namespace RangerCity.Lobby
             else { pos.x = Mathf.Clamp(x, _worldMinX, _worldMaxX); pos.z = Mathf.Clamp(z, _worldMinZ, _worldMaxZ); }
 
             return pos;
+        }
+
+        private Vector3 ResolveCollisions(Vector3 pos)
+        {
+            float playerRadius = 0.4f; // slightly smaller than player capsule model to prevent hard stops
+            
+            // Iterate 3 times to handle corners or multi-collision areas
+            for (int iteration = 0; iteration < 3; iteration++)
+            {
+                Collider[] hits = Physics.OverlapSphere(pos + Vector3.up * 0.5f, playerRadius + 0.05f);
+                bool resolvedAny = false;
+                
+                foreach (var hit in hits)
+                {
+                    if (!IsObstacle(hit)) continue;
+
+                    Vector3 closestPoint = hit.ClosestPoint(pos + Vector3.up * 0.5f);
+                    closestPoint.y = pos.y;
+
+                    Vector3 toPlayer = pos - closestPoint;
+                    toPlayer.y = 0;
+                    float dist = toPlayer.magnitude;
+
+                    if (dist < playerRadius)
+                    {
+                        float overlap = playerRadius - dist;
+                        Vector3 pushDir = dist > 0.001f ? toPlayer.normalized : Vector3.forward;
+                        pos += pushDir * overlap;
+                        resolvedAny = true;
+                    }
+                }
+                
+                if (!resolvedAny) break;
+            }
+            
+            return pos;
+        }
+
+        private bool IsObstacle(Collider hit)
+        {
+            if (hit.transform.root == transform.root) return false;
+            if (hit.isTrigger) return false;
+
+            string name = hit.gameObject.name;
+            return name.Contains("Collider") || name.Contains("Obstacle") || name.Contains("Walls") ||
+                   name.Contains("Tree") || name.Contains("Post") || name.Contains("Picket") ||
+                   name.Contains("Seat") || name.Contains("Base") || name.Contains("Pillar") ||
+                   name.Contains("Bowl") || name.Contains("Bench") || name.Contains("Fountain") ||
+                   name.Contains("Fence") || name.Contains("House") || name.Contains("Shop");
         }
 
         private void OnDrawGizmosSelected()

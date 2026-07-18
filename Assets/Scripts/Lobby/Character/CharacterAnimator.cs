@@ -14,6 +14,9 @@ namespace RangerCity.Lobby
         [SerializeField] private float _armSwingAngle = 25f;
         [SerializeField] private float _legSwingAngle = 20f;
 
+        private Animator _animator;
+        private static readonly int AnimSpeed = Animator.StringToHash("Speed");
+
         private Transform _leftArm, _rightArm, _leftLeg, _rightLeg;
         private float _baseY;
         private Vector3 _lastPos;
@@ -23,21 +26,25 @@ namespace RangerCity.Lobby
         {
             _baseY = transform.localPosition.y;
             _lastPos = transform.position;
+            _animator = GetComponentInChildren<Animator>();
 
-            // Find limbs
-            _leftArm = transform.Find("LeftArm");
-            _rightArm = transform.Find("RightArm");
+            if (_animator == null)
+            {
+                // Find limbs only for procedural animation
+                _leftArm = transform.Find("LeftArm");
+                _rightArm = transform.Find("RightArm");
 
-            var legsContainer = transform.Find("LegsContainer");
-            if (legsContainer != null)
-            {
-                _leftLeg = legsContainer.Find("LeftLeg");
-                _rightLeg = legsContainer.Find("RightLeg");
-            }
-            else
-            {
-                _leftLeg = transform.Find("LeftLeg");
-                _rightLeg = transform.Find("RightLeg");
+                var legsContainer = transform.Find("LegsContainer");
+                if (legsContainer != null)
+                {
+                    _leftLeg = legsContainer.Find("LeftLeg");
+                    _rightLeg = legsContainer.Find("RightLeg");
+                }
+                else
+                {
+                    _leftLeg = transform.Find("LeftLeg");
+                    _rightLeg = transform.Find("RightLeg");
+                }
             }
         }
 
@@ -56,6 +63,12 @@ namespace RangerCity.Lobby
             float speed = displacement / Time.deltaTime;
             _isMoving = speed > 0.15f;
             _lastPos = transform.position;
+
+            if (_animator != null)
+            {
+                _animator.SetFloat(AnimSpeed, _isMoving ? 1f : 0f);
+                return; // Skip manual limb swinging when using Unity Animator
+            }
 
             if (_isMoving)
             {

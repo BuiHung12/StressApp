@@ -15,19 +15,21 @@ namespace RangerCity.Lobby
         private GameObject _billboardObj;
         private TextMeshPro _billboardText;
         private GameObject _signBg;
+        private Camera _cachedCamera;
 
         private void Start()
         {
             CreateBillboard();
             UpdateVisuals();
+            _cachedCamera = Camera.main;
         }
 
         private void Update()
         {
-            // Simple distance check to orient billboard towards camera
-            if (_billboardObj != null && Camera.main != null)
+            // Orient billboard towards camera (using cached ref)
+            if (_billboardObj != null && _cachedCamera != null)
             {
-                _billboardObj.transform.rotation = Quaternion.LookRotation(Camera.main.transform.forward);
+                _billboardObj.transform.rotation = Quaternion.LookRotation(_cachedCamera.transform.forward);
             }
         }
 
@@ -49,19 +51,11 @@ namespace RangerCity.Lobby
             _signBg.transform.SetParent(_billboardObj.transform, false);
             _signBg.transform.localPosition = new Vector3(0, 0, 0.01f);
             _signBg.transform.localScale = new Vector3(1.8f, 0.4f, 0.005f);
-            _signBg.GetComponent<Renderer>().material = CreateMat(new Color(0.6f, 0.15f, 0.15f, 0.85f)); // Lock Red
+            _signBg.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.6f, 0.15f, 0.15f, 0.85f)); // Lock Red
             Destroy(_signBg.GetComponent<Collider>());
         }
 
-        private Material CreateMat(Color c)
-        {
-            var shader = Shader.Find("Unlit/Color");
-            if (shader == null) shader = Shader.Find("Universal Render Pipeline/Unlit");
-            if (shader == null) shader = Shader.Find("Standard");
-            var mat = new Material(shader);
-            mat.color = c;
-            return mat;
-        }
+
 
         private void UpdateVisuals()
         {
@@ -77,7 +71,8 @@ namespace RangerCity.Lobby
 
             if (_isLocked && _billboardText != null)
             {
-                _billboardText.text = $"Mở Khóa\n{_unlockCost} Coins (Phím E)";
+                string hint = Application.isMobilePlatform ? "Nhấn 💬" : "Phím E";
+                _billboardText.text = $"Mở Khóa\n{_unlockCost} Coins ({hint})";
             }
         }
 
@@ -94,6 +89,13 @@ namespace RangerCity.Lobby
                 _isLocked = false;
                 UpdateVisuals();
 
+                // Sync to other players
+                var netPlayer = player.GetComponent<Mirror.NetworkIdentity>()?.GetComponent<NetworkPlayer>();
+                if (netPlayer != null && netPlayer.isLocalPlayer)
+                {
+                    netPlayer.CmdUnlockCloud(GetCloudIndex());
+                }
+
                 // Spawn unlock feedback flash
                 var flash = new GameObject("UnlockFlash");
                 flash.transform.position = transform.position + Vector3.up * 0.5f;
@@ -109,6 +111,29 @@ namespace RangerCity.Lobby
                 StopAllCoroutines();
                 StartCoroutine(WarningCoroutine());
             }
+        }
+
+        /// <summary>
+        /// Called by NetworkPlayer RPC to force unlock on remote clients.
+        /// </summary>
+        public void ForceUnlock()
+        {
+            _isLocked = false;
+            UpdateVisuals();
+        }
+
+        /// <summary>
+        /// Returns index of this cloud among all CloudLayers in the scene.
+        /// Used for network sync identification.
+        /// </summary>
+        public int GetCloudIndex()
+        {
+            var all = FindObjectsByType<CloudLayer>(FindObjectsSortMode.None);
+            for (int i = 0; i < all.Length; i++)
+            {
+                if (all[i] == this) return i;
+            }
+            return -1;
         }
 
         private System.Collections.IEnumerator WarningCoroutine()

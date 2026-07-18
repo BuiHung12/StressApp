@@ -198,7 +198,7 @@ namespace RangerCity.Lobby
             
             if (_talkButton != null)
             {
-                _talkButton.gameObject.SetActive(false);
+                _talkButton.gameObject.SetActive(target.CanTalk);
             }
 
             if (_punchButton != null)
@@ -455,16 +455,16 @@ namespace RangerCity.Lobby
 
             var panelRt = _emojiPanel.AddComponent<RectTransform>();
             panelRt.anchorMin = new Vector2(0.02f, 0.1f);
-            panelRt.anchorMax = new Vector2(0.28f, 0.35f);
+            panelRt.anchorMax = new Vector2(0.38f, 0.42f);
             panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
 
             var panelImg = _emojiPanel.AddComponent<Image>();
             panelImg.color = new Color(0.15f, 0.15f, 0.22f, 0.92f);
 
             var grid = _emojiPanel.AddComponent<UnityEngine.UI.GridLayoutGroup>();
-            grid.cellSize = new Vector2(50, 50);
-            grid.spacing = new Vector2(6, 6);
-            grid.padding = new RectOffset(8, 8, 8, 8);
+            grid.cellSize = new Vector2(65, 65);
+            grid.spacing = new Vector2(8, 8);
+            grid.padding = new RectOffset(10, 10, 10, 10);
             grid.constraint = UnityEngine.UI.GridLayoutGroup.Constraint.FixedColumnCount;
             grid.constraintCount = 6;
 

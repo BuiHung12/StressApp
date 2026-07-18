@@ -8,7 +8,7 @@ namespace RangerCity.Lobby
     /// </summary>
     public static class EnvironmentBuilder
     {
-        public static void CreateTrees3D()
+        public static void CreateTrees3D(GameObject treePrefab = null)
         {
             Vector3[] positions = {
                 new(-10, 0, 10), new(-8, 0, 12), new(-12, 0, 8),
@@ -29,6 +29,25 @@ namespace RangerCity.Lobby
             foreach (var pos in positions)
             {
                 float scale = Random.Range(0.85f, 1.25f);
+
+                if (treePrefab != null)
+                {
+                    var treeInstance = Object.Instantiate(treePrefab);
+                    treeInstance.name = "Tree";
+                    treeInstance.transform.position = pos;
+                    treeInstance.transform.localScale = Vector3.one * scale;
+
+                    // Ensure there's a collider so player cannot walk through the trees
+                    if (treeInstance.GetComponent<Collider>() == null && treeInstance.GetComponentInChildren<Collider>() == null)
+                    {
+                        var col = treeInstance.AddComponent<CapsuleCollider>();
+                        col.center = new Vector3(0, 1.0f, 0);
+                        col.radius = 0.25f;
+                        col.height = 2.0f;
+                    }
+                    continue;
+                }
+
                 var tree = new GameObject("Tree");
 
                 Color baseGreen = greens[Random.Range(0, greens.Length)];
@@ -133,7 +152,7 @@ namespace RangerCity.Lobby
             }
         }
 
-        public static void CreateFlowers()
+        public static void CreateFlowers(GameObject flowerPrefab = null)
         {
             Color[] colors = {
                 new(0.91f, 0.12f, 0.39f),
@@ -153,6 +172,17 @@ namespace RangerCity.Lobby
                 for (int i = 0; i < 5; i++)
                 {
                     Vector3 offset = new(Random.Range(-0.6f, 0.6f), 0, Random.Range(-0.6f, 0.6f));
+
+                    if (flowerPrefab != null)
+                    {
+                        var flowerInstance = Object.Instantiate(flowerPrefab);
+                        flowerInstance.name = "Flower";
+                        flowerInstance.transform.position = patchPos + offset;
+                        // Give it a random rotation for natural look
+                        flowerInstance.transform.rotation = Quaternion.Euler(0, Random.Range(0f, 360f), 0);
+                        continue;
+                    }
+
                     Color c = colors[Random.Range(0, colors.Length)];
 
                     var stem = GameObject.CreatePrimitive(PrimitiveType.Cylinder);

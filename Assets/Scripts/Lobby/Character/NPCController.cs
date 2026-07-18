@@ -62,6 +62,12 @@ namespace RangerCity.Lobby
         {
             _homePosition = transform.position;
             _wanderTimer = Random.Range(_wanderPauseMin, _wanderPauseMax);
+            EntityRegistry.RegisterNPC(this);
+        }
+
+        private void OnDestroy()
+        {
+            EntityRegistry.UnregisterNPC(this);
         }
 
         private void Update()
@@ -189,23 +195,7 @@ namespace RangerCity.Lobby
 
         private bool IsValidPosition(Vector3 pos)
         {
-            Collider[] hits = Physics.OverlapSphere(pos + Vector3.up * 0.5f, 0.45f);
-            foreach (var hit in hits)
-            {
-                if (hit.transform.root == transform.root) continue;
-                if (hit.isTrigger) continue;
-
-                string name = hit.gameObject.name;
-                if (name.Contains("Collider") || name.Contains("Obstacle") || name.Contains("Walls") ||
-                    name.Contains("Tree") || name.Contains("Post") || name.Contains("Picket") ||
-                    name.Contains("Seat") || name.Contains("Base") || name.Contains("Pillar") ||
-                    name.Contains("Bowl") || name.Contains("Bench") || name.Contains("Fountain") ||
-                    name.Contains("Fence") || name.Contains("House") || name.Contains("Shop"))
-                {
-                    return false;
-                }
-            }
-            return true;
+            return CollisionUtils.IsValidPosition(pos, transform.root);
         }
 
         private void OnDrawGizmosSelected()

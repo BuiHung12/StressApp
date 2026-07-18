@@ -33,7 +33,7 @@ namespace RangerCity.Lobby
         private Image[] _genderButtons;
 
         // Centralized DB Integration
-        private string _apiBaseUrl = "http://100.89.39.103:5000/api/player";
+        private string _apiBaseUrl = "http://wool-delivery.gl.joinmc.link:30645/api/player";
         private bool _isSyncingWithServer = false;
         private bool _hasLoadedFromDatabase = false;
         private bool _isConnecting = false;
@@ -523,6 +523,16 @@ namespace RangerCity.Lobby
             PlayerPrefs.SetInt("PlayerPantsStyle", _selectedPantsStyle);
             PlayerPrefs.SetInt("PlayerPantsColor", _selectedPantsColor);
             PlayerPrefs.Save();
+
+            // Apply customization directly to local scene player
+            var player = GameObject.FindWithTag("Player");
+            if (player != null)
+            {
+                Color bodyColor = NetworkPlayer.BodyColorPalette[Mathf.Clamp(_selectedBodyColor, 0, NetworkPlayer.BodyColorPalette.Length - 1)];
+                Color hairColor = NetworkPlayer.HairColorPalette[Mathf.Clamp(_selectedHairColor, 0, NetworkPlayer.HairColorPalette.Length - 1)];
+                Color pantsColor = NetworkPlayer.PantsColorPalette[Mathf.Clamp(_selectedPantsColor, 0, NetworkPlayer.PantsColorPalette.Length - 1)];
+                CharacterVisuals.ApplyCustomization(player, _selectedGender, _selectedHairStyle, hairColor, _selectedOutfitStyle, bodyColor, _selectedPantsStyle, pantsColor);
+            }
         }
 
         private void OnHostServerClicked()
@@ -824,7 +834,8 @@ namespace RangerCity.Lobby
 
         private void LoadDbConfig()
         {
-            string path = Path.Combine(Application.dataPath, "db_config.json");
+            // Use persistentDataPath instead of dataPath — dataPath is read-only on iOS/Android
+            string path = Path.Combine(Application.persistentDataPath, "db_config.json");
             if (File.Exists(path))
             {
                 try
@@ -851,7 +862,10 @@ namespace RangerCity.Lobby
                     File.WriteAllText(path, json);
                     Debug.Log($"[LobbyUIConnection] Created default db_config.json at: {path}");
                 }
-                catch {}
+                catch (System.Exception e)
+                {
+                    Debug.LogWarning($"[LobbyUIConnection] Failed to write db_config.json: {e.Message}");
+                }
             }
         }
     }
@@ -873,7 +887,7 @@ namespace RangerCity.Lobby
     [System.Serializable]
     public class DbConfig
     {
-        public string apiHost = "100.89.39.103";
-        public string apiPort = "5000";
+        public string apiHost = "wool-delivery.gl.joinmc.link";
+        public string apiPort = "30645";
     }
 }

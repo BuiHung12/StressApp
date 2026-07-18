@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace RangerCity.Lobby
@@ -196,12 +197,12 @@ namespace RangerCity.Lobby
 
         private void FinishFight()
         {
-            // Restore scales
+            // Restore scales (null-safe for disconnect during fight)
             if (_playerTrans != null) _playerTrans.localScale = _originalPlayerScale;
             if (_targetTrans != null) _targetTrans.localScale = _originalTargetTransScale;
 
             // Apply swollen face state and knockback to target
-            if (_targetTrans != null)
+            if (_targetTrans != null && _playerTrans != null)
             {
                 var npc = _targetTrans.GetComponent<NPCController>();
                 var fp = _targetTrans.GetComponent<FakePlayerController>();
@@ -227,11 +228,18 @@ namespace RangerCity.Lobby
             Destroy(gameObject);
         }
 
+        // Static material cache to prevent memory leaks — materials created once, reused forever
+        private static readonly Dictionary<Color, Material> _materialCache = new Dictionary<Color, Material>();
+
         private Material CreateUnlitMat(Color color)
         {
+            if (_materialCache.TryGetValue(color, out var cached) && cached != null)
+                return cached;
+
             var shader = Shader.Find("Unlit/Color") ?? Shader.Find("Standard");
             var mat = new Material(shader);
             mat.color = color;
+            _materialCache[color] = mat;
             return mat;
         }
     }

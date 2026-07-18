@@ -56,10 +56,27 @@ namespace RangerCity.Lobby
             var playerCtrl = _target.GetComponent<PlayerController>();
             bool isJailed = (playerCtrl != null && playerCtrl.IsJailed);
 
-            // Zoom with scroll wheel (only if not jailed, to prevent user disrupting framing)
+            // Zoom with scroll wheel (PC) or pinch-to-zoom (mobile)
             if (!isJailed)
             {
                 float scroll = Input.GetAxis("Mouse ScrollWheel");
+
+                // === Pinch-to-zoom for mobile ===
+                if (Input.touchCount == 2)
+                {
+                    Touch t0 = Input.GetTouch(0);
+                    Touch t1 = Input.GetTouch(1);
+
+                    Vector2 t0Prev = t0.position - t0.deltaPosition;
+                    Vector2 t1Prev = t1.position - t1.deltaPosition;
+
+                    float prevDist = (t0Prev - t1Prev).magnitude;
+                    float currDist = (t0.position - t1.position).magnitude;
+
+                    float pinchDelta = (currDist - prevDist) * 0.01f;
+                    scroll += pinchDelta;
+                }
+
                 if (scroll != 0f)
                 {
                     _orthoSize -= scroll * _zoomSpeed;

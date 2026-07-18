@@ -2,6 +2,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using Mirror;
+using System.Collections;
 
 namespace RangerCity.Lobby
 {
@@ -17,14 +18,28 @@ namespace RangerCity.Lobby
         [SerializeField] private Color _grassColor = new Color(0.45f, 0.78f, 0.22f);
         [SerializeField] private Color _pathColor = new Color(0.92f, 0.87f, 0.78f);
 
+        [Header("Asset Prefabs")]
+        [SerializeField] private GameObject _treePrefab;
+        [SerializeField] private GameObject _flowerPrefab;
+        [SerializeField] private GameObject _humanMalePrefab;
+        [SerializeField] private GameObject _humanFemalePrefab;
+        [SerializeField] private GameObject _gardenPrefab;
+
         private void Awake()
         {
             var defaultLight = FindAnyObjectByType<Light>();
             if (defaultLight != null) Destroy(defaultLight.gameObject);
 
+            // Only enable debug scene player logging in development builds
+            if (Debug.isDebugBuild)
+            {
+                gameObject.AddComponent<DebugScenePlayers>();
+            }
+
             CreateEnvironment();
             CreateLighting();
             var player = CreatePlayer();
+
             CreateNPCs();
             CreateFakePlayers();
             CreateCamera(player.transform);
@@ -38,6 +53,29 @@ namespace RangerCity.Lobby
             var player = GameObject.FindWithTag("Player");
             if (player != null)
             {
+                // Tải tùy chọn đã lưu từ PlayerPrefs và áp dụng ngay lập tức cho nhân vật local
+                int gender = PlayerPrefs.GetInt("PlayerGender", 0);
+                int bodyColorIdx = PlayerPrefs.GetInt("PlayerColorIndex", 0);
+                Color bodyColor = (bodyColorIdx >= 0 && bodyColorIdx < NetworkPlayer.BodyColorPalette.Length)
+                    ? NetworkPlayer.BodyColorPalette[bodyColorIdx]
+                    : new Color(0.26f, 0.65f, 0.96f);
+
+                int hairStyleIdx = PlayerPrefs.GetInt("PlayerHairStyle", 0);
+                int hairColorIdx = PlayerPrefs.GetInt("PlayerHairColor", 0);
+                Color hairColor = (hairColorIdx >= 0 && hairColorIdx < NetworkPlayer.HairColorPalette.Length)
+                    ? NetworkPlayer.HairColorPalette[hairColorIdx]
+                    : NetworkPlayer.HairColorPalette[0];
+
+                int outfitIdx = PlayerPrefs.GetInt("PlayerOutfitStyle", 0);
+
+                int pantsStyleIdx = PlayerPrefs.GetInt("PlayerPantsStyle", 0);
+                int pantsColorIdx = PlayerPrefs.GetInt("PlayerPantsColor", 0);
+                Color pantsColor = (pantsColorIdx >= 0 && pantsColorIdx < NetworkPlayer.PantsColorPalette.Length)
+                    ? NetworkPlayer.PantsColorPalette[pantsColorIdx]
+                    : NetworkPlayer.PantsColorPalette[0];
+
+                CharacterVisuals.ApplyCustomization(player, gender, hairStyleIdx, hairColor, outfitIdx, bodyColor, pantsStyleIdx, pantsColor);
+
                 SetupNetworking(player);
                 Debug.Log("🌐 Multiplayer: Mirror networking enabled!");
             }
@@ -89,8 +127,8 @@ namespace RangerCity.Lobby
 
             EnvironmentBuilder.CreateCircle("Plaza", new Vector3(0, 0.02f, 0), 4f, new Color(0.78f, 0.74f, 0.72f));
 
-            EnvironmentBuilder.CreateTrees3D();
-            EnvironmentBuilder.CreateFlowers();
+            EnvironmentBuilder.CreateTrees3D(_treePrefab);
+            EnvironmentBuilder.CreateFlowers(_flowerPrefab);
             EnvironmentBuilder.CreateFountain3D();
             EnvironmentBuilder.CreateBenches3D();
             EnvironmentBuilder.CreateFences(_lobbySize);
@@ -99,7 +137,7 @@ namespace RangerCity.Lobby
             EnvironmentBuilder.CreatePortals(_lobbySize);
 
             // Construct zones (delegated to builders)
-            GardenZoneBuilder.Build();
+            GardenZoneBuilder.Build(_treePrefab, _flowerPrefab);
             PrisonZoneBuilder.Build();
             FishingZoneBuilder.Build();
             StudyZoneBuilder.Build();
@@ -120,9 +158,37 @@ namespace RangerCity.Lobby
             RenderSettings.fog = false;
         }
 
+        private GameObject CreateCharacterContainer(string name)
+        {
+            GameObject container = new GameObject(name);
+            if (_humanMalePrefab != null)
+            {
+                var male = Instantiate(_humanMalePrefab, container.transform);
+                male.name = "MaleModel";
+                male.transform.localPosition = Vector3.zero;
+                male.transform.localRotation = Quaternion.identity;
+            }
+            if (_humanFemalePrefab != null)
+            {
+                var female = Instantiate(_humanFemalePrefab, container.transform);
+                female.name = "FemaleModel";
+                female.transform.localPosition = Vector3.zero;
+                female.transform.localRotation = Quaternion.identity;
+            }
+            return container;
+        }
+
         private GameObject CreatePlayer()
         {
-            var player = CharacterVisuals.CreateCharacterTopDown("Player", new Color(0.26f, 0.65f, 0.96f), new Color(1f, 0.88f, 0.7f));
+            GameObject player;
+            if (_humanMalePrefab != null || _humanFemalePrefab != null)
+            {
+                player = CreateCharacterContainer("Player");
+            }
+            else
+            {
+                player = CharacterVisuals.CreateCharacterTopDown("Player", new Color(0.26f, 0.65f, 0.96f), new Color(1f, 0.88f, 0.7f));
+            }
             player.transform.position = new Vector3(0, 0.03f, -3);
             player.AddComponent<PlayerController>();
             player.tag = "Player";
@@ -168,7 +234,27 @@ namespace RangerCity.Lobby
         private void CreateNPC(string name, string emoji, Vector3 pos, Color bodyColor, string[] dialogues, Color? skinColor = null, float wanderRadius = 3f)
         {
             Color skinCol = skinColor ?? new Color(1f, 0.88f, 0.7f);
-            var npc = CharacterVisuals.CreateCharacterTopDown(name, bodyColor, skinCol);
+            GameObject npc;
+            
+            int gender = name == "Chief Rosa" ? 1 : 0;
+            int hairStyle = 0;
+            int outfitStyle = 0;
+            int pantsStyle = 0;
+
+            if (_humanMalePrefab != null || _humanFemalePrefab != null)
+            {
+                npc = CreateCharacterContainer(name);
+                if (npc.GetComponent<CharacterAnimator>() == null)
+                {
+                    npc.AddComponent<CharacterAnimator>();
+                }
+            }
+            else
+            {
+                npc = CharacterVisuals.CreateCharacterTopDown(name, bodyColor, skinCol);
+            }
+
+            CharacterVisuals.ApplyCustomization(npc, gender, hairStyle, new Color(0.18f, 0.12f, 0.08f), outfitStyle, bodyColor, pantsStyle, new Color(0.25f, 0.35f, 0.55f));
             npc.transform.position = new Vector3(pos.x, 0.03f, pos.z);
 
             var ctrl = npc.AddComponent<NPCController>();
@@ -244,18 +330,32 @@ namespace RangerCity.Lobby
 
         private void CreateFakePlayers()
         {
-            var data = new (string name, Vector3 pos, Color color, string[] greetings)[] {
-                ("Luna", new(4, 0, -2), new(0.94f, 0.33f, 0.31f), new[] { "Chào! Mình là Luna! 🌙", "Sảnh này vui lắm! 🎉" }),
-                ("Kai", new(-4, 0, 0), new(0.4f, 0.73f, 0.42f), new[] { "Yo! 🏃", "Đừng đấm mình nha! 😅" }),
-                ("Sakura", new(7, 0, -5), new(0.49f, 0.34f, 0.76f), new[] { "Konnichiwa! 🌸", "Mình thích sảnh này! 🎨" }),
-                ("Tí", new(-7, 0, -5), new(1f, 0.54f, 0.4f), new[] { "Ê bạn! 👋", "Tìm được bí mật chưa? 🕵️" }),
-                ("Mochi", new(0, 0, 8), new(1f, 0.65f, 0.15f), new[] { "Zzz... mình đang nghỉ! 😴", "Ồ xin lỗi! 😊" }),
-                ("Rex", new(8, 0, 2), new(0.36f, 0.42f, 0.75f), new[] { "Hey! Bạn cũng Ranger hả? 💪", "Đã xong 50 nhiệm vụ! 🏆" }),
+            var data = new (string name, Vector3 pos, Color color, int gender, string[] greetings)[] {
+                ("Luna", new(4, 0, -2), new(0.94f, 0.33f, 0.31f), 1, new[] { "Chào! Mình là Luna! 🌙", "Sảnh này vui lắm! 🎉" }),
+                ("Kai", new(-4, 0, 0), new(0.4f, 0.73f, 0.42f), 0, new[] { "Yo! 🏃", "Đừng đấm mình nha! 😅" }),
+                ("Sakura", new(7, 0, -5), new(0.49f, 0.34f, 0.76f), 1, new[] { "Konnichiwa! 🌸", "Mình thích sảnh này! 🎨" }),
+                ("Tí", new(-7, 0, -5), new(1f, 0.54f, 0.4f), 0, new[] { "Ê bạn! 👋", "Tìm được bí mật chưa? 🕵️" }),
+                ("Mochi", new(0, 0, 8), new(1f, 0.65f, 0.15f), 1, new[] { "Zzz... mình đang nghỉ! 😴", "Ồ xin lỗi! 😊" }),
+                ("Rex", new(8, 0, 2), new(0.36f, 0.42f, 0.75f), 0, new[] { "Hey! Bạn cũng Ranger hả? 💪", "Đã xong 50 nhiệm vụ! 🏆" }),
             };
 
-            foreach (var (fpName, pos, color, greetings) in data)
+            foreach (var (fpName, pos, color, gender, greetings) in data)
             {
-                var fp = CharacterVisuals.CreateCharacterTopDown(fpName, color, new Color(1f, 0.88f, 0.7f));
+                GameObject fp;
+                if (_humanMalePrefab != null || _humanFemalePrefab != null)
+                {
+                    fp = CreateCharacterContainer(fpName);
+                    if (fp.GetComponent<CharacterAnimator>() == null)
+                    {
+                        fp.AddComponent<CharacterAnimator>();
+                    }
+                    CharacterVisuals.ApplyCustomization(fp, gender, 0, new Color(0.18f, 0.12f, 0.08f), 0, color, 0, new Color(0.25f, 0.35f, 0.55f));
+                }
+                else
+                {
+                    fp = CharacterVisuals.CreateCharacterTopDown(fpName, color, new Color(1f, 0.88f, 0.7f));
+                    CharacterVisuals.ApplyCustomization(fp, gender, 0, new Color(0.18f, 0.12f, 0.08f), 0, color, 0, new Color(0.25f, 0.35f, 0.55f));
+                }
                 fp.transform.position = new Vector3(pos.x, 0.03f, pos.z);
 
                 var ctrl = fp.AddComponent<FakePlayerController>();
@@ -392,6 +492,12 @@ namespace RangerCity.Lobby
             SetField(ui, "_dialogueContentText", dialoguePanel.transform.Find("ContentText").GetComponent<TextMeshProUGUI>());
             SetField(ui, "_dialogueHintText", dialoguePanel.transform.Find("HintText").GetComponent<TextMeshProUGUI>());
             SetField(ui, "_dialogueNextButton", dialoguePanel.transform.Find("NextButton").GetComponent<Button>());
+
+            // === Safe Area wrapper (iOS notch/Dynamic Island) ===
+            SafeAreaHelper.CreateSafeAreaWrapper(canvas);
+
+            // === Mobile Controls (joystick + action buttons) ===
+            MobileControlsUI.Create(canvas);
         }
 
         private GameObject CreateInteractionPanel(Transform parent)
@@ -426,7 +532,8 @@ namespace RangerCity.Lobby
 
         private Sprite CreateFistSprite()
         {
-            string customPath = System.IO.Path.Combine(Application.dataPath, "Textures/fist.png");
+            // Use persistentDataPath — dataPath is read-only on iOS/Android
+            string customPath = System.IO.Path.Combine(Application.persistentDataPath, "Textures/fist.png");
             if (System.IO.File.Exists(customPath))
             {
                 try
@@ -699,6 +806,45 @@ namespace RangerCity.Lobby
 
             string rawText = _lines[_currentIndex];
             _tmp.text = $"\"{rawText}\"";
+        }
+    }
+
+    public class DebugScenePlayers : MonoBehaviour
+    {
+        private void Start()
+        {
+            StartCoroutine(LogLoop());
+        }
+
+        private IEnumerator LogLoop()
+        {
+            while (true)
+            {
+                var allObjects = GameObject.FindObjectsByType<GameObject>(FindObjectsSortMode.None);
+                string report = "--- PLAYER OBJECTS IN RUNNING SCENE ---\n";
+                int count = 0;
+                foreach (var go in allObjects)
+                {
+                    if (go != null && (go.name.Contains("Player") || go.name.Contains("Char") || go.name.Contains("Preview")))
+                    {
+                        count++;
+                        report += $"- {go.name} (Active: {go.activeInHierarchy}, Tag: {go.tag}, Pos: {go.transform.position})\n";
+                        report += "  Children: ";
+                        for (int i = 0; i < go.transform.childCount; i++)
+                        {
+                            var child = go.transform.GetChild(i);
+                            report += $"{child.name} (Active: {child.gameObject.activeSelf}), ";
+                        }
+                        report += "\n";
+                    }
+                }
+                if (count == 0)
+                {
+                    report += "No player-related GameObjects found.\n";
+                }
+                Debug.Log(report);
+                yield return new WaitForSeconds(3.0f);
+            }
         }
     }
 }

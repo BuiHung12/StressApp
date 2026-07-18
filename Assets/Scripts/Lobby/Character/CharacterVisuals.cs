@@ -44,9 +44,17 @@ namespace RangerCity.Lobby
             mouth.name = "Mouth";
             mouth.transform.SetParent(head.transform, false);
             mouth.transform.localPosition = new Vector3(0f, -0.2f, 0.47f);
-            mouth.transform.localScale = new Vector3(0.12f, 0.03f, 0.08f);
-            mouth.GetComponent<Renderer>().material = CreateMat(new Color(0.85f, 0.35f, 0.35f));
+            mouth.transform.localScale = new Vector3(0.12f, 0.04f, 0.08f);
+            mouth.GetComponent<Renderer>().material = CreateMat(new Color(0.15f, 0.1f, 0.1f));
             Destroy(mouth.GetComponent<Collider>());
+
+            var tongue = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            tongue.name = "Tongue";
+            tongue.transform.SetParent(mouth.transform, false);
+            tongue.transform.localPosition = new Vector3(0f, -0.3f, 0.2f);
+            tongue.transform.localScale = new Vector3(0.8f, 0.6f, 0.5f);
+            tongue.GetComponent<Renderer>().material = CreateMat(new Color(1f, 0.45f, 0.5f));
+            Destroy(tongue.GetComponent<Collider>());
 
             // === EARS ===
             var earL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -82,6 +90,14 @@ namespace RangerCity.Lobby
             pupilL.GetComponent<Renderer>().material = CreateMat(new Color(0.1f, 0.1f, 0.12f));
             Destroy(pupilL.GetComponent<Collider>());
 
+            var shinyL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            shinyL.name = "ShinyL";
+            shinyL.transform.SetParent(pupilL.transform, false);
+            shinyL.transform.localPosition = new Vector3(-0.25f, 0.25f, 0.45f);
+            shinyL.transform.localScale = new Vector3(0.35f, 0.35f, 0.2f);
+            shinyL.GetComponent<Renderer>().material = CreateMat(Color.white);
+            Destroy(shinyL.GetComponent<Collider>());
+
             var eyeR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             eyeR.name = "EyeR";
             eyeR.transform.SetParent(head.transform, false);
@@ -97,6 +113,31 @@ namespace RangerCity.Lobby
             pupilR.transform.localScale = new Vector3(0.55f, 0.55f, 0.3f);
             pupilR.GetComponent<Renderer>().material = CreateMat(new Color(0.1f, 0.1f, 0.12f));
             Destroy(pupilR.GetComponent<Collider>());
+
+            var shinyR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            shinyR.name = "ShinyR";
+            shinyR.transform.SetParent(pupilR.transform, false);
+            shinyR.transform.localPosition = new Vector3(-0.25f, 0.25f, 0.45f);
+            shinyR.transform.localScale = new Vector3(0.35f, 0.35f, 0.2f);
+            shinyR.GetComponent<Renderer>().material = CreateMat(Color.white);
+            Destroy(shinyR.GetComponent<Collider>());
+
+            // === CHEEKS ===
+            var cheekL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            cheekL.name = "CheekL";
+            cheekL.transform.SetParent(head.transform, false);
+            cheekL.transform.localPosition = new Vector3(-0.25f, -0.06f, 0.4f);
+            cheekL.transform.localScale = new Vector3(0.08f, 0.04f, 0.04f);
+            cheekL.GetComponent<Renderer>().material = CreateMat(new Color(1f, 0.5f, 0.5f, 0.6f));
+            Destroy(cheekL.GetComponent<Collider>());
+
+            var cheekR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            cheekR.name = "CheekR";
+            cheekR.transform.SetParent(head.transform, false);
+            cheekR.transform.localPosition = new Vector3(0.25f, -0.06f, 0.4f);
+            cheekR.transform.localScale = new Vector3(0.08f, 0.04f, 0.04f);
+            cheekR.GetComponent<Renderer>().material = CreateMat(new Color(1f, 0.5f, 0.5f, 0.6f));
+            Destroy(cheekR.GetComponent<Collider>());
 
             // === HAIR CONTAINER ===
             var hairContainer = new GameObject("HairContainer");
@@ -132,6 +173,14 @@ namespace RangerCity.Lobby
             leftArm.GetComponent<Renderer>().material = CreateMat(skinColor);
             Destroy(leftArm.GetComponent<Collider>());
 
+            var sleeveL = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            sleeveL.name = "Sleeve";
+            sleeveL.transform.SetParent(leftArm.transform, false);
+            sleeveL.transform.localPosition = new Vector3(0f, 0.3f, 0f);
+            sleeveL.transform.localScale = new Vector3(1.15f, 0.45f, 1.15f);
+            sleeveL.GetComponent<Renderer>().material = CreateMat(bodyColor);
+            Destroy(sleeveL.GetComponent<Collider>());
+
             // === LEFT HAND ===
             var handL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             handL.name = "HandL";
@@ -149,6 +198,14 @@ namespace RangerCity.Lobby
             rightArm.transform.localScale = new Vector3(0.12f, 0.3f, 0.12f);
             rightArm.GetComponent<Renderer>().material = CreateMat(skinColor);
             Destroy(rightArm.GetComponent<Collider>());
+
+            var sleeveR = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            sleeveR.name = "Sleeve";
+            sleeveR.transform.SetParent(rightArm.transform, false);
+            sleeveR.transform.localPosition = new Vector3(0f, 0.3f, 0f);
+            sleeveR.transform.localScale = new Vector3(1.15f, 0.45f, 1.15f);
+            sleeveR.GetComponent<Renderer>().material = CreateMat(bodyColor);
+            Destroy(sleeveR.GetComponent<Collider>());
 
             // === RIGHT HAND ===
             var handR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -184,10 +241,50 @@ namespace RangerCity.Lobby
         public static void ApplyCustomization(GameObject character, int gender, int hairStyle, Color hairColor, int outfitStyle, Color bodyColor, int pantsStyle, Color pantsColor)
         {
             if (character == null) return;
+            Debug.Log($"[ApplyCustomization] Character: {character.name}, Gender: {gender}, HairStyle: {hairStyle}, OutfitStyle: {outfitStyle}, PantsStyle: {pantsStyle}");
+
+            // Check if this character has custom prefab models inside
+            var maleModel = character.transform.Find("MaleModel");
+            var femaleModel = character.transform.Find("FemaleModel");
+            if (maleModel != null || femaleModel != null)
+            {
+                if (maleModel != null) maleModel.gameObject.SetActive(gender == 0);
+                if (femaleModel != null) femaleModel.gameObject.SetActive(gender != 0);
+
+                var activeModel = (gender == 0 && maleModel != null) ? maleModel.gameObject : (femaleModel != null ? femaleModel.gameObject : null);
+                if (activeModel != null)
+                {
+                    ColorizePrefabMaterials(activeModel, bodyColor);
+                }
+                return;
+            }
 
             ApplyHair(character, gender, hairStyle, hairColor);
             ApplyOutfit(character, gender, outfitStyle, bodyColor);
             ApplyPants(character, gender, pantsStyle, pantsColor);
+        }
+
+        private static void ColorizePrefabMaterials(GameObject obj, Color bodyColor)
+        {
+            var renderers = obj.GetComponentsInChildren<Renderer>();
+            foreach (var r in renderers)
+            {
+                if (r.sharedMaterials != null)
+                {
+                    var mats = r.materials;
+                    for (int i = 0; i < mats.Length; i++)
+                    {
+                        string matName = mats[i].name.ToLower();
+                        string objName = r.gameObject.name.ToLower();
+                        if (matName.Contains("cloth") || matName.Contains("shirt") || matName.Contains("body") || matName.Contains("pant") ||
+                            objName.Contains("cloth") || objName.Contains("shirt") || objName.Contains("body") || objName.Contains("pant"))
+                        {
+                            mats[i].color = bodyColor;
+                        }
+                    }
+                    r.materials = mats;
+                }
+            }
         }
 
         public static void ApplyCustomization(GameObject character, int hairStyle, Color hairColor, int outfitStyle, Color bodyColor, int pantsStyle, Color pantsColor)
@@ -198,7 +295,12 @@ namespace RangerCity.Lobby
         private static void ApplyHair(GameObject character, int gender, int style, Color color)
         {
             var container = character.transform.Find("HairContainer");
-            if (container == null) return;
+            if (container == null)
+            {
+                var go = new GameObject("HairContainer");
+                go.transform.SetParent(character.transform, false);
+                container = go.transform;
+            }
 
             for (int i = container.childCount - 1; i >= 0; i--)
                 Object.Destroy(container.GetChild(i).gameObject);
@@ -250,6 +352,14 @@ namespace RangerCity.Lobby
                             new Vector3(0, 1.48f, -0.02f), new Vector3(0.42f, 0.25f, 0.42f), color);
                         AddPrimChild(container, "UndercutSwept", PrimitiveType.Cube,
                             new Vector3(0.05f, 1.45f, 0.12f), new Vector3(0.32f, 0.08f, 0.18f), color * 0.9f);
+                        break;
+
+                    case 5:
+                        // BASEBALL CAP (Mũ lưỡi trai)
+                        AddPrimChild(container, "CapBase", PrimitiveType.Sphere,
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.44f, 0.28f, 0.44f), color);
+                        AddPrimChild(container, "CapBrim", PrimitiveType.Cube,
+                            new Vector3(0, 1.44f, 0.22f), new Vector3(0.35f, 0.02f, 0.18f), color);
                         break;
                 }
             }
@@ -303,12 +413,23 @@ namespace RangerCity.Lobby
                         break;
 
                     case 5:
-                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
-                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.45f, 0.26f, 0.44f), color);
-                        AddPrimChild(container, "Curl1", PrimitiveType.Sphere,
-                            new Vector3(-0.12f, 1.32f, -0.1f), new Vector3(0.12f, 0.12f, 0.12f), color * 0.9f);
-                        AddPrimChild(container, "Curl2", PrimitiveType.Sphere,
-                            new Vector3(0.12f, 1.32f, -0.1f), new Vector3(0.12f, 0.12f, 0.12f), color * 0.9f);
+                        // CAT EARS (Tai mèo)
+                        var head = character.transform.Find("Head");
+                        var skinColor = head != null ? head.GetComponent<Renderer>().material.color : new Color(1f, 0.88f, 0.7f);
+                        
+                        var catEarL = AddPrimChild(container, "CatEarL", PrimitiveType.Cube,
+                            new Vector3(-0.13f, 1.57f, 0f), new Vector3(0.07f, 0.07f, 0.07f), skinColor);
+                        catEarL.transform.localRotation = Quaternion.Euler(0, 0, 45);
+
+                        AddPrimChild(catEarL.transform, "InnerEarL", PrimitiveType.Cube,
+                            new Vector3(0f, 0f, 0.45f), new Vector3(0.6f, 0.6f, 0.2f), new Color(1f, 0.6f, 0.6f));
+
+                        var catEarR = AddPrimChild(container, "CatEarR", PrimitiveType.Cube,
+                            new Vector3(0.13f, 1.57f, 0f), new Vector3(0.07f, 0.07f, 0.07f), skinColor);
+                        catEarR.transform.localRotation = Quaternion.Euler(0, 0, -45);
+
+                        AddPrimChild(catEarR.transform, "InnerEarR", PrimitiveType.Cube,
+                            new Vector3(0f, 0f, 0.45f), new Vector3(0.6f, 0.6f, 0.2f), new Color(1f, 0.6f, 0.6f));
                         break;
                 }
             }
@@ -316,8 +437,45 @@ namespace RangerCity.Lobby
 
         private static void ApplyOutfit(GameObject character, int gender, int style, Color color)
         {
+            // Hide default renderers on the root or standard direct children to prevent overlap with the new procedural body
+            var rootRenderer = character.GetComponent<Renderer>();
+            if (rootRenderer != null) rootRenderer.enabled = false;
+            
+            var defaultBody = character.transform.Find("Body");
+            if (defaultBody != null && defaultBody.name != "TorsoContainer" && defaultBody.name != "LegsContainer")
+            {
+                var r = defaultBody.GetComponent<Renderer>();
+                if (r != null) r.enabled = false;
+            }
+            
+            var defaultTorso = character.transform.Find("Torso");
+            if (defaultTorso != null && defaultTorso.name != "TorsoContainer" && defaultTorso.name != "LegsContainer")
+            {
+                var r = defaultTorso.GetComponent<Renderer>();
+                if (r != null) r.enabled = false;
+            }
+
             var container = character.transform.Find("TorsoContainer");
-            if (container == null) return;
+            if (container == null)
+            {
+                var go = new GameObject("TorsoContainer");
+                go.transform.SetParent(character.transform, false);
+                container = go.transform;
+            }
+
+            // Set the color of the arm sleeves to match the outfit shirt color!
+            var armL = character.transform.Find("LeftArm");
+            if (armL != null)
+            {
+                var sleeveL = armL.Find("Sleeve");
+                if (sleeveL != null) sleeveL.GetComponent<Renderer>().material.color = color;
+            }
+            var armR = character.transform.Find("RightArm");
+            if (armR != null)
+            {
+                var sleeveR = armR.Find("Sleeve");
+                if (sleeveR != null) sleeveR.GetComponent<Renderer>().material.color = color;
+            }
 
             for (int i = container.childCount - 1; i >= 0; i--)
                 Object.Destroy(container.GetChild(i).gameObject);
@@ -372,6 +530,12 @@ namespace RangerCity.Lobby
                         new Vector3(-0.12f, 1.0f, 0.02f), new Vector3(0.04f, 0.15f, 0.04f), color);
                     AddPrimChild(container, "StrapR", PrimitiveType.Cube,
                         new Vector3(0.12f, 1.0f, 0.02f), new Vector3(0.04f, 0.15f, 0.04f), color);
+
+                    // ADVENTURE BACKPACK (Balo/Cặp dã ngoại)
+                    var backpack = AddPrimChild(container, "Backpack", PrimitiveType.Cube,
+                        new Vector3(0f, 0.72f, -0.16f), new Vector3(0.22f, 0.28f, 0.12f), new Color(0.2f, 0.2f, 0.25f));
+                    AddPrimChild(backpack.transform, "BackpackPocket", PrimitiveType.Cube,
+                        new Vector3(0f, -0.2f, -0.52f), new Vector3(0.8f, 0.4f, 0.2f), new Color(0.3f, 0.3f, 0.38f));
                     break;
 
                 case 4:
@@ -392,7 +556,12 @@ namespace RangerCity.Lobby
         private static void ApplyPants(GameObject character, int gender, int style, Color color)
         {
             var container = character.transform.Find("LegsContainer");
-            if (container == null) return;
+            if (container == null)
+            {
+                var go = new GameObject("LegsContainer");
+                go.transform.SetParent(character.transform, false);
+                container = go.transform;
+            }
 
             for (int i = container.childCount - 1; i >= 0; i--)
                 Object.Destroy(container.GetChild(i).gameObject);
@@ -514,6 +683,20 @@ namespace RangerCity.Lobby
             if (shader == null) shader = Shader.Find("Unlit/Color");
             var mat = new Material(shader);
             mat.color = color;
+
+            if (mat.HasProperty("_Smoothness"))
+            {
+                mat.SetFloat("_Smoothness", 0.05f);
+            }
+            else if (mat.HasProperty("_Glossiness"))
+            {
+                mat.SetFloat("_Glossiness", 0.05f);
+            }
+            if (mat.HasProperty("_Metallic"))
+            {
+                mat.SetFloat("_Metallic", 0.0f);
+            }
+
             if (color.a < 1f)
             {
                 mat.SetFloat("_Mode", 3);
@@ -535,6 +718,19 @@ namespace RangerCity.Lobby
 
             var mat = new Material(shader);
             mat.color = color;
+
+            if (mat.HasProperty("_Smoothness"))
+            {
+                mat.SetFloat("_Smoothness", 0.05f);
+            }
+            else if (mat.HasProperty("_Glossiness"))
+            {
+                mat.SetFloat("_Glossiness", 0.05f);
+            }
+            if (mat.HasProperty("_Metallic"))
+            {
+                mat.SetFloat("_Metallic", 0.0f);
+            }
 
             if (color.a < 1f)
             {

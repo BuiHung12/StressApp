@@ -51,19 +51,55 @@ namespace RangerCity.Lobby
         {
             _homePosition = transform.position;
             _moveTimer = Random.Range(_pauseMin, _pauseMax);
+            EntityRegistry.RegisterFakePlayer(this);
+        }
+
+        private void OnDestroy()
+        {
+            EntityRegistry.UnregisterFakePlayer(this);
+        }
+
+        // Sync variables for client interpolation
+        private Vector3 _syncPosition;
+        private Quaternion _syncRotation;
+        private bool _hasSyncData;
+        private Vector3 _smoothVelocity;
+
+        /// <summary>
+        /// Nhận dữ liệu vị trí/xoay từ server qua RPC.
+        /// Client sẽ interpolate thay vì chạy AI riêng.
+        /// </summary>
+        public void SetSyncData(Vector3 position, float rotationY)
+        {
+            _syncPosition = position;
+            _syncRotation = Quaternion.Euler(0, rotationY, 0);
+            _hasSyncData = true;
         }
 
         private void Update()
         {
-            if (_isHurt)
+            // Server (or offline) runs AI, clients interpolate
+            if (Mirror.NetworkServer.active || !Mirror.NetworkClient.active)
             {
-                UpdateHurt();
-                return;
-            }
+                if (_isHurt)
+                {
+                    UpdateHurt();
+                    return;
+                }
 
-            if (_behavior == FakePlayerBehavior.Wander)
-                UpdateWander();
-            // Idle = do nothing
+                if (_behavior == FakePlayerBehavior.Wander)
+                    UpdateWander();
+                // Idle = do nothing
+            }
+            else
+            {
+                // Client: interpolate synced position/rotation
+                if (_hasSyncData)
+                {
+                    transform.position = Vector3.SmoothDamp(transform.position, _syncPosition, ref _smoothVelocity, 0.1f);
+                    transform.rotation = Quaternion.Slerp(transform.rotation, _syncRotation, Time.deltaTime * 10f);
+                }
+            }
         }
 
         private void UpdateWander()
@@ -146,23 +182,7 @@ namespace RangerCity.Lobby
 
         private bool IsValidPosition(Vector3 pos)
         {
-            Collider[] hits = Physics.OverlapSphere(pos + Vector3.up * 0.5f, 0.45f);
-            foreach (var hit in hits)
-            {
-                if (hit.transform.root == transform.root) continue;
-                if (hit.isTrigger) continue;
-
-                string name = hit.gameObject.name;
-                if (name.Contains("Collider") || name.Contains("Obstacle") || name.Contains("Walls") ||
-                    name.Contains("Tree") || name.Contains("Post") || name.Contains("Picket") ||
-                    name.Contains("Seat") || name.Contains("Base") || name.Contains("Pillar") ||
-                    name.Contains("Bowl") || name.Contains("Bench") || name.Contains("Fountain") ||
-                    name.Contains("Fence") || name.Contains("House") || name.Contains("Shop"))
-                {
-                    return false;
-                }
-            }
-            return true;
+            return CollisionUtils.IsValidPosition(pos, transform.root);
         }
     }
 

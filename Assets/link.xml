@@ -1,0 +1,19 @@
+<linker>
+    <!-- Preserve RangerCity.Lobby assembly from IL2CPP managed stripping.
+         Required because LobbySetup and ZoneFactory use Reflection (SetField)
+         to set private [SerializeField] fields at runtime. Without this,
+         IL2CPP will strip those fields and cause MissingFieldException on iOS. -->
+    <assembly fullname="RangerCity.Lobby" preserve="all"/>
+
+    <!-- Preserve Mirror networking assembly — uses reflection internally
+         for SyncVar hooks, Command/RPC registration, and serialization. -->
+    <assembly fullname="Mirror" preserve="all"/>
+    <assembly fullname="Mirror.Components" preserve="all"/>
+
+    <!-- Preserve kcp2k transport -->
+    <assembly fullname="kcp2k" preserve="all"/>
+
+    <!-- Preserve Unity modules used by the project -->
+    <assembly fullname="UnityEngine.UI" preserve="all"/>
+    <assembly fullname="Unity.TextMeshPro" preserve="all"/>
+</linker>
