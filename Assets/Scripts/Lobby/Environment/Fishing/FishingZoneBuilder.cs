@@ -459,7 +459,6 @@ namespace RangerCity.Lobby
             bl.transform.localRotation = Quaternion.Euler(15f, 0, 0);
 
             // Top cap
-            var cap = GameObject.CreatePrimitive(PrimitiveType.Cone);
             // Cone not available — use cylinder as cap
             var capObj = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             capObj.name = "LHCap";
@@ -468,7 +467,6 @@ namespace RangerCity.Lobby
             capObj.transform.localScale = new Vector3(0.4f, 0.15f, 0.4f);
             capObj.GetComponent<Renderer>().material = ZoneFactory.MetalMat(new Color(0.3f, 0.3f, 0.35f));
             Object.Destroy(capObj.GetComponent<Collider>());
-            Object.Destroy(cap);
         }
 
         // ── Boat House (NW) ──
