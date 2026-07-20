@@ -130,7 +130,16 @@ namespace RangerCity.Lobby
                 // Client: interpolate synced position/rotation
                 if (_hasSyncData)
                 {
-                    transform.position = Vector3.SmoothDamp(transform.position, _syncPosition, ref _smoothVelocity, 0.1f);
+                    float dist = Vector3.Distance(transform.position, _syncPosition);
+                    if (dist > 4f)
+                    {
+                        transform.position = _syncPosition;
+                        _smoothVelocity = Vector3.zero;
+                    }
+                    else
+                    {
+                        transform.position = Vector3.SmoothDamp(transform.position, _syncPosition, ref _smoothVelocity, 0.1f);
+                    }
                     transform.rotation = Quaternion.Slerp(transform.rotation, _syncRotation, Time.deltaTime * 10f);
                 }
             }

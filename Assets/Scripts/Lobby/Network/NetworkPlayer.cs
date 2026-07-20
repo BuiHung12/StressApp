@@ -259,8 +259,16 @@ namespace RangerCity.Lobby
             }
             else
             {
-                transform.position = Vector3.SmoothDamp(
-                    transform.position, _syncPosition, ref _smoothVelocity, 0.1f);
+                float dist = Vector3.Distance(transform.position, _syncPosition);
+                if (dist > 4f)
+                {
+                    transform.position = _syncPosition;
+                    _smoothVelocity = Vector3.zero;
+                }
+                else
+                {
+                    transform.position = Vector3.SmoothDamp(transform.position, _syncPosition, ref _smoothVelocity, 0.1f);
+                }
                 transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.Euler(0, _syncRotationY, 0), Time.deltaTime * 10f);
                 UpdateRemoteAnimation();
             }
