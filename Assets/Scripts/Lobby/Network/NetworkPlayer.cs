@@ -8,7 +8,7 @@ namespace RangerCity.Lobby
     /// Gắn kèm PlayerController trên cùng GameObject.
     /// Quản lý: position sync, animation sync, identity, customization.
     /// </summary>
-    public class NetworkPlayer : NetworkBehaviour
+    public class NetworkPlayer : NetworkBehaviour, IInteractable
     {
         [Header("Sync Settings")]
         [SerializeField] private float _syncInterval = 0.05f; // 20 updates/sec
@@ -114,6 +114,11 @@ namespace RangerCity.Lobby
         public static string[] PantsStyleNames => MalePantsStyleNames;
 
         // ── Lifecycle ──
+
+        private void Awake()
+        {
+            transform.localScale = Vector3.one * 0.45f;
+        }
 
         public override void OnStartLocalPlayer()
         {
@@ -485,5 +490,13 @@ namespace RangerCity.Lobby
                 clouds[cloudIndex].ForceUnlock();
             }
         }
+        
+        // ── IInteractable Implementation ──
+        string IInteractable.DisplayName => DisplayName;
+        public string AvatarEmoji => Gender == 0 ? "👦" : "👧";
+        public bool CanTalk => false;
+        public bool CanBePunched => true;
+        public InteractableType Type => InteractableType.Player;
+        public string[] GetDialogueLines() => new string[] { "..." };
     }
 }

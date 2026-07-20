@@ -440,6 +440,14 @@ namespace RangerCity.Lobby
                 if (dist < closestDist) { closestDist = dist; closest = fp; }
             }
 
+            var players = EntityRegistry.AllNetworkPlayers;
+            foreach (var p in players)
+            {
+                if (p == null || p.gameObject == this.gameObject) continue;
+                float dist = Vector3.Distance(transform.position, p.transform.position);
+                if (dist < closestDist) { closestDist = dist; closest = p; }
+            }
+
             if (closest != _nearestInteractable)
             {
                 if (_nearestInteractable != null) OnLeaveInteractable?.Invoke();
