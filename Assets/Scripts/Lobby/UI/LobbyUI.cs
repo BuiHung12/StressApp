@@ -59,6 +59,8 @@ namespace RangerCity.Lobby
         private TMP_InputField _addressInput;
         private TMP_InputField _portInput;
         private TMP_InputField _nameInput;
+        private GameObject _noInternetOverlay;
+        private bool _isInternetAvailable = false;
 
         private void Start()
         {
@@ -108,6 +110,7 @@ namespace RangerCity.Lobby
             if (!NetworkSetup.IsHeadlessServer())
             {
                 CreateConnectionUI();
+                StartCoroutine(InternetCheckLoop());
             }
         }
 
@@ -541,6 +544,59 @@ namespace RangerCity.Lobby
             _emojiPanelOpen = false;
             if (_emojiPanel != null)
                 _emojiPanel.SetActive(false);
+        }
+
+        private IEnumerator InternetCheckLoop()
+        {
+            while (true)
+            {
+                if (Application.internetReachability == NetworkReachability.NotReachable)
+                {
+                    SetInternetState(false);
+                }
+                else
+                {
+                    using (UnityEngine.Networking.UnityWebRequest webRequest = UnityEngine.Networking.UnityWebRequest.Get("http://clients3.google.com/generate_204"))
+                    {
+                        webRequest.timeout = 3;
+                        yield return webRequest.SendWebRequest();
+
+                        if (webRequest.result == UnityEngine.Networking.UnityWebRequest.Result.Success)
+                        {
+                            SetInternetState(true);
+                        }
+                        else
+                        {
+                            using (UnityEngine.Networking.UnityWebRequest dbRequest = UnityEngine.Networking.UnityWebRequest.Get("http://bore.pub:57223/api/player/health"))
+                            {
+                                dbRequest.timeout = 3;
+                                yield return dbRequest.SendWebRequest();
+                                SetInternetState(dbRequest.result == UnityEngine.Networking.UnityWebRequest.Result.Success);
+                            }
+                        }
+                    }
+                }
+                yield return new WaitForSeconds(3.0f);
+            }
+        }
+
+        private void SetInternetState(bool available)
+        {
+            _isInternetAvailable = available;
+
+            if (_noInternetOverlay != null)
+            {
+                _noInternetOverlay.SetActive(!available);
+            }
+
+            if (_connectionPanel != null)
+            {
+                var canvasGroup = _connectionPanel.GetComponent<CanvasGroup>();
+                if (canvasGroup == null) canvasGroup = _connectionPanel.AddComponent<CanvasGroup>();
+                canvasGroup.interactable = available;
+                canvasGroup.blocksRaycasts = available;
+                canvasGroup.alpha = available ? 1.0f : 0.4f;
+            }
         }
     }
 }

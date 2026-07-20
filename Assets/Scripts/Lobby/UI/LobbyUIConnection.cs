@@ -64,6 +64,41 @@ namespace RangerCity.Lobby
             _selectedPantsColor = PlayerPrefs.GetInt("PlayerPantsColor", 0);
             string savedName = PlayerPrefs.GetString("PlayerName", "");
 
+            // ── Create No Internet Overlay if not exists ──
+            if (_noInternetOverlay == null)
+            {
+                _noInternetOverlay = new GameObject("NoInternetOverlay", typeof(RectTransform));
+                _noInternetOverlay.transform.SetParent(canvas.transform, false);
+                var overlayRt = _noInternetOverlay.GetComponent<RectTransform>();
+                overlayRt.anchorMin = Vector2.zero; overlayRt.anchorMax = Vector2.one;
+                overlayRt.offsetMin = overlayRt.offsetMax = Vector2.zero;
+                
+                var overlayImg = _noInternetOverlay.AddComponent<Image>();
+                overlayImg.color = new Color(0.02f, 0.02f, 0.05f, 0.98f); // deep dark overlay
+                
+                // Card panel inside overlay
+                var warnCard = CreatePanel(_noInternetOverlay.transform, "WarnCard", Vector2.zero, new Vector2(550, 220));
+                var warnImg = warnCard.GetComponent<Image>();
+                warnImg.color = new Color(0.15f, 0.08f, 0.09f, 0.95f); // reddish warning panel
+                
+                var warnBorder = CreatePanel(warnCard.transform, "CardBorder", Vector2.zero, new Vector2(554, 224));
+                warnBorder.transform.SetAsFirstSibling();
+                warnBorder.GetComponent<Image>().color = new Color(0.9f, 0.2f, 0.25f, 0.4f);
+
+                // Warning Texts
+                MakeText(warnCard.transform, "Title", "⚠️ KHÔNG CÓ KẾT NỐI INTERNET", 20,
+                    new Vector2(0, 60), new Vector2(500, 35), TextAlignmentOptions.Center, new Color(1f, 0.35f, 0.4f));
+
+                MakeText(warnCard.transform, "Content", "Vui lòng kiểm tra lại kết nối Wifi hoặc mạng di động trên thiết bị của bạn để tiếp tục.", 14,
+                    new Vector2(0, -10), new Vector2(460, 60), TextAlignmentOptions.Center, new Color(0.9f, 0.9f, 0.95f));
+
+                MakeText(warnCard.transform, "Status", "Đang tự động kết nối lại...", 12,
+                    new Vector2(0, -65), new Vector2(500, 25), TextAlignmentOptions.Center, new Color(0.6f, 0.6f, 0.7f));
+                
+                // Initially active if internet was not verified yet, or handled by SetInternetState
+                _noInternetOverlay.SetActive(!_isInternetAvailable);
+            }
+
             // ── Full-screen overlay ──
             _connectionPanel = new GameObject("ConnectionPanel", typeof(RectTransform));
             _connectionPanel.transform.SetParent(canvas.transform, false);
@@ -861,6 +896,8 @@ namespace RangerCity.Lobby
                 Destroy(_previewRT);
             }
             if (_connectionPanel != null) Destroy(_connectionPanel);
+            if (_noInternetOverlay != null) Destroy(_noInternetOverlay);
+            _noInternetOverlay = null;
 
             CreateConnectionUI();
 
