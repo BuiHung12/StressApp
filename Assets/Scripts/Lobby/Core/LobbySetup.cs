@@ -29,7 +29,7 @@ namespace RangerCity.Lobby
         {
             if (NetworkSetup.IsHeadlessServer())
             {
-                Debug.Log("[LobbySetup] Headless mode detected. Disabling all cameras, canvases, and renderers in the scene...");
+                Debug.Log("[LobbySetup] Headless mode detected. Disabling all cameras and canvases in the scene...");
                 foreach (var c in FindObjectsByType<Camera>(FindObjectsSortMode.None))
                 {
                     c.enabled = false;
@@ -37,10 +37,6 @@ namespace RangerCity.Lobby
                 foreach (var canvas in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
                 {
                     canvas.gameObject.SetActive(false);
-                }
-                foreach (var r in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
-                {
-                    r.enabled = false;
                 }
             }
 
@@ -63,6 +59,14 @@ namespace RangerCity.Lobby
             {
                 CreateCamera(player.transform);
                 CreateUI();
+            }
+            else
+            {
+                // Disable all renderers in the environment created during setup
+                foreach (var r in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+                {
+                    r.enabled = false;
+                }
             }
 
             Debug.Log("🎮 Ranger City Lobby (2D Top-Down) loaded!");
@@ -190,7 +194,6 @@ namespace RangerCity.Lobby
 
         private void CreateEnvironment()
         {
-            if (NetworkSetup.IsHeadlessServer()) return;
             EnvironmentBuilder.CreateFlat("Ground", Vector3.zero, new Vector2(_lobbySize, _lobbySize), _grassColor);
 
             float pathLen = _lobbySize * 0.8f;
