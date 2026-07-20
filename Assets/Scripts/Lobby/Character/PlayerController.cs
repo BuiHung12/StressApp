@@ -50,6 +50,8 @@ namespace RangerCity.Lobby
         private int _rangerCoins = 50;
         private float _teleportCooldownTimer;
         private float _saveTimer = 0f;
+        private bool _isStunned;
+        private Vector3 _knockbackVelocity;
 
         public float InteractionRange => _interactionRange;
         public bool IsPunching => _isPunching;
@@ -106,6 +108,19 @@ namespace RangerCity.Lobby
             {
                 _jailTimer -= Time.deltaTime;
                 if (_jailTimer <= 0f) ReleaseFromJail();
+                return;
+            }
+
+            if (_isStunned)
+            {
+                if (_knockbackVelocity.sqrMagnitude > 0.1f)
+                {
+                    Vector3 nextPos = transform.position + _knockbackVelocity * Time.deltaTime;
+                    nextPos = ClampToWorld(nextPos);
+                    nextPos = ResolveCollisions(nextPos);
+                    transform.position = nextPos;
+                    _knockbackVelocity *= 0.85f;
+                }
                 return;
             }
 
@@ -290,23 +305,32 @@ namespace RangerCity.Lobby
 
             if (closestTarget != null)
             {
-                FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
                 OnPunchHit?.Invoke();
 
-                if (closestTarget is NetworkPlayer)
+                var localNp = GetComponent<NetworkPlayer>();
+                if (localNp != null)
                 {
-                    Debug.Log("[PlayerController] Punched a real player! Sending to jail immediately.");
-                    Invoke(nameof(GoToJail), 1.6f);
+                    var targetId = closestTarget.GetComponent<Mirror.NetworkIdentity>();
+                    localNp.CmdExecutePunch(transform.position, _lastMoveDir, targetId);
                 }
-                else // NPCController or FakePlayerController
+                else
                 {
-                    Debug.Log("[PlayerController] Punched NPC or Fake Player. No jail penalty.");
+                    FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
+                    if (closestTarget is NPCController)
+                    {
+                        Debug.Log("[PlayerController] Punched NPC. No jail penalty.");
+                    }
+                    else
+                    {
+                        Debug.Log("[PlayerController] Punched player/fake player! Sending to jail immediately.");
+                        Invoke(nameof(GoToJail), 1.6f);
+                    }
                 }
             }
             Invoke(nameof(EndPunch), 0.35f);
         }
 
-        private void GoToJail()
+        public void GoToJail()
         {
             float jailDuration = 15f;
             Debug.Log($"[PlayerController] Player sent to jail at (2, 0.03, -62) for {jailDuration}s.");
@@ -316,6 +340,40 @@ namespace RangerCity.Lobby
             _isClickMoving = false;
             SavePositionToPrefs();
             OnJailStart?.Invoke(jailDuration);
+        }
+
+        public void Stun(Vector3 puncherPos, float duration)
+        {
+            if (_isStunned) return;
+
+            _isStunned = true;
+            _isClickMoving = false;
+
+            // Calculate knockback direction
+            Vector3 knockDir = (transform.position - puncherPos).normalized;
+            knockDir.y = 0;
+            if (knockDir.sqrMagnitude < 0.001f) knockDir = Vector3.back;
+            _knockbackVelocity = knockDir * 6f; // Initial push speed
+
+            StartCoroutine(StunCoroutine(duration));
+        }
+
+        private System.Collections.IEnumerator StunCoroutine(float duration)
+        {
+            float elapsed = 0f;
+            while (elapsed < duration)
+            {
+                elapsed += Time.deltaTime;
+                if (elapsed < duration * 0.7f)
+                {
+                    // Wobble or spin the player visually
+                    transform.Rotate(Vector3.up, 360f * Time.deltaTime * 2f);
+                }
+                yield return null;
+            }
+
+            _isStunned = false;
+            _knockbackVelocity = Vector3.zero;
         }
 
         private void EndPunch() => _isPunching = false;

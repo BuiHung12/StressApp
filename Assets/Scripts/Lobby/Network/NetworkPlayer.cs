@@ -330,15 +330,83 @@ namespace RangerCity.Lobby
         // ── Punch sync ──
 
         [Command]
-        public void CmdPunch(Vector3 direction)
+        public void CmdExecutePunch(Vector3 position, Vector3 direction, NetworkIdentity target)
         {
-            RpcShowPunchEffect(direction);
+            RpcOnPunchExecuted(netIdentity, position, direction, target);
+
+            if (target != null)
+            {
+                var targetNp = target.GetComponent<NetworkPlayer>();
+                if (targetNp != null)
+                {
+                    Invoke(nameof(ServerSendToJail), 1.6f);
+                }
+            }
+        }
+
+        private void ServerSendToJail()
+        {
+            transform.position = new Vector3(2f, 0.03f, -62f);
+            RpcSendToJail(15f);
         }
 
         [ClientRpc]
-        private void RpcShowPunchEffect(Vector3 direction)
+        private void RpcSendToJail(float duration)
         {
-            Debug.Log($"[NetworkPlayer] {DisplayName} punched!");
+            if (isLocalPlayer)
+            {
+                var pc = GetComponent<PlayerController>();
+                if (pc != null)
+                {
+                    pc.GoToJail();
+                }
+            }
+        }
+
+        [ClientRpc]
+        private void RpcOnPunchExecuted(NetworkIdentity puncher, Vector3 position, Vector3 direction, NetworkIdentity target)
+        {
+            if (puncher == null) return;
+
+            if (!isLocalPlayer)
+            {
+                var anim = GetComponentInChildren<Animator>();
+                if (anim != null)
+                {
+                    anim.SetTrigger("Punch");
+                }
+            }
+
+            if (target != null)
+            {
+                FightCloudEffect.Create(puncher.transform, target.transform, 1.5f);
+
+                var targetNp = target.GetComponent<NetworkPlayer>();
+                if (targetNp != null && targetNp.isLocalPlayer)
+                {
+                    var pc = targetNp.GetComponent<PlayerController>();
+                    if (pc != null)
+                    {
+                        pc.Stun(position, 1.5f);
+                    }
+                }
+
+                var npc = target.GetComponent<NPCController>();
+                if (npc != null)
+                {
+                    Vector3 knockDir = (target.transform.position - position).normalized;
+                    knockDir.y = 0;
+                    npc.ReceivePunch(knockDir, 8f);
+                }
+
+                var fp = target.GetComponent<FakePlayerController>();
+                if (fp != null)
+                {
+                    Vector3 knockDir = (target.transform.position - position).normalized;
+                    knockDir.y = 0;
+                    fp.ReceivePunch(knockDir, 8f);
+                }
+            }
         }
 
         // ── SyncVar Hooks ──
