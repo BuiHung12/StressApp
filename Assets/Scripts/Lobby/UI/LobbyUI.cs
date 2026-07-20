@@ -62,6 +62,12 @@ namespace RangerCity.Lobby
 
         private void Start()
         {
+            if (NetworkSetup.IsHeadlessServer())
+            {
+                gameObject.SetActive(false);
+                return;
+            }
+
             _player = FindAnyObjectByType<PlayerController>();
             _mainCamera = Camera.main;
 
@@ -446,7 +452,7 @@ namespace RangerCity.Lobby
             toggleTextRt.anchorMax = Vector2.one;
             toggleTextRt.offsetMin = toggleTextRt.offsetMax = Vector2.zero;
             var toggleTxt = toggleTextObj.AddComponent<TextMeshProUGUI>();
-            toggleTxt.text = "😀";
+            toggleTxt.text = "<sprite=\"EmojiOne\" name=\"Grinning face\">";
             toggleTxt.fontSize = 28;
             toggleTxt.alignment = TextAlignmentOptions.Center;
 

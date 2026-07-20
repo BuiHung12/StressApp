@@ -52,6 +52,8 @@ namespace RangerCity.Lobby
         private float _syncTimerLocal;
         private Vector3 _smoothVelocity;
         private bool _appearanceDirty = false;
+        private Animator _animator;
+        private float _lastMoveLogTime;
 
         // ── Preset Palettes ──
 
@@ -121,6 +123,13 @@ namespace RangerCity.Lobby
             if (_playerController != null)
                 _playerController.enabled = true;
 
+            // Update camera target to point to this spawned local player
+            var lobbyCam = FindAnyObjectByType<LobbyCamera>();
+            if (lobbyCam != null)
+            {
+                lobbyCam.SetTarget(transform);
+            }
+
             // Đọc tên từ PlayerPrefs
             string savedName = PlayerPrefs.GetString("PlayerName", "");
             if (string.IsNullOrEmpty(savedName))
@@ -178,6 +187,17 @@ namespace RangerCity.Lobby
             Debug.Log($"[NetworkPlayer] Local player: {savedName}, Gender:{gender}, Hair:{hairStyleIdx}, Outfit:{outfitIdx}, Pants:{pantsStyleIdx}");
         }
 
+        public override void OnStartServer()
+        {
+            base.OnStartServer();
+            // Register in EntityRegistry on the server so that headless server has a valid _networkPlayers list
+            EntityRegistry.RegisterNetworkPlayer(this);
+
+            // Disable PlayerController on the server to prevent physics/portals queries running twice
+            var pc = GetComponent<PlayerController>();
+            if (pc != null) pc.enabled = false;
+        }
+
         public override void OnStartClient()
         {
             base.OnStartClient();
@@ -223,7 +243,7 @@ namespace RangerCity.Lobby
                 }
             }
 
-            if (isLocalPlayer)
+            if (isLocalPlayer && NetworkClient.active && NetworkClient.connection != null)
             {
                 _syncTimerLocal += Time.deltaTime;
                 if (_syncTimerLocal >= _syncInterval)
@@ -251,13 +271,33 @@ namespace RangerCity.Lobby
             return false;
         }
 
-        private void UpdateRemoteAnimation() { }
+        private void UpdateRemoteAnimation()
+        {
+            if (_animator == null)
+                _animator = GetComponentInChildren<Animator>();
+
+            if (_animator != null)
+            {
+                _animator.SetFloat("Speed", _syncIsMoving ? 1f : 0f);
+            }
+        }
 
         // ── Commands (Client → Server) ──
 
         [Command]
         private void CmdSyncPosition(Vector3 position, float rotationY, bool isMoving)
         {
+            string connIdStr = connectionToClient != null ? connectionToClient.connectionId.ToString() : "N/A";
+            if (_syncIsMoving != isMoving)
+            {
+                Debug.Log($"[NetworkPlayer] {DisplayName} (connId={connIdStr}) {(isMoving ? "STARTED moving" : "STOPPED moving")} at position {position}");
+            }
+            else if (isMoving && Time.time - _lastMoveLogTime >= 2.0f)
+            {
+                _lastMoveLogTime = Time.time;
+                Debug.Log($"[NetworkPlayer] {DisplayName} (connId={connIdStr}) moving at position {position}");
+            }
+
             _syncPosition = position;
             _syncRotationY = rotationY;
             _syncIsMoving = isMoving;

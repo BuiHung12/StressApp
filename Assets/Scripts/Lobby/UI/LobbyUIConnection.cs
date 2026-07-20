@@ -33,7 +33,7 @@ namespace RangerCity.Lobby
         private Image[] _genderButtons;
 
         // Centralized DB Integration
-        private string _apiBaseUrl = "http://wool-delivery.gl.joinmc.link:30645/api/player";
+        private string _apiBaseUrl = "http://bore.pub:57223/api/player";
         private bool _isSyncingWithServer = false;
         private bool _hasLoadedFromDatabase = false;
         private bool _isConnecting = false;
@@ -65,9 +65,9 @@ namespace RangerCity.Lobby
             string savedName = PlayerPrefs.GetString("PlayerName", "");
 
             // ── Full-screen overlay ──
-            _connectionPanel = new GameObject("ConnectionPanel");
+            _connectionPanel = new GameObject("ConnectionPanel", typeof(RectTransform));
             _connectionPanel.transform.SetParent(canvas.transform, false);
-            var panelRt = _connectionPanel.AddComponent<RectTransform>();
+            var panelRt = _connectionPanel.GetComponent<RectTransform>();
             panelRt.anchorMin = Vector2.zero; panelRt.anchorMax = Vector2.one;
             panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
             var panelImg = _connectionPanel.AddComponent<Image>();
@@ -104,6 +104,20 @@ namespace RangerCity.Lobby
             var nameInputObj = CreateInputFieldV2(leftCol.transform, savedName, "Nhập tên...",
                 new Vector2(0, -180), new Vector2(320, 42));
             _nameInput = nameInputObj;
+            
+            // Cập nhật tên hiển thị trên đầu nhân vật thời gian thực khi đang gõ
+            _nameInput.onValueChanged.AddListener((val) => {
+                var player = GameObject.FindWithTag("Player");
+                if (player != null)
+                {
+                    var nameTag = player.transform.Find("NameTag");
+                    if (nameTag != null)
+                    {
+                        var tmp = nameTag.GetComponentInChildren<TMPro.TextMeshPro>();
+                        if (tmp != null) tmp.text = string.IsNullOrEmpty(val) ? "Player" : val;
+                    }
+                }
+            });
 
             string deviceId = SystemInfo.deviceUniqueIdentifier;
             string shortId = deviceId.Length > 10 ? deviceId.Substring(0, 10) + "..." : deviceId;
@@ -307,10 +321,11 @@ namespace RangerCity.Lobby
         private void CreatePreviewCharacter(Transform parent)
         {
             _previewRT = new RenderTexture(512, 512, 16);
+            _previewRT.Create();
 
-            var rawObj = new GameObject("PreviewRawImage");
+            var rawObj = new GameObject("PreviewRawImage", typeof(RectTransform));
             rawObj.transform.SetParent(parent, false);
-            var rawRt = rawObj.AddComponent<RectTransform>();
+            var rawRt = rawObj.GetComponent<RectTransform>();
             rawRt.anchoredPosition = new Vector2(0, 30);
             rawRt.sizeDelta = new Vector2(300, 320);
             var rawImg = rawObj.AddComponent<RawImage>();
@@ -327,6 +342,7 @@ namespace RangerCity.Lobby
 
             _previewCamera = camObj.AddComponent<Camera>();
             _previewCamera.targetTexture = _previewRT;
+            _previewCamera.depth = -5f;
             _previewCamera.clearFlags = CameraClearFlags.SolidColor;
             _previewCamera.backgroundColor = new Color(0.06f, 0.06f, 0.1f, 1f);
             _previewCamera.orthographic = true;
@@ -514,7 +530,22 @@ namespace RangerCity.Lobby
         private void SavePlayerPrefs()
         {
             if (_nameInput != null)
-                PlayerPrefs.SetString("PlayerName", _nameInput.text);
+            {
+                string newName = _nameInput.text;
+                PlayerPrefs.SetString("PlayerName", newName);
+                
+                // Cập nhật ngay lập tức tên hiển thị trên đầu nhân vật local trong scene
+                var localPlayer = GameObject.FindWithTag("Player");
+                if (localPlayer != null)
+                {
+                    var nameTag = localPlayer.transform.Find("NameTag");
+                    if (nameTag != null)
+                    {
+                        var tmp = nameTag.GetComponentInChildren<TMPro.TextMeshPro>();
+                        if (tmp != null) tmp.text = string.IsNullOrEmpty(newName) ? "Player" : newName;
+                    }
+                }
+            }
             PlayerPrefs.SetInt("PlayerGender", _selectedGender);
             PlayerPrefs.SetInt("PlayerColorIndex", _selectedBodyColor);
             PlayerPrefs.SetInt("PlayerHairStyle", _selectedHairStyle);
@@ -525,13 +556,13 @@ namespace RangerCity.Lobby
             PlayerPrefs.Save();
 
             // Apply customization directly to local scene player
-            var player = GameObject.FindWithTag("Player");
-            if (player != null)
+            var scenePlayer = GameObject.FindWithTag("Player");
+            if (scenePlayer != null)
             {
                 Color bodyColor = NetworkPlayer.BodyColorPalette[Mathf.Clamp(_selectedBodyColor, 0, NetworkPlayer.BodyColorPalette.Length - 1)];
                 Color hairColor = NetworkPlayer.HairColorPalette[Mathf.Clamp(_selectedHairColor, 0, NetworkPlayer.HairColorPalette.Length - 1)];
                 Color pantsColor = NetworkPlayer.PantsColorPalette[Mathf.Clamp(_selectedPantsColor, 0, NetworkPlayer.PantsColorPalette.Length - 1)];
-                CharacterVisuals.ApplyCustomization(player, _selectedGender, _selectedHairStyle, hairColor, _selectedOutfitStyle, bodyColor, _selectedPantsStyle, pantsColor);
+                CharacterVisuals.ApplyCustomization(scenePlayer, _selectedGender, _selectedHairStyle, hairColor, _selectedOutfitStyle, bodyColor, _selectedPantsStyle, pantsColor);
             }
         }
 
@@ -553,6 +584,8 @@ namespace RangerCity.Lobby
             var setup = FindAnyObjectByType<NetworkSetup>();
             if (setup != null)
             {
+                setup.Stop();
+                yield return null; // Wait 1 frame for cleanup
                 setup.StartAsHost();
                 CloseConnectionPanel();
             }
@@ -577,6 +610,9 @@ namespace RangerCity.Lobby
             var setup = FindAnyObjectByType<NetworkSetup>();
             if (setup != null)
             {
+                setup.Stop();
+                yield return null; // Wait 1 frame for cleanup
+
                 string address = _addressInput != null ? _addressInput.text : "localhost";
                 string portStr = _portInput != null ? _portInput.text : "7777";
 
@@ -611,9 +647,9 @@ namespace RangerCity.Lobby
 
         private GameObject CreatePanel(Transform parent, string name, Vector2 pos, Vector2 size, bool raycastTarget)
         {
-            var obj = new GameObject(name);
+            var obj = new GameObject(name, typeof(RectTransform));
             obj.transform.SetParent(parent, false);
-            var rt = obj.AddComponent<RectTransform>();
+            var rt = obj.GetComponent<RectTransform>();
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
             var img = obj.AddComponent<Image>();
@@ -623,9 +659,9 @@ namespace RangerCity.Lobby
 
         private GameObject MakeText(Transform parent, string name, string text, float fontSize, Vector2 pos, Vector2 size, TextAlignmentOptions align, Color color)
         {
-            var obj = new GameObject(name);
+            var obj = new GameObject(name, typeof(RectTransform));
             obj.transform.SetParent(parent, false);
-            var rt = obj.AddComponent<RectTransform>();
+            var rt = obj.GetComponent<RectTransform>();
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
             var tmp = obj.AddComponent<TextMeshProUGUI>();
@@ -641,18 +677,18 @@ namespace RangerCity.Lobby
 
         private TMP_InputField CreateInputFieldV2(Transform parent, string defaultText, string placeholder, Vector2 pos, Vector2 size)
         {
-            var obj = new GameObject("Input");
+            var obj = new GameObject("Input", typeof(RectTransform));
             obj.transform.SetParent(parent, false);
-            var rt = obj.AddComponent<RectTransform>();
+            var rt = obj.GetComponent<RectTransform>();
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
             var img = obj.AddComponent<Image>();
             img.color = new Color(0.06f, 0.06f, 0.1f, 1f);
             img.raycastTarget = true;
 
-            var textObj = new GameObject("Text");
+            var textObj = new GameObject("Text", typeof(RectTransform));
             textObj.transform.SetParent(obj.transform, false);
-            var trt = textObj.AddComponent<RectTransform>();
+            var trt = textObj.GetComponent<RectTransform>();
             trt.anchorMin = Vector2.zero; trt.anchorMax = Vector2.one;
             trt.offsetMin = new Vector2(10, 2); trt.offsetMax = new Vector2(-10, -2);
             var txt = textObj.AddComponent<TextMeshProUGUI>();
@@ -663,9 +699,9 @@ namespace RangerCity.Lobby
 
             if (!string.IsNullOrEmpty(placeholder))
             {
-                var phObj = new GameObject("Placeholder");
+                var phObj = new GameObject("Placeholder", typeof(RectTransform));
                 phObj.transform.SetParent(obj.transform, false);
-                var phRt = phObj.AddComponent<RectTransform>();
+                var phRt = phObj.GetComponent<RectTransform>();
                 phRt.anchorMin = Vector2.zero; phRt.anchorMax = Vector2.one;
                 phRt.offsetMin = new Vector2(10, 2); phRt.offsetMax = new Vector2(-10, -2);
                 var phTxt = phObj.AddComponent<TextMeshProUGUI>();
@@ -834,38 +870,19 @@ namespace RangerCity.Lobby
 
         private void LoadDbConfig()
         {
-            // Use persistentDataPath instead of dataPath — dataPath is read-only on iOS/Android
+            // Always write fresh config to ensure phone doesn't use stale cached values
             string path = Path.Combine(Application.persistentDataPath, "db_config.json");
-            if (File.Exists(path))
+            try
             {
-                try
-                {
-                    string json = File.ReadAllText(path);
-                    DbConfig config = JsonUtility.FromJson<DbConfig>(json);
-                    if (config != null)
-                    {
-                        _apiBaseUrl = $"http://{config.apiHost}:{config.apiPort}/api/player";
-                        Debug.Log($"[LobbyUIConnection] Loaded DB Config: {_apiBaseUrl}");
-                    }
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning($"[LobbyUIConnection] Failed to parse db_config.json: {e.Message}");
-                }
+                DbConfig config = new DbConfig();
+                string json = JsonUtility.ToJson(config, true);
+                File.WriteAllText(path, json);
+                _apiBaseUrl = $"http://{config.apiHost}:{config.apiPort}/api/player";
+                Debug.Log($"[LobbyUIConnection] Loaded DB Config: {_apiBaseUrl}");
             }
-            else
+            catch (System.Exception e)
             {
-                try
-                {
-                    DbConfig config = new DbConfig();
-                    string json = JsonUtility.ToJson(config, true);
-                    File.WriteAllText(path, json);
-                    Debug.Log($"[LobbyUIConnection] Created default db_config.json at: {path}");
-                }
-                catch (System.Exception e)
-                {
-                    Debug.LogWarning($"[LobbyUIConnection] Failed to write db_config.json: {e.Message}");
-                }
+                Debug.LogWarning($"[LobbyUIConnection] Failed to write db_config.json: {e.Message}");
             }
         }
     }
@@ -887,7 +904,7 @@ namespace RangerCity.Lobby
     [System.Serializable]
     public class DbConfig
     {
-        public string apiHost = "wool-delivery.gl.joinmc.link";
-        public string apiPort = "30645";
+        public string apiHost = "bore.pub";
+        public int apiPort = 57223;
     }
 }

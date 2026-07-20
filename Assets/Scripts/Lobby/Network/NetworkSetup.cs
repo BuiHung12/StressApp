@@ -78,6 +78,21 @@ namespace RangerCity.Lobby
         }
 
         /// <summary>
+        /// Bắt đầu chạy ở chế độ Server-only (headless).
+        /// </summary>
+        public void StartAsServer()
+        {
+            if (_networkManager == null)
+                _networkManager = NetworkManager.singleton;
+
+            if (_networkManager != null && !NetworkServer.active)
+            {
+                _networkManager.StartServer();
+                Debug.Log("[NetworkSetup] Started as SERVER ONLY");
+            }
+        }
+
+        /// <summary>
         /// Kết nối vào server ở chế độ Client.
         /// </summary>
         public void StartAsClient(string address = null)
@@ -89,7 +104,8 @@ namespace RangerCity.Lobby
             {
                 _networkManager.networkAddress = address ?? _serverAddress;
                 _networkManager.StartClient();
-                Debug.Log($"[NetworkSetup] Connecting to {_networkManager.networkAddress}:{_port}");
+                var kcpPort = (_networkManager.transport as kcp2k.KcpTransport)?.port ?? _port;
+                Debug.Log($"[NetworkSetup] Connecting to {_networkManager.networkAddress}:{kcpPort}");
             }
         }
 

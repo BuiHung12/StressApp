@@ -27,6 +27,11 @@ namespace RangerCity.Lobby
 
         private void Start()
         {
+            if (NetworkSetup.IsHeadlessServer())
+            {
+                enabled = false;
+                return;
+            }
             _cam = GetComponent<Camera>();
 
             if (_target == null)
@@ -67,14 +72,21 @@ namespace RangerCity.Lobby
                     Touch t0 = Input.GetTouch(0);
                     Touch t1 = Input.GetTouch(1);
 
-                    Vector2 t0Prev = t0.position - t0.deltaPosition;
-                    Vector2 t1Prev = t1.position - t1.deltaPosition;
+                    // Ignore pinch if either touch is in the virtual joystick zone (bottom-left, e.g. < 400px)
+                    bool t0Joy = t0.position.x < 400f && t0.position.y < 400f;
+                    bool t1Joy = t1.position.x < 400f && t1.position.y < 400f;
 
-                    float prevDist = (t0Prev - t1Prev).magnitude;
-                    float currDist = (t0.position - t1.position).magnitude;
+                    if (!t0Joy && !t1Joy)
+                    {
+                        Vector2 t0Prev = t0.position - t0.deltaPosition;
+                        Vector2 t1Prev = t1.position - t1.deltaPosition;
 
-                    float pinchDelta = (currDist - prevDist) * 0.01f;
-                    scroll += pinchDelta;
+                        float prevDist = (t0Prev - t1Prev).magnitude;
+                        float currDist = (t0.position - t1.position).magnitude;
+
+                        float pinchDelta = (currDist - prevDist) * 0.01f;
+                        scroll += pinchDelta;
+                    }
                 }
 
                 if (scroll != 0f)

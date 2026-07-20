@@ -386,6 +386,102 @@ namespace RangerCity.Lobby
             c3.GetComponent<Renderer>().material = CreateMat(cloudColor);
         }
 
+        // ── Sub-Area Floor ──
+
+        /// <summary>
+        /// Creates a distinct floor slab for a sub-area, parented to the zone.
+        /// Slightly raised above ground to visually separate areas.
+        /// </summary>
+        public static GameObject CreateSubAreaFloor(Transform parent, Vector3 localPos, Vector3 size, Color color, string name = "SubFloor")
+        {
+            var floor = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            floor.name = name;
+            floor.transform.SetParent(parent, false);
+            floor.transform.localPosition = localPos + new Vector3(0, 0.02f, 0);
+            floor.transform.localScale = new Vector3(size.x, 0.04f, size.z);
+            floor.GetComponent<Renderer>().material = StoneMat(color);
+            Object.Destroy(floor.GetComponent<Collider>());
+            return floor;
+        }
+
+        // ── Low Fence (border for sub-areas) ──
+
+        /// <summary>
+        /// Creates a low fence/wall along one edge. Direction: 0=North(+Z), 90=East(+X), 180=South(-Z), 270=West(-X).
+        /// </summary>
+        public static void CreateLowFence(Transform parent, Vector3 center, float length, float directionAngle, Color color, float height = 0.5f)
+        {
+            var fence = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            fence.name = "LowFence";
+            fence.transform.SetParent(parent, false);
+            fence.transform.localPosition = center + Vector3.up * (height * 0.5f);
+            fence.transform.localRotation = Quaternion.Euler(0, directionAngle, 0);
+            fence.transform.localScale = new Vector3(length, height, 0.15f);
+            fence.GetComponent<Renderer>().material = StoneMat(color);
+            Object.Destroy(fence.GetComponent<Collider>());
+        }
+
+        // ── Area Sign ──
+
+        /// <summary>
+        /// Creates a small floating sign labeling a sub-area.
+        /// </summary>
+        public static void CreateAreaSign(Transform parent, Vector3 localPos, string text, Color textColor = default)
+        {
+            if (textColor == default) textColor = Color.white;
+            var signObj = new GameObject("AreaSign_" + text.Replace(" ", ""));
+            signObj.transform.SetParent(parent, false);
+            signObj.transform.localPosition = localPos;
+
+            var tmp = signObj.AddComponent<TextMeshPro>();
+            tmp.text = text;
+            tmp.fontSize = 2.0f;
+            tmp.fontStyle = FontStyles.Bold;
+            tmp.alignment = TextAlignmentOptions.Center;
+            tmp.color = textColor;
+            signObj.AddComponent<BillboardText>();
+        }
+
+        // ── Gate (opening in a wall/fence) ──
+
+        /// <summary>
+        /// Creates two short pillars with a gap between them, forming a gate.
+        /// </summary>
+        public static void CreateGate(Transform parent, Vector3 localPos, float rotY, Color color, float gapWidth = 1.5f, float height = 1.2f)
+        {
+            var gate = new GameObject("Gate");
+            gate.transform.SetParent(parent, false);
+            gate.transform.localPosition = localPos;
+            gate.transform.localRotation = Quaternion.Euler(0, rotY, 0);
+
+            // Left pillar
+            var pL = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            pL.name = "GatePillarL";
+            pL.transform.SetParent(gate.transform, false);
+            pL.transform.localPosition = new Vector3(-gapWidth * 0.5f - 0.15f, height * 0.5f, 0);
+            pL.transform.localScale = new Vector3(0.3f, height, 0.3f);
+            pL.GetComponent<Renderer>().material = StoneMat(color);
+            Object.Destroy(pL.GetComponent<Collider>());
+
+            // Right pillar
+            var pR = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            pR.name = "GatePillarR";
+            pR.transform.SetParent(gate.transform, false);
+            pR.transform.localPosition = new Vector3(gapWidth * 0.5f + 0.15f, height * 0.5f, 0);
+            pR.transform.localScale = new Vector3(0.3f, height, 0.3f);
+            pR.GetComponent<Renderer>().material = StoneMat(color);
+            Object.Destroy(pR.GetComponent<Collider>());
+
+            // Lintel (horizontal beam above gate)
+            var lintel = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            lintel.name = "GateLintel";
+            lintel.transform.SetParent(gate.transform, false);
+            lintel.transform.localPosition = new Vector3(0, height + 0.08f, 0);
+            lintel.transform.localScale = new Vector3(gapWidth + 0.6f, 0.15f, 0.35f);
+            lintel.GetComponent<Renderer>().material = StoneMat(color * 0.9f);
+            Object.Destroy(lintel.GetComponent<Collider>());
+        }
+
         // ── Reflection helper ──
 
         public static void SetField(object target, string fieldName, object value)

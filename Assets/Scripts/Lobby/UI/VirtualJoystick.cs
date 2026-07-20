@@ -34,6 +34,7 @@ namespace RangerCity.Lobby
 
         private void Awake()
         {
+            if (NetworkSetup.IsHeadlessServer()) return;
             Instance = this;
         }
 
@@ -56,8 +57,8 @@ namespace RangerCity.Lobby
             baseRT.anchorMin = new Vector2(0f, 0f);
             baseRT.anchorMax = new Vector2(0f, 0f);
             baseRT.pivot = new Vector2(0.5f, 0.5f);
-            baseRT.anchoredPosition = new Vector2(140f, 140f);
-            baseRT.sizeDelta = new Vector2(200f, 200f);
+            baseRT.anchoredPosition = new Vector2(220f, 220f);
+            baseRT.sizeDelta = new Vector2(260f, 260f);
 
             var baseImg = baseObj.AddComponent<Image>();
             baseImg.color = new Color(1f, 1f, 1f, 0.25f);
@@ -76,8 +77,8 @@ namespace RangerCity.Lobby
             handleRT.anchorMax = new Vector2(0.5f, 0.5f);
             handleRT.pivot = new Vector2(0.5f, 0.5f);
             handleRT.anchoredPosition = Vector2.zero;
-            handleRT.sizeDelta = new Vector2(80f, 80f);
-
+            handleRT.sizeDelta = new Vector2(100f, 100f);
+            
             var handleImg = handleObj.AddComponent<Image>();
             handleImg.color = new Color(1f, 1f, 1f, 0.6f);
             handleImg.sprite = CreateCircleSprite();

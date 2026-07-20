@@ -10,6 +10,10 @@ namespace RangerCity.Lobby
     {
         public static GameObject CreateCharacterTopDown(string charName, Color bodyColor, Color skinColor)
         {
+            if (NetworkSetup.IsHeadlessServer())
+            {
+                return new GameObject(charName);
+            }
             var character = new GameObject(charName);
 
             // === NECK ===
@@ -121,6 +125,25 @@ namespace RangerCity.Lobby
             shinyR.transform.localScale = new Vector3(0.35f, 0.35f, 0.2f);
             shinyR.GetComponent<Renderer>().material = CreateMat(Color.white);
             Destroy(shinyR.GetComponent<Collider>());
+
+            // === EYEBROWS ===
+            var browL = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            browL.name = "BrowL";
+            browL.transform.SetParent(head.transform, false);
+            browL.transform.localPosition = new Vector3(-0.2f, 0.2f, 0.46f);
+            browL.transform.localScale = new Vector3(0.14f, 0.025f, 0.04f);
+            browL.transform.localRotation = Quaternion.Euler(0, 0, 5f);
+            browL.GetComponent<Renderer>().material = CreateMat(new Color(0.12f, 0.08f, 0.06f));
+            Destroy(browL.GetComponent<Collider>());
+
+            var browR = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            browR.name = "BrowR";
+            browR.transform.SetParent(head.transform, false);
+            browR.transform.localPosition = new Vector3(0.2f, 0.2f, 0.46f);
+            browR.transform.localScale = new Vector3(0.14f, 0.025f, 0.04f);
+            browR.transform.localRotation = Quaternion.Euler(0, 0, -5f);
+            browR.GetComponent<Renderer>().material = CreateMat(new Color(0.12f, 0.08f, 0.06f));
+            Destroy(browR.GetComponent<Collider>());
 
             // === CHEEKS ===
             var cheekL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
@@ -241,6 +264,7 @@ namespace RangerCity.Lobby
         public static void ApplyCustomization(GameObject character, int gender, int hairStyle, Color hairColor, int outfitStyle, Color bodyColor, int pantsStyle, Color pantsColor)
         {
             if (character == null) return;
+            if (NetworkSetup.IsHeadlessServer()) return;
             Debug.Log($"[ApplyCustomization] Character: {character.name}, Gender: {gender}, HairStyle: {hairStyle}, OutfitStyle: {outfitStyle}, PantsStyle: {pantsStyle}");
 
             // Check if this character has custom prefab models inside
@@ -568,26 +592,34 @@ namespace RangerCity.Lobby
 
             style = Mathf.Clamp(style, 0, 3);
 
+            // Hip pivot Y position (at belt/waist level) — legs swing from here
+            const float hipY = 0.45f;
+
             switch (style)
             {
-                case 0:
+                case 0: // === BASIC LONG PANTS ===
                     {
-                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                            new Vector3(-0.1f, 0.22f, 0), new Vector3(0.14f, 0.25f, 0.14f), color);
-                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                            new Vector3(0.1f, 0.22f, 0), new Vector3(0.14f, 0.25f, 0.14f), color);
+                        var (leftHip, rightHip) = CreateHipPivots(container, hipY, 0.1f);
+
+                        var leftLeg = AddPrimChild(leftHip.transform, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.23f, 0), new Vector3(0.14f, 0.25f, 0.14f), color);
+                        var rightLeg = AddPrimChild(rightHip.transform, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.23f, 0), new Vector3(0.14f, 0.25f, 0.14f), color);
+
                         AddShoeToLeg(leftLeg, "LeftShoe");
                         AddShoeToLeg(rightLeg, "RightShoe");
                     }
                     break;
 
-                case 1:
-                    if (gender == 0) // Nam
+                case 1: // === SHORTS (NAM) / SKIRT (NỮ) ===
+                    if (gender == 0) // Nam — shorts with exposed shins
                     {
-                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                            new Vector3(-0.1f, 0.28f, 0), new Vector3(0.15f, 0.18f, 0.15f), color);
-                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                            new Vector3(0.1f, 0.28f, 0), new Vector3(0.15f, 0.18f, 0.15f), color);
+                        var (leftHip, rightHip) = CreateHipPivots(container, hipY, 0.1f);
+
+                        var leftLeg = AddPrimChild(leftHip.transform, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.17f, 0), new Vector3(0.15f, 0.18f, 0.15f), color);
+                        var rightLeg = AddPrimChild(rightHip.transform, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.17f, 0), new Vector3(0.15f, 0.18f, 0.15f), color);
 
                         var leftShin = AddPrimChild(leftLeg.transform, "LeftShin", PrimitiveType.Capsule,
                             new Vector3(0f, -0.9f, 0f), new Vector3(0.66f, 0.66f, 0.66f), new Color(1f, 0.88f, 0.7f));
@@ -597,28 +629,33 @@ namespace RangerCity.Lobby
                         AddShoeToLeg(leftShin, "LeftShoe");
                         AddShoeToLeg(rightShin, "RightShoe");
                     }
-                    else // Nữ
+                    else // Nữ — skirt + bare legs
                     {
+                        // Skirt stays attached to container (doesn't swing)
                         AddPrimChild(container, "Skirt", PrimitiveType.Cylinder,
                             new Vector3(0, 0.32f, 0), new Vector3(0.32f, 0.15f, 0.32f), color);
 
-                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                            new Vector3(-0.08f, 0.15f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
-                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                            new Vector3(0.08f, 0.15f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
+                        var (leftHip, rightHip) = CreateHipPivots(container, hipY, 0.08f);
+
+                        var leftLeg = AddPrimChild(leftHip.transform, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.3f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
+                        var rightLeg = AddPrimChild(rightHip.transform, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.3f, 0), new Vector3(0.1f, 0.15f, 0.1f), new Color(1f, 0.88f, 0.7f));
 
                         AddShoeToLeg(leftLeg, "LeftShoe");
                         AddShoeToLeg(rightLeg, "RightShoe");
                     }
                     break;
 
-                case 2:
-                    if (gender == 0) // Nam
+                case 2: // === CARGO (NAM) / CAPRI (NỮ) ===
+                    if (gender == 0) // Nam — cargo pants with pockets
                     {
-                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                            new Vector3(-0.1f, 0.22f, 0), new Vector3(0.16f, 0.25f, 0.16f), color);
-                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                            new Vector3(0.1f, 0.22f, 0), new Vector3(0.16f, 0.25f, 0.16f), color);
+                        var (leftHip, rightHip) = CreateHipPivots(container, hipY, 0.1f);
+
+                        var leftLeg = AddPrimChild(leftHip.transform, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.23f, 0), new Vector3(0.16f, 0.25f, 0.16f), color);
+                        var rightLeg = AddPrimChild(rightHip.transform, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.23f, 0), new Vector3(0.16f, 0.25f, 0.16f), color);
 
                         AddPrimChild(leftLeg.transform, "PocketL", PrimitiveType.Cube,
                             new Vector3(-0.55f, 0f, 0.1f), new Vector3(0.4f, 0.4f, 0.4f), color * 0.85f);
@@ -628,12 +665,14 @@ namespace RangerCity.Lobby
                         AddShoeToLeg(leftLeg, "LeftShoe");
                         AddShoeToLeg(rightLeg, "RightShoe");
                     }
-                    else // Nữ
+                    else // Nữ — capri pants with exposed shins
                     {
-                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                            new Vector3(-0.1f, 0.32f, 0), new Vector3(0.14f, 0.14f, 0.14f), color);
-                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                            new Vector3(0.1f, 0.32f, 0), new Vector3(0.14f, 0.14f, 0.14f), color);
+                        var (leftHip, rightHip) = CreateHipPivots(container, hipY, 0.1f);
+
+                        var leftLeg = AddPrimChild(leftHip.transform, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.13f, 0), new Vector3(0.14f, 0.14f, 0.14f), color);
+                        var rightLeg = AddPrimChild(rightHip.transform, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.13f, 0), new Vector3(0.14f, 0.14f, 0.14f), color);
 
                         var leftShin = AddPrimChild(leftLeg.transform, "LeftShin", PrimitiveType.Capsule,
                             new Vector3(0f, -0.9f, 0f), new Vector3(0.66f, 0.66f, 0.66f), new Color(1f, 0.88f, 0.7f));
@@ -645,17 +684,37 @@ namespace RangerCity.Lobby
                     }
                     break;
 
-                case 3:
+                case 3: // === SLIM FIT PANTS ===
                     {
-                        var leftLeg = AddPrimChild(container, "LeftLeg", PrimitiveType.Capsule,
-                            new Vector3(-0.1f, 0.22f, 0), new Vector3(0.13f, 0.25f, 0.13f), color);
-                        var rightLeg = AddPrimChild(container, "RightLeg", PrimitiveType.Capsule,
-                            new Vector3(0.1f, 0.22f, 0), new Vector3(0.13f, 0.25f, 0.13f), color);
+                        var (leftHip, rightHip) = CreateHipPivots(container, hipY, 0.1f);
+
+                        var leftLeg = AddPrimChild(leftHip.transform, "LeftLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.23f, 0), new Vector3(0.13f, 0.25f, 0.13f), color);
+                        var rightLeg = AddPrimChild(rightHip.transform, "RightLeg", PrimitiveType.Capsule,
+                            new Vector3(0, -0.23f, 0), new Vector3(0.13f, 0.25f, 0.13f), color);
+
                         AddShoeToLeg(leftLeg, "LeftShoe");
                         AddShoeToLeg(rightLeg, "RightShoe");
                     }
                     break;
             }
+        }
+
+        /// <summary>
+        /// Creates LeftHip and RightHip empty GameObjects at the hip joint position.
+        /// The animator rotates these pivots so legs swing naturally from the hip.
+        /// </summary>
+        private static (GameObject leftHip, GameObject rightHip) CreateHipPivots(Transform container, float hipY, float hipX)
+        {
+            var leftHip = new GameObject("LeftHip");
+            leftHip.transform.SetParent(container, false);
+            leftHip.transform.localPosition = new Vector3(-hipX, hipY, 0);
+
+            var rightHip = new GameObject("RightHip");
+            rightHip.transform.SetParent(container, false);
+            rightHip.transform.localPosition = new Vector3(hipX, hipY, 0);
+
+            return (leftHip, rightHip);
         }
 
         private static void AddShoeToLeg(GameObject leg, string shoeName)
@@ -715,33 +774,49 @@ namespace RangerCity.Lobby
             var shader = Shader.Find("Universal Render Pipeline/Lit");
             if (shader == null) shader = Shader.Find("Standard");
             if (shader == null) shader = Shader.Find("Unlit/Color");
+            if (shader == null) shader = Shader.Find("UI/Default");
 
-            var mat = new Material(shader);
-            mat.color = color;
+            Material mat = null;
+            try
+            {
+                if (shader != null)
+                {
+                    mat = new Material(shader);
+                    mat.color = color;
 
-            if (mat.HasProperty("_Smoothness"))
-            {
-                mat.SetFloat("_Smoothness", 0.05f);
-            }
-            else if (mat.HasProperty("_Glossiness"))
-            {
-                mat.SetFloat("_Glossiness", 0.05f);
-            }
-            if (mat.HasProperty("_Metallic"))
-            {
-                mat.SetFloat("_Metallic", 0.0f);
-            }
+                    if (mat.HasProperty("_Smoothness"))
+                    {
+                        mat.SetFloat("_Smoothness", 0.05f);
+                    }
+                    else if (mat.HasProperty("_Glossiness"))
+                    {
+                        mat.SetFloat("_Glossiness", 0.05f);
+                    }
+                    if (mat.HasProperty("_Metallic"))
+                    {
+                        mat.SetFloat("_Metallic", 0.0f);
+                    }
 
-            if (color.a < 1f)
+                    if (color.a < 1f)
+                    {
+                        mat.SetFloat("_Mode", 3);
+                        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                        mat.SetInt("_ZWrite", 0);
+                        mat.DisableKeyword("_ALPHATEST_ON");
+                        mat.EnableKeyword("_ALPHABLEND_ON");
+                        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                        mat.renderQueue = 3000;
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning("[CharacterVisuals] All shaders stripped/null in CreateMat.");
+                }
+            }
+            catch (System.Exception e)
             {
-                mat.SetFloat("_Mode", 3);
-                mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                mat.SetInt("_ZWrite", 0);
-                mat.DisableKeyword("_ALPHATEST_ON");
-                mat.EnableKeyword("_ALPHABLEND_ON");
-                mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-                mat.renderQueue = 3000;
+                Debug.LogWarning($"[CharacterVisuals] Failed to create material: {e.Message}");
             }
 
             return mat;

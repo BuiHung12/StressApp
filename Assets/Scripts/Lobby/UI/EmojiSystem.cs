@@ -16,11 +16,26 @@ namespace RangerCity.Lobby
         [SerializeField] private float _emojiFloatSpeed = 0.3f;
         [SerializeField] private float _emojiScale = 0.008f;
 
-        // Danh sách emoji có sẵn
+        // Danh sách emoji có sẵn (được hỗ trợ bởi EmojiOne của TextMesh Pro)
+        // Sử dụng thẻ <sprite> để TextMesh Pro tự vẽ các icon có màu chuẩn mà không cần font hệ thống
         public static readonly string[] AvailableEmojis = new string[]
         {
-            "❤️", "😂", "😮", "👋", "💪", "🔥",
-            "⭐", "😴", "😡", "🎉", "👍", "😢"
+            "<sprite=\"EmojiOne\" name=\"Grinning face\">",                  // 😀
+            "<sprite=\"EmojiOne\" name=\"1f601\">",                          // 😁
+            "<sprite=\"EmojiOne\" name=\"Face with tears of joy\">",         // 😂
+            "<sprite=\"EmojiOne\" name=\"1f603\">",                          // 😃
+            "<sprite=\"EmojiOne\" name=\"1f604\">",                          // 😄
+            "<sprite=\"EmojiOne\" name=\"1f605\">",                          // 😅
+            "<sprite=\"EmojiOne\" name=\"1f606\">",                          // 😆
+            "<sprite=\"EmojiOne\" name=\"1f609\">",                          // 😉
+            "<sprite=\"EmojiOne\" name=\"Smiling face with smiling eyes\">", // 😊
+            "<sprite=\"EmojiOne\" name=\"1f60b\">",                          // 😋
+            "<sprite=\"EmojiOne\" name=\"1f60d\">",                          // 😍
+            "<sprite=\"EmojiOne\" name=\"1f60e\">",                          // 😎
+            "<sprite=\"EmojiOne\" name=\"1f618\">",                          // 😘
+            "<sprite=\"EmojiOne\" name=\"1f923\">",                          // 🤣
+            "<sprite=\"EmojiOne\" name=\"263a\">",                           // ☺
+            "<sprite=\"EmojiOne\" name=\"2639\">"                            // ☹
         };
 
         // Emoji hiển thị hiện tại
@@ -92,26 +107,6 @@ namespace RangerCity.Lobby
             }
         }
 
-        private string GetDisplayEmojiText(string emoji)
-        {
-            switch (emoji)
-            {
-                case "❤️": return "<color=#FF3366>♥</color>";
-                case "😂": return "[ Haha ]";
-                case "😮": return "[ Wow ]";
-                case "👋": return "[ Hi! ]";
-                case "💪": return "[ Fight ]";
-                case "🔥": return "[ Fire ]";
-                case "⭐": return "<color=#FFCC00>★</color>";
-                case "😴": return "[ Zzz ]";
-                case "😡": return "[ Angry ]";
-                case "🎉": return "[ Yay! ]";
-                case "👍": return "[ Like ]";
-                case "😢": return "[ Sad ]";
-                default: return $"[ {emoji} ]";
-            }
-        }
-
         private void SpawnEmojiVisual(string emoji)
         {
             DestroyEmoji();
@@ -123,9 +118,9 @@ namespace RangerCity.Lobby
             _emojiBasePos = new Vector3(0, headHeight, 0);
             _currentEmojiObj.transform.localPosition = _emojiBasePos;
 
-            // TextMeshPro 3D cho emoji
+            // TextMeshPro 3D cho emoji (Tự động map sang EmojiOne sprite)
             var tmp = _currentEmojiObj.AddComponent<TextMeshPro>();
-            tmp.text = GetDisplayEmojiText(emoji);
+            tmp.text = emoji;
             tmp.fontSize = 6;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.enableWordWrapping = false;
@@ -139,7 +134,7 @@ namespace RangerCity.Lobby
             // Bắt đầu timer cho animation
             _emojiTimer = 0f;
 
-            Debug.Log($"[EmojiSystem] Showing emoji: {emoji} as '{tmp.text}' on {gameObject.name}");
+            Debug.Log($"[EmojiSystem] Showing actual emoji: {emoji} on {gameObject.name}");
         }
 
         private void DestroyEmoji()

@@ -19,6 +19,11 @@ namespace RangerCity.Lobby
 
         private void Start()
         {
+            if (NetworkSetup.IsHeadlessServer())
+            {
+                enabled = false;
+                return;
+            }
             CreateBillboard();
             UpdateVisuals();
             _cachedCamera = Camera.main;

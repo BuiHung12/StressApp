@@ -223,13 +223,30 @@ namespace RangerCity.Lobby
             var shader = Shader.Find("Universal Render Pipeline/Particles/Unlit");
             if (shader == null) shader = Shader.Find("Particles/Standard Unlit");
             if (shader == null) shader = Shader.Find("Particles/Alpha Blended");
+            if (shader == null) shader = Shader.Find("Standard");
             if (shader == null) shader = Shader.Find("Unlit/Color");
+            if (shader == null) shader = Shader.Find("UI/Default");
 
-            var mat = new Material(shader);
-            mat.color = tint;
-            mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-            mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One); // Additive for glow
-            mat.renderQueue = 3100;
+            Material mat = null;
+            try
+            {
+                if (shader != null)
+                {
+                    mat = new Material(shader);
+                    mat.color = tint;
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.One); // Additive for glow
+                    mat.renderQueue = 3100;
+                }
+                else
+                {
+                    Debug.LogWarning("[ZoneParticles] All particle shaders were stripped/null.");
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[ZoneParticles] Failed to create particle material: {e.Message}");
+            }
             return mat;
         }
     }

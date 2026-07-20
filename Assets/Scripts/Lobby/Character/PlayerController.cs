@@ -48,8 +48,8 @@ namespace RangerCity.Lobby
         private bool _isJailed;
         private float _jailTimer;
         private int _rangerCoins = 50;
-        private int _npcPunchCount = 0;
         private float _teleportCooldownTimer;
+        private float _saveTimer = 0f;
 
         public float InteractionRange => _interactionRange;
         public bool IsPunching => _isPunching;
@@ -62,8 +62,11 @@ namespace RangerCity.Lobby
 
         private void Start()
         {
+            Debug.Log("[PlayerController] Start began");
             _mainCamera = Camera.main;
+            Debug.Log("[PlayerController] Start: mainCamera=" + (_mainCamera != null));
             _animator = GetComponentInChildren<Animator>();
+            Debug.Log("[PlayerController] Start: animator=" + (_animator != null));
 
             _gardenPortal = GameObject.Find("GardenPortal");
             _prisonPortal = GameObject.Find("PrisonPortal");
@@ -73,6 +76,26 @@ namespace RangerCity.Lobby
             _prisonRet = GameObject.Find("PrisonReturnPortal");
             _fishingRet = GameObject.Find("FishingReturnPortal");
             _studyRet = GameObject.Find("StudyReturnPortal");
+            Debug.Log("[PlayerController] Start: portals checked");
+
+            // Load saved player position if exists
+            if (PlayerPrefs.HasKey("PlayerPosX"))
+            {
+                float x = PlayerPrefs.GetFloat("PlayerPosX");
+                float y = PlayerPrefs.GetFloat("PlayerPosY");
+                float z = PlayerPrefs.GetFloat("PlayerPosZ");
+                transform.position = new Vector3(x, y, z);
+                Debug.Log("[PlayerController] Start: position loaded: " + transform.position);
+            }
+            Debug.Log("[PlayerController] Start finished");
+        }
+
+        private void SavePositionToPrefs()
+        {
+            PlayerPrefs.SetFloat("PlayerPosX", transform.position.x);
+            PlayerPrefs.SetFloat("PlayerPosY", transform.position.y);
+            PlayerPrefs.SetFloat("PlayerPosZ", transform.position.z);
+            PlayerPrefs.Save();
         }
 
         private void Update()
@@ -94,6 +117,17 @@ namespace RangerCity.Lobby
             HandleInteractionKey();
             CheckPortals();
             DetectNearbyInteractables();
+
+            // Save player position periodically during movement
+            if (_isClickMoving || _wasKeyboardMoving)
+            {
+                _saveTimer += Time.deltaTime;
+                if (_saveTimer >= 1.0f)
+                {
+                    _saveTimer = 0f;
+                    SavePositionToPrefs();
+                }
+            }
         }
 
         private void HandleKeyboardMovement()
@@ -142,6 +176,9 @@ namespace RangerCity.Lobby
 
         private void HandleClickMovement()
         {
+            // On mobile platforms, only use virtual joystick — disable click/tap-to-move
+            if (Application.isMobilePlatform) return;
+
             if (Input.GetMouseButtonDown(0) && _mainCamera != null)
             {
                 if (UnityEngine.EventSystems.EventSystem.current != null &&
@@ -258,18 +295,11 @@ namespace RangerCity.Lobby
 
                 if (closestTarget is NPCController)
                 {
-                    _npcPunchCount++;
-                    Debug.Log($"[PlayerController] Punched NPC. Progress: {_npcPunchCount}/3");
-                    if (_npcPunchCount >= 3)
-                    {
-                        _npcPunchCount = 0;
-                        Invoke(nameof(GoToJail), 1.6f);
-                    }
+                    Debug.Log("[PlayerController] Punched NPC. No jail penalty.");
                 }
-                else // PlayerController or FakePlayerController
+                else // PlayerController, FakePlayerController, or NetworkPlayer
                 {
                     Debug.Log("[PlayerController] Punched a player/fake player! Sending to jail immediately.");
-                    _npcPunchCount = 0;
                     Invoke(nameof(GoToJail), 1.6f);
                 }
             }
@@ -284,6 +314,7 @@ namespace RangerCity.Lobby
             _isJailed = true;
             _jailTimer = jailDuration;
             _isClickMoving = false;
+            SavePositionToPrefs();
             OnJailStart?.Invoke(jailDuration);
         }
 
@@ -298,6 +329,7 @@ namespace RangerCity.Lobby
             Debug.Log($"[PlayerController] Player released from jail. Moving to: {dest}");
             transform.position = dest;
             _teleportCooldownTimer = 1.0f;
+            SavePositionToPrefs();
             OnJailEnd?.Invoke();
         }
 
@@ -373,7 +405,7 @@ namespace RangerCity.Lobby
             if (gP != null && Vector3.Distance(currentPos, gP.transform.position) < portalRadius) Teleport(new Vector3(0, 0.05f, 56f));
             else if (pP != null && Vector3.Distance(currentPos, pP.transform.position) < portalRadius) Teleport(new Vector3(0, 0.05f, -56f));
             else if (fP != null && Vector3.Distance(currentPos, fP.transform.position) < portalRadius) Teleport(new Vector3(56f, 0.05f, 0));
-            else if (sP != null && Vector3.Distance(currentPos, sP.transform.position) < portalRadius) Teleport(new Vector3(-56f, 0.05f, 0));
+            else if (sP != null && Vector3.Distance(currentPos, sP.transform.position) < portalRadius) Teleport(new Vector3(-60f, 0.05f, -12f));
             else if (gR != null && Vector3.Distance(currentPos, gR.transform.position) < portalRadius) Teleport(gP != null ? gP.transform.position + new Vector3(0, 0, -1.2f) : new Vector3(0, 0.05f, 9.5f));
             else if (pR != null && Vector3.Distance(currentPos, pR.transform.position) < portalRadius) Teleport(pP != null ? pP.transform.position + new Vector3(0, 0, 1.2f) : new Vector3(0, 0.05f, -9.5f));
             else if (fR != null && Vector3.Distance(currentPos, fR.transform.position) < portalRadius) Teleport(fP != null ? fP.transform.position + new Vector3(-1.2f, 0, 0) : new Vector3(9.5f, 0.05f, 0));
@@ -386,14 +418,7 @@ namespace RangerCity.Lobby
             transform.position = destination;
             _isClickMoving = false;
             _teleportCooldownTimer = 1.0f;
-            
-            var flash = new GameObject("TeleportFlash");
-            flash.transform.position = destination + Vector3.up * 0.5f;
-            var light = flash.AddComponent<Light>();
-            light.color = Color.cyan;
-            light.range = 8f;
-            light.intensity = 3f;
-            Destroy(flash, 0.25f);
+            SavePositionToPrefs();
         }
 
         private void DetectNearbyInteractables()
@@ -435,10 +460,10 @@ namespace RangerCity.Lobby
             float z = pos.z;
             float x = pos.x;
 
-            if (z > 40f) { pos.x = Mathf.Clamp(x, -8f, 8f); pos.z = Mathf.Clamp(z, 52f, 68f); }
-            else if (z < -40f) { pos.x = Mathf.Clamp(x, -8f, 8f); pos.z = Mathf.Clamp(z, -68f, -52f); }
-            else if (x > 40f) { pos.x = Mathf.Clamp(x, 52f, 68f); pos.z = Mathf.Clamp(z, -8f, 8f); }
-            else if (x < -40f) { pos.x = Mathf.Clamp(x, -68f, -52f); pos.z = Mathf.Clamp(z, -8f, 8f); }
+            if (z > 40f) { pos.x = Mathf.Clamp(x, -14f, 14f); pos.z = Mathf.Clamp(z, 46f, 74f); }
+            else if (z < -40f) { pos.x = Mathf.Clamp(x, -14f, 14f); pos.z = Mathf.Clamp(z, -74f, -46f); }
+            else if (x > 40f) { pos.x = Mathf.Clamp(x, 46f, 74f); pos.z = Mathf.Clamp(z, -14f, 14f); }
+            else if (x < -40f) { pos.x = Mathf.Clamp(x, -74f, -46f); pos.z = Mathf.Clamp(z, -14f, 14f); }
             else { pos.x = Mathf.Clamp(x, _worldMinX, _worldMaxX); pos.z = Mathf.Clamp(z, _worldMinZ, _worldMaxZ); }
 
             return pos;

@@ -4,43 +4,52 @@ using TMPro;
 namespace RangerCity.Lobby
 {
     /// <summary>
-    /// Bến Cảng Nhỏ — Harbor Village with 5 sub-areas:
-    /// 1. Sandy Beach (S)          2. Campfire Corner (SE)
-    /// 3. Water Area (Center)      4. Dock Boardwalk (N)
-    /// 5. Lighthouse (NE)
-    /// Multi-level terrain, warm sunset lighting.
-    /// Located at world X = +60.
+    /// Bến Cảng Nhỏ — Harbor Village (30×30, centered at 60,0,0).
+    /// 3-level terrain layout:
+    ///   South (y=0):   Sandy Beach + Campfire Corner
+    ///   Center (slope): Stone transition
+    ///   North (y=0.3): Dock Boardwalk + Boat House + Lighthouse
     /// </summary>
     public static class FishingZoneBuilder
     {
+        // Zone bounds: -15 to +15 in X and Z (local space)
+        // Beach:  Z[-14, -2], y=0
+        // Slope:  Z[-2, 2],  y transitions
+        // Dock:   Z[2, 14],  y=0.3
+
+        static readonly Color SandColor  = new(0.85f, 0.78f, 0.6f);
+        static readonly Color DockWood   = new(0.45f, 0.32f, 0.2f);
+        static readonly Color WetStone   = new(0.55f, 0.5f, 0.45f);
+        static readonly Color WaterBlue  = new(0.15f, 0.4f, 0.65f, 0.8f);
+
         public static void Build()
         {
             var zone = new GameObject("FishingZone");
             zone.transform.position = new Vector3(60f, 0, 0f);
 
-            // ═══ Multi-level ground ═══
+            // ═══ 3-Level Terrain ═══
             BuildTerrain(zone.transform);
 
             // ═══ Zone Lighting — sunset golden ═══
             ZoneFactory.CreateZoneLighting(zone.transform, new Color(1f, 0.85f, 0.6f), 1.8f, new Vector3(-0.3f, -1f, 0.2f));
 
-            // ═══ Area 1: Sandy Beach (South) ═══
+            // ═══ South: Sandy Beach (left half) ═══
             BuildBeach(zone.transform);
 
-            // ═══ Area 2: Campfire Corner (SE) ═══
+            // ═══ South: Campfire Corner (right half) ═══
             BuildCampfire(zone.transform);
 
-            // ═══ Area 3: Water Area (Center) ═══
+            // ═══ Center: Water Area ═══
             BuildWaterArea(zone.transform);
 
-            // ═══ Area 4: Dock Boardwalk (North) ═══
+            // ═══ North: Dock Boardwalk (center-left) ═══
             BuildDock(zone.transform);
 
-            // ═══ Area 5: Lighthouse (NE) ═══
-            BuildLighthouse(zone.transform);
-
-            // ═══ Boat House (NW) ═══
+            // ═══ North-West: Boat House ═══
             BuildBoatHouse(zone.transform);
+
+            // ═══ North-East: Lighthouse ═══
+            BuildLighthouse(zone.transform);
 
             // ═══ Firefly particles ═══
             ZoneParticles.CreateFloatingParticles(
@@ -53,7 +62,7 @@ namespace RangerCity.Lobby
             // ═══ Title ═══
             var title = new GameObject("FishingTitle");
             title.transform.SetParent(zone.transform, false);
-            title.transform.localPosition = new Vector3(0, 3.5f, -5f);
+            title.transform.localPosition = new Vector3(0, 3.5f, -14f);
             var tmp = title.AddComponent<TextMeshPro>();
             tmp.text = "Bến Cảng Nhỏ";
             tmp.fontSize = 6.4f;
@@ -68,92 +77,113 @@ namespace RangerCity.Lobby
                 "Về Sảnh Chờ");
         }
 
-        // ── Multi-level terrain ──
+        // ────────────────────────────────────────────────────────
+        //  3-LEVEL TERRAIN
+        // ────────────────────────────────────────────────────────
         private static void BuildTerrain(Transform parent)
         {
-            // Beach level (South, y=0)
-            var beachGround = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            beachGround.name = "BeachGround";
-            beachGround.transform.SetParent(parent, false);
-            beachGround.transform.localPosition = new Vector3(0, -0.05f, -8f);
-            beachGround.transform.localScale = new Vector3(28f, 0.1f, 10f);
-            beachGround.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.85f, 0.78f, 0.6f));
-            Object.Destroy(beachGround.GetComponent<Collider>());
-            var bc = beachGround.AddComponent<BoxCollider>();
-            bc.size = Vector3.one;
+            // Beach ground (South, Z[-14,-2], y=0, scale Z is 12)
+            var beach = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            beach.name = "BeachGround";
+            beach.transform.SetParent(parent, false);
+            beach.transform.localPosition = new Vector3(0, -0.05f, -8f);
+            beach.transform.localScale = new Vector3(30f, 0.1f, 12f);
+            beach.GetComponent<Renderer>().material = ZoneFactory.CreateMat(SandColor);
+            Object.Destroy(beach.GetComponent<Collider>());
+            beach.AddComponent<BoxCollider>().size = Vector3.one;
 
-            // Dock level (North, y=0.3 — raised platform)
-            var dockGround = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            dockGround.name = "DockGround";
-            dockGround.transform.SetParent(parent, false);
-            dockGround.transform.localPosition = new Vector3(0, 0.1f, 8f);
-            dockGround.transform.localScale = new Vector3(28f, 0.3f, 12f);
-            dockGround.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.45f, 0.32f, 0.2f));
-            Object.Destroy(dockGround.GetComponent<Collider>());
-            var dc = dockGround.AddComponent<BoxCollider>();
-            dc.size = Vector3.one;
-
-            // Transition slope
+            // Flat transition stone pathway (Z[-2,2], y=0)
             var slope = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            slope.name = "Slope";
+            slope.name = "SlopeTransition";
             slope.transform.SetParent(parent, false);
-            slope.transform.localPosition = new Vector3(0, 0.05f, 1f);
-            slope.transform.localScale = new Vector3(28f, 0.15f, 4f);
-            slope.transform.localRotation = Quaternion.Euler(5f, 0, 0);
-            slope.GetComponent<Renderer>().material = ZoneFactory.StoneMat(new Color(0.55f, 0.5f, 0.45f));
+            slope.transform.localPosition = new Vector3(0, -0.05f, 0);
+            slope.transform.localScale = new Vector3(30f, 0.1f, 4f);
+            slope.GetComponent<Renderer>().material = ZoneFactory.StoneMat(WetStone);
             Object.Destroy(slope.GetComponent<Collider>());
-            slope.AddComponent<BoxCollider>();
+            slope.AddComponent<BoxCollider>().size = Vector3.one;
+
+            // Dock wood boardwalk ground (North, Z[2,14], y=0)
+            var dock = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            dock.name = "DockGround";
+            dock.transform.SetParent(parent, false);
+            dock.transform.localPosition = new Vector3(0, -0.04f, 8f);
+            dock.transform.localScale = new Vector3(30f, 0.08f, 12f);
+            dock.GetComponent<Renderer>().material = ZoneFactory.WoodMat(DockWood);
+            Object.Destroy(dock.GetComponent<Collider>());
+            dock.AddComponent<BoxCollider>().size = Vector3.one;
         }
 
-        // ── Area 1: Sandy Beach ──
+        // ────────────────────────────────────────────────────────
+        //  SANDY BEACH (South-West area: X[-14,0], Z[-14,-2])
+        //  Center: (-7, 0, -8)
+        // ────────────────────────────────────────────────────────
         private static void BuildBeach(Transform parent)
         {
             var area = new GameObject("Beach");
             area.transform.SetParent(parent, false);
-            area.transform.localPosition = new Vector3(-5f, 0, -9f);
+            area.transform.localPosition = new Vector3(-5f, 0, -8f);
 
-            // Palm trees (compound shapes)
-            BuildPalmTree(area.transform, new Vector3(-3f, 0, 0));
-            BuildPalmTree(area.transform, new Vector3(3f, 0, 1f));
-            BuildPalmTree(area.transform, new Vector3(8f, 0, -1.5f));
+            // Area sign
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2f, -5f), "🏖️ Bãi Cát");
+
+            // Palm trees at fixed positions
+            BuildPalmTree(area.transform, new Vector3(-6f, 0, 0));
+            BuildPalmTree(area.transform, new Vector3(4f, 0, 2f));
+            BuildPalmTree(area.transform, new Vector3(8f, 0, -2f));
 
             // Beach towel
             var towel = GameObject.CreatePrimitive(PrimitiveType.Cube);
             towel.name = "BeachTowel";
             towel.transform.SetParent(area.transform, false);
-            towel.transform.localPosition = new Vector3(0, 0.02f, 0.5f);
+            towel.transform.localPosition = new Vector3(-2f, 0.02f, 0);
             towel.transform.localScale = new Vector3(1.2f, 0.02f, 0.7f);
             towel.transform.localRotation = Quaternion.Euler(0, 15f, 0);
             towel.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.9f, 0.35f, 0.35f));
             Object.Destroy(towel.GetComponent<Collider>());
 
-            // Shells (small spheres)
-            for (int i = 0; i < 6; i++)
+            // Shells (6, fixed positions along beach)
+            Vector3[] shellPos = {
+                new(-4f, 0.02f, -1f), new(-1f, 0.02f, 1.5f), new(1f, 0.02f, -0.5f),
+                new(3f, 0.02f, 0.5f), new(5f, 0.02f, -1.5f), new(7f, 0.02f, 1f)
+            };
+            foreach (var sp in shellPos)
             {
                 var shell = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 shell.name = "Shell";
                 shell.transform.SetParent(area.transform, false);
-                shell.transform.localPosition = new Vector3(
-                    Random.Range(-5f, 5f), 0.02f, Random.Range(-2f, 2f));
-                shell.transform.localScale = Vector3.one * Random.Range(0.04f, 0.08f);
-                shell.GetComponent<Renderer>().material = ZoneFactory.GlossyMat(
-                    new Color(0.9f + Random.Range(-0.1f, 0f), 0.85f + Random.Range(-0.1f, 0f), 0.75f));
+                shell.transform.localPosition = sp;
+                shell.transform.localScale = Vector3.one * 0.06f;
+                shell.GetComponent<Renderer>().material = ZoneFactory.GlossyMat(new Color(0.88f, 0.83f, 0.75f));
                 Object.Destroy(shell.GetComponent<Collider>());
             }
 
             // Sandcastle
-            BuildSandcastle(area.transform, new Vector3(5f, 0, 0));
+            BuildSandcastle(area.transform, new Vector3(1f, 0, -2f));
         }
 
-        // ── Area 2: Campfire Corner ──
+        // ────────────────────────────────────────────────────────
+        //  CAMPFIRE CORNER (South-East: X[3,14], Z[-14,-2])
+        //  Center: (8, 0, -8)
+        // ────────────────────────────────────────────────────────
         private static void BuildCampfire(Transform parent)
         {
             var area = new GameObject("CampfireCorner");
             area.transform.SetParent(parent, false);
-            area.transform.localPosition = new Vector3(8f, 0, -9f);
+            area.transform.localPosition = new Vector3(8f, 0, -8f);
 
-            // Fire pit stones (ring)
-            Color stoneColor = new Color(0.35f, 0.33f, 0.3f);
+            // Area sign
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2f, -4f), "🔥 Lửa Trại");
+
+            // Stone circle floor
+            var fireFloor = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            fireFloor.name = "CampfireFloor";
+            fireFloor.transform.SetParent(area.transform, false);
+            fireFloor.transform.localPosition = new Vector3(0, 0.01f, 0);
+            fireFloor.transform.localScale = new Vector3(4f, 0.01f, 4f);
+            fireFloor.GetComponent<Renderer>().material = ZoneFactory.StoneMat(new Color(0.4f, 0.38f, 0.35f));
+            Object.Destroy(fireFloor.GetComponent<Collider>());
+
+            // Fire pit stones (ring of 8)
             for (int i = 0; i < 8; i++)
             {
                 float angle = i * 45f * Mathf.Deg2Rad;
@@ -162,11 +192,11 @@ namespace RangerCity.Lobby
                 stone.transform.SetParent(area.transform, false);
                 stone.transform.localPosition = new Vector3(Mathf.Cos(angle) * 0.5f, 0.08f, Mathf.Sin(angle) * 0.5f);
                 stone.transform.localScale = new Vector3(0.2f, 0.15f, 0.2f);
-                stone.GetComponent<Renderer>().material = ZoneFactory.StoneMat(stoneColor * Random.Range(0.85f, 1.1f));
+                stone.GetComponent<Renderer>().material = ZoneFactory.StoneMat(new Color(0.35f, 0.33f, 0.3f));
                 Object.Destroy(stone.GetComponent<Collider>());
             }
 
-            // Fire (glowing orange-red core)
+            // Fire core
             var fire = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             fire.name = "FireCore";
             fire.transform.SetParent(area.transform, false);
@@ -175,7 +205,7 @@ namespace RangerCity.Lobby
             fire.GetComponent<Renderer>().material = ZoneFactory.CreateLitMat(new Color(1f, 0.5f, 0.1f, 0.9f), 0.9f, 0f);
             Object.Destroy(fire.GetComponent<Collider>());
 
-            // Fire light
+            // Fire point light
             var fireLight = new GameObject("FireLight");
             fireLight.transform.SetParent(area.transform, false);
             fireLight.transform.localPosition = new Vector3(0, 0.5f, 0);
@@ -185,14 +215,13 @@ namespace RangerCity.Lobby
             light.range = 5f;
             light.intensity = 2f;
 
-            // Ember particles
             ZoneParticles.CreateFireEmbers(area.transform, new Vector3(0, 0.2f, 0), new Color(1f, 0.6f, 0.1f));
 
-            // Log seats (3 around fire)
+            // Log seats (3 evenly spaced at 120°)
             for (int i = 0; i < 3; i++)
             {
                 float angle = (i * 120f + 30f) * Mathf.Deg2Rad;
-                float dist = 1.2f;
+                float dist = 1.3f;
                 var log = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 log.name = "LogSeat_Collider";
                 log.transform.SetParent(area.transform, false);
@@ -201,228 +230,227 @@ namespace RangerCity.Lobby
                 log.transform.localRotation = Quaternion.Euler(90f, i * 40f, 0);
                 log.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.4f, 0.25f, 0.12f));
             }
-
-            // Marshmallow sticks (thin cylinders)
-            for (int i = 0; i < 2; i++)
-            {
-                var stick = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                stick.name = "MarshmallowStick";
-                stick.transform.SetParent(area.transform, false);
-                stick.transform.localPosition = new Vector3(-0.5f + i * 0.4f, 0.3f, 0.6f);
-                stick.transform.localScale = new Vector3(0.02f, 0.4f, 0.02f);
-                stick.transform.localRotation = Quaternion.Euler(30f, i * 20f, 0);
-                stick.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.5f, 0.35f, 0.15f));
-                Object.Destroy(stick.GetComponent<Collider>());
-            }
         }
 
-        // ── Area 3: Water Area (irregular pond) ──
+        // ────────────────────────────────────────────────────────
+        //  WATER AREA (transition zone, center Z[-2,2])
+        // ────────────────────────────────────────────────────────
         private static void BuildWaterArea(Transform parent)
         {
             var area = new GameObject("WaterArea");
             area.transform.SetParent(parent, false);
             area.transform.localPosition = new Vector3(0, 0, 0);
 
-            // Main water body (overlapping cylinders for irregular shape)
+            // Two overlapping water cylinders for irregular pond shape
             var water1 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             water1.name = "Water1";
             water1.transform.SetParent(area.transform, false);
-            water1.transform.localPosition = new Vector3(-2f, -0.05f, -1f);
-            water1.transform.localScale = new Vector3(8f, 0.02f, 6f);
-            water1.GetComponent<Renderer>().material = ZoneFactory.WaterMat(new Color(0.15f, 0.4f, 0.65f, 0.8f));
+            water1.transform.localPosition = new Vector3(-3f, 0.02f, 0);
+            water1.transform.localScale = new Vector3(10f, 0.02f, 5f);
+            water1.GetComponent<Renderer>().material = ZoneFactory.WaterMat(WaterBlue);
             Object.Destroy(water1.GetComponent<Collider>());
 
             var water2 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             water2.name = "Water2";
             water2.transform.SetParent(area.transform, false);
-            water2.transform.localPosition = new Vector3(3f, -0.05f, 0.5f);
-            water2.transform.localScale = new Vector3(6f, 0.02f, 5f);
+            water2.transform.localPosition = new Vector3(4f, 0.02f, 0.5f);
+            water2.transform.localScale = new Vector3(8f, 0.02f, 4f);
             water2.GetComponent<Renderer>().material = ZoneFactory.WaterMat(new Color(0.12f, 0.35f, 0.6f, 0.78f));
             Object.Destroy(water2.GetComponent<Collider>());
 
-            // Water ripples
-            ZoneParticles.CreateWaterRipples(area.transform, new Vector3(0, -0.02f, 0), 4f);
+            ZoneParticles.CreateWaterRipples(area.transform, new Vector3(0, 0f, 0), 5f);
 
-            // Rocky shore edges
-            BuildRockyShore(area.transform);
-
-            // Lily pads
-            Vector3[] lilyPositions = {
-                new(-3f, 0f, -1.5f), new(-1f, 0f, 0.5f), new(2f, 0f, -0.5f),
-                new(4f, 0f, 1f), new(-2f, 0f, 0.8f)
+            // Shore rocks (fixed positions along edges)
+            var rocks = new (Vector3 pos, float size)[] {
+                (new(-8f, 0.1f, -1.5f), 0.5f),  (new(-6f, 0.12f, 1.5f), 0.6f),
+                (new(8f, 0.1f, -1f), 0.5f),     (new(9f, 0.08f, 1f), 0.4f),
+                (new(-4f, 0.08f, -2f), 0.35f),  (new(5f, 0.1f, -2f), 0.45f),
             };
-            foreach (var pos in lilyPositions)
+            foreach (var (pos, size) in rocks)
+            {
+                var rock = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                rock.name = "ShoreRock";
+                rock.transform.SetParent(area.transform, false);
+                rock.transform.localPosition = pos;
+                rock.transform.localScale = new Vector3(size, size * 0.5f, size * 0.8f);
+                rock.GetComponent<Renderer>().material = ZoneFactory.StoneMat(new Color(0.42f, 0.38f, 0.35f));
+                Object.Destroy(rock.GetComponent<Collider>());
+            }
+
+            // Lily pads (5 at fixed positions)
+            Vector3[] lilyPos = {
+                new(-4f, 0.01f, -0.5f), new(-1f, 0.01f, 0.5f), new(2f, 0.01f, 0),
+                new(5f, 0.01f, 0.8f), new(-2f, 0.01f, 1f)
+            };
+            foreach (var lp in lilyPos)
             {
                 var lily = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 lily.name = "LilyPad";
                 lily.transform.SetParent(area.transform, false);
-                lily.transform.localPosition = pos;
+                lily.transform.localPosition = lp;
                 lily.transform.localScale = new Vector3(0.4f, 0.005f, 0.4f);
-                lily.transform.localRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
                 lily.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.2f, 0.6f, 0.25f));
                 Object.Destroy(lily.GetComponent<Collider>());
-
-                // Small flower on some lily pads
-                if (Random.value > 0.4f)
-                {
-                    var flower = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                    flower.name = "LilyFlower";
-                    flower.transform.SetParent(lily.transform, false);
-                    flower.transform.localPosition = new Vector3(0.3f, 0.5f, 0);
-                    flower.transform.localScale = new Vector3(0.3f, 0.5f, 0.3f);
-                    flower.GetComponent<Renderer>().material = ZoneFactory.GlossyMat(new Color(0.95f, 0.8f, 0.85f));
-                    Object.Destroy(flower.GetComponent<Collider>());
-                }
             }
-
-            // Wooden posts in water
-            float[] postXs = { -5f, -1f, 3f, 6f };
-            foreach (float px in postXs)
-            {
-                var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                post.name = "WaterPost";
-                post.transform.SetParent(area.transform, false);
-                post.transform.localPosition = new Vector3(px, 0.3f, Random.Range(-1f, 1f));
-                post.transform.localScale = new Vector3(0.1f, 0.4f, 0.1f);
-                post.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.35f, 0.22f, 0.1f));
-                Object.Destroy(post.GetComponent<Collider>());
-            }
-
-            // Floating buoys (2)
-            var buoy1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            buoy1.name = "Buoy";
-            buoy1.transform.SetParent(area.transform, false);
-            buoy1.transform.localPosition = new Vector3(-4f, 0.1f, 0);
-            buoy1.transform.localScale = Vector3.one * 0.2f;
-            buoy1.GetComponent<Renderer>().material = ZoneFactory.GlossyMat(new Color(0.9f, 0.2f, 0.15f));
-            Object.Destroy(buoy1.GetComponent<Collider>());
-
-            var buoy2 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            buoy2.name = "Buoy2";
-            buoy2.transform.SetParent(area.transform, false);
-            buoy2.transform.localPosition = new Vector3(5f, 0.1f, 0.5f);
-            buoy2.transform.localScale = Vector3.one * 0.2f;
-            buoy2.GetComponent<Renderer>().material = ZoneFactory.GlossyMat(new Color(0.9f, 0.9f, 0.2f));
-            Object.Destroy(buoy2.GetComponent<Collider>());
         }
 
-        // ── Area 4: Dock Boardwalk ──
+        // ────────────────────────────────────────────────────────
+        //  DOCK BOARDWALK (North-Center: X[-6,6], Z[3,14])
+        //  Center: (0, 0.3, 8)
+        // ────────────────────────────────────────────────────────
         private static void BuildDock(Transform parent)
         {
             var area = new GameObject("DockBoardwalk");
             area.transform.SetParent(parent, false);
-            area.transform.localPosition = new Vector3(-3f, 0.25f, 8f);
+            area.transform.localPosition = new Vector3(0, 0f, 8f);
 
-            // Plank details on the dock
+            // Area sign
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2f, -4.5f), "⚓ Cầu Tàu");
+
+            // Plank details (8 planks, evenly spaced)
             for (int i = 0; i < 8; i++)
             {
                 var plank = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 plank.name = "DockPlank";
                 plank.transform.SetParent(area.transform, false);
-                plank.transform.localPosition = new Vector3(i * 1.5f - 5f, 0.02f, 0);
-                plank.transform.localScale = new Vector3(1.4f, 0.04f, 4f);
+                plank.transform.localPosition = new Vector3(i * 1.5f - 5.25f, 0.02f, 0);
+                plank.transform.localScale = new Vector3(1.4f, 0.04f, 8f);
                 plank.GetComponent<Renderer>().material = ZoneFactory.WoodMat(
-                    new Color(0.48f + Random.Range(-0.05f, 0.05f), 0.35f, 0.22f));
+                    new Color(0.48f, 0.35f, 0.22f));
                 Object.Destroy(plank.GetComponent<Collider>());
             }
 
-            // Fishing spots (3 with stools)
+            // 3 fishing spots with stools, evenly spaced
             for (int i = 0; i < 3; i++)
             {
-                float x = i * 4f - 4f;
+                float x = (i - 1) * 4f;
+
                 // Stool
                 var stool = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 stool.name = "FishingStool_Collider";
                 stool.transform.SetParent(area.transform, false);
-                stool.transform.localPosition = new Vector3(x, 0.15f, -1.2f);
+                stool.transform.localPosition = new Vector3(x, 0.15f, 3f);
                 stool.transform.localScale = new Vector3(0.3f, 0.15f, 0.3f);
                 stool.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.42f, 0.3f, 0.18f));
 
-                // Fishing rod (angled cylinder)
+                // Fishing rod
                 var rod = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
                 rod.name = "FishingRod";
                 rod.transform.SetParent(area.transform, false);
-                rod.transform.localPosition = new Vector3(x + 0.2f, 0.6f, -0.8f);
+                rod.transform.localPosition = new Vector3(x + 0.2f, 0.6f, 3.5f);
                 rod.transform.localScale = new Vector3(0.02f, 0.6f, 0.02f);
                 rod.transform.localRotation = Quaternion.Euler(30f, 0, 10f);
                 rod.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.5f, 0.38f, 0.2f));
                 Object.Destroy(rod.GetComponent<Collider>());
             }
 
-            // Rope coils (2)
-            for (int i = 0; i < 2; i++)
-            {
-                var rope = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                rope.name = "RopeCoil";
-                rope.transform.SetParent(area.transform, false);
-                rope.transform.localPosition = new Vector3(6f + i * 1.2f, 0.12f, 1f);
-                rope.transform.localScale = new Vector3(0.3f, 0.08f, 0.3f);
-                rope.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.7f, 0.6f, 0.4f));
-                Object.Destroy(rope.GetComponent<Collider>());
-            }
-
-            // Bait bucket
-            var bucket = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            bucket.name = "BaitBucket_Collider";
-            bucket.transform.SetParent(area.transform, false);
-            bucket.transform.localPosition = new Vector3(-6f, 0.15f, 0.5f);
-            bucket.transform.localScale = new Vector3(0.25f, 0.15f, 0.25f);
-            bucket.GetComponent<Renderer>().material = ZoneFactory.MetalMat(new Color(0.45f, 0.45f, 0.48f));
-
-            // Barrel
+            // Rope coils and barrel on dock
             var barrel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             barrel.name = "Barrel_Collider";
             barrel.transform.SetParent(area.transform, false);
-            barrel.transform.localPosition = new Vector3(-7f, 0.3f, -1f);
+            barrel.transform.localPosition = new Vector3(-5f, 0.3f, -2f);
             barrel.transform.localScale = new Vector3(0.4f, 0.3f, 0.4f);
             barrel.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.5f, 0.32f, 0.15f));
 
-            // Net hanging (flat plane)
-            var net = GameObject.CreatePrimitive(PrimitiveType.Quad);
-            net.name = "FishingNet";
-            net.transform.SetParent(area.transform, false);
-            net.transform.localPosition = new Vector3(8f, 1.2f, 0.5f);
-            net.transform.localScale = new Vector3(1.5f, 1.5f, 1f);
-            net.transform.localRotation = Quaternion.Euler(0, -20f, 0);
-            net.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.6f, 0.55f, 0.4f, 0.6f));
-            Object.Destroy(net.GetComponent<Collider>());
+            var bucket = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            bucket.name = "BaitBucket_Collider";
+            bucket.transform.SetParent(area.transform, false);
+            bucket.transform.localPosition = new Vector3(-4f, 0.15f, 2f);
+            bucket.transform.localScale = new Vector3(0.25f, 0.15f, 0.25f);
+            bucket.GetComponent<Renderer>().material = ZoneFactory.MetalMat(new Color(0.45f, 0.45f, 0.48f));
         }
 
-        // ── Area 5: Lighthouse ──
+        // ────────────────────────────────────────────────────────
+        //  BOAT HOUSE (North-West: X[-14,-7], Z[3,14])
+        //  Center: (-10, 0.3, 9)
+        // ────────────────────────────────────────────────────────
+        private static void BuildBoatHouse(Transform parent)
+        {
+            var area = new GameObject("BoatHouse");
+            area.transform.SetParent(parent, false);
+            area.transform.localPosition = new Vector3(-10f, 0f, 9f);
+
+            // Sub-area floor
+            ZoneFactory.CreateSubAreaFloor(area.transform, Vector3.zero,
+                new Vector3(6f, 0, 6f), new Color(0.42f, 0.3f, 0.18f), "BoatHouseFloor");
+
+            // Walls
+            var walls = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            walls.name = "BoatHouseWalls_Collider";
+            walls.transform.SetParent(area.transform, false);
+            walls.transform.localPosition = new Vector3(0, 0.8f, 0);
+            walls.transform.localScale = new Vector3(3f, 1.6f, 2.5f);
+            walls.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.5f, 0.35f, 0.2f));
+
+            // Roof
+            var roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            roof.name = "Roof";
+            roof.transform.SetParent(area.transform, false);
+            roof.transform.localPosition = new Vector3(0, 1.7f, 0);
+            roof.transform.localScale = new Vector3(3.4f, 0.12f, 2.9f);
+            roof.transform.localRotation = Quaternion.Euler(0, 0, 6f);
+            roof.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.55f, 0.2f, 0.12f));
+            Object.Destroy(roof.GetComponent<Collider>());
+
+            // Sign
+            var signObj = new GameObject("BaitSign");
+            signObj.transform.SetParent(area.transform, false);
+            signObj.transform.localPosition = new Vector3(0, 2f, -1.3f);
+            var signTmp = signObj.AddComponent<TextMeshPro>();
+            signTmp.text = "Cửa Hàng Mồi";
+            signTmp.fontSize = 2f;
+            signTmp.alignment = TextAlignmentOptions.Center;
+            signTmp.color = new Color(0.2f, 0.15f, 0.1f);
+            signObj.AddComponent<BillboardText>();
+        }
+
+        // ────────────────────────────────────────────────────────
+        //  LIGHTHOUSE (North-East: X[7,14], Z[5,14])
+        //  Center: (10, 0.3, 10)
+        // ────────────────────────────────────────────────────────
         private static void BuildLighthouse(Transform parent)
         {
-            var lh = new GameObject("Lighthouse");
-            lh.transform.SetParent(parent, false);
-            lh.transform.localPosition = new Vector3(10f, 0.25f, 10f);
+            var area = new GameObject("Lighthouse");
+            area.transform.SetParent(parent, false);
+            area.transform.localPosition = new Vector3(10f, 0f, 10f);
+
+            // Separate stone platform
+            ZoneFactory.CreateSubAreaFloor(area.transform, Vector3.zero,
+                new Vector3(5f, 0, 5f), new Color(0.5f, 0.48f, 0.45f), "LighthouseBase");
+
+            // Low fence around lighthouse
+            ZoneFactory.CreateLowFence(area.transform, new Vector3(0, 0, 2.3f), 4.5f, 0f, WetStone, 0.4f);
+            ZoneFactory.CreateLowFence(area.transform, new Vector3(2.3f, 0, 0), 4.5f, 90f, WetStone, 0.4f);
 
             // Foundation
             var foundation = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             foundation.name = "LHFoundation_Collider";
-            foundation.transform.SetParent(lh.transform, false);
+            foundation.transform.SetParent(area.transform, false);
             foundation.transform.localPosition = new Vector3(0, 0.1f, 0);
             foundation.transform.localScale = new Vector3(2.5f, 0.1f, 2.5f);
             foundation.GetComponent<Renderer>().material = ZoneFactory.StoneMat(new Color(0.55f, 0.52f, 0.5f));
 
-            // Tower body (3 tiers, narrowing)
+            // Tower tier 1
             var tier1 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             tier1.name = "LHTier1_Collider";
-            tier1.transform.SetParent(lh.transform, false);
+            tier1.transform.SetParent(area.transform, false);
             tier1.transform.localPosition = new Vector3(0, 1.2f, 0);
             tier1.transform.localScale = new Vector3(1.2f, 1.0f, 1.2f);
             tier1.GetComponent<Renderer>().material = ZoneFactory.StoneMat(new Color(0.88f, 0.85f, 0.8f));
 
+            // Tower tier 2
             var tier2 = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             tier2.name = "LHTier2";
-            tier2.transform.SetParent(lh.transform, false);
+            tier2.transform.SetParent(area.transform, false);
             tier2.transform.localPosition = new Vector3(0, 2.8f, 0);
             tier2.transform.localScale = new Vector3(0.9f, 0.8f, 0.9f);
             tier2.GetComponent<Renderer>().material = ZoneFactory.StoneMat(new Color(0.85f, 0.82f, 0.78f));
             Object.Destroy(tier2.GetComponent<Collider>());
 
-            // Red stripe band
+            // Red stripe
             var stripe = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             stripe.name = "RedStripe";
-            stripe.transform.SetParent(lh.transform, false);
+            stripe.transform.SetParent(area.transform, false);
             stripe.transform.localPosition = new Vector3(0, 2.3f, 0);
             stripe.transform.localScale = new Vector3(1.05f, 0.15f, 1.05f);
             stripe.GetComponent<Renderer>().material = ZoneFactory.GlossyMat(new Color(0.85f, 0.2f, 0.15f));
@@ -431,16 +459,16 @@ namespace RangerCity.Lobby
             // Observation deck
             var deck = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             deck.name = "ObsDeck";
-            deck.transform.SetParent(lh.transform, false);
+            deck.transform.SetParent(area.transform, false);
             deck.transform.localPosition = new Vector3(0, 3.6f, 0);
             deck.transform.localScale = new Vector3(1.4f, 0.05f, 1.4f);
             deck.GetComponent<Renderer>().material = ZoneFactory.StoneMat(new Color(0.65f, 0.63f, 0.6f));
             Object.Destroy(deck.GetComponent<Collider>());
 
-            // Lantern room (glass dome)
+            // Lantern room
             var lantern = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             lantern.name = "LanternRoom";
-            lantern.transform.SetParent(lh.transform, false);
+            lantern.transform.SetParent(area.transform, false);
             lantern.transform.localPosition = new Vector3(0, 4.0f, 0);
             lantern.transform.localScale = new Vector3(0.7f, 0.5f, 0.7f);
             lantern.GetComponent<Renderer>().material = ZoneFactory.GlossyMat(new Color(1f, 0.95f, 0.7f, 0.7f));
@@ -448,7 +476,7 @@ namespace RangerCity.Lobby
 
             // Beacon light
             var beacon = new GameObject("BeaconLight");
-            beacon.transform.SetParent(lh.transform, false);
+            beacon.transform.SetParent(area.transform, false);
             beacon.transform.localPosition = new Vector3(0, 4.0f, 0);
             var bl = beacon.AddComponent<Light>();
             bl.type = LightType.Spot;
@@ -458,52 +486,14 @@ namespace RangerCity.Lobby
             bl.spotAngle = 50f;
             bl.transform.localRotation = Quaternion.Euler(15f, 0, 0);
 
-            // Top cap
-            // Cone not available — use cylinder as cap
-            var capObj = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            capObj.name = "LHCap";
-            capObj.transform.SetParent(lh.transform, false);
-            capObj.transform.localPosition = new Vector3(0, 4.35f, 0);
-            capObj.transform.localScale = new Vector3(0.4f, 0.15f, 0.4f);
-            capObj.GetComponent<Renderer>().material = ZoneFactory.MetalMat(new Color(0.3f, 0.3f, 0.35f));
-            Object.Destroy(capObj.GetComponent<Collider>());
-        }
-
-        // ── Boat House (NW) ──
-        private static void BuildBoatHouse(Transform parent)
-        {
-            var bh = new GameObject("BoatHouse");
-            bh.transform.SetParent(parent, false);
-            bh.transform.localPosition = new Vector3(-10f, 0.25f, 9f);
-
-            // Walls
-            var walls = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            walls.name = "BoatHouseWalls_Collider";
-            walls.transform.SetParent(bh.transform, false);
-            walls.transform.localPosition = new Vector3(0, 0.7f, 0);
-            walls.transform.localScale = new Vector3(3f, 1.4f, 2.5f);
-            walls.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.5f, 0.35f, 0.2f));
-
-            // Roof
-            var roof = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            roof.name = "Roof";
-            roof.transform.SetParent(bh.transform, false);
-            roof.transform.localPosition = new Vector3(0, 1.55f, 0);
-            roof.transform.localScale = new Vector3(3.4f, 0.12f, 2.9f);
-            roof.transform.localRotation = Quaternion.Euler(0, 0, 6f);
-            roof.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.55f, 0.2f, 0.12f));
-            Object.Destroy(roof.GetComponent<Collider>());
-
-            // Sign "Bait Shop"
-            var signObj = new GameObject("BaitSign");
-            signObj.transform.SetParent(bh.transform, false);
-            signObj.transform.localPosition = new Vector3(0, 1.8f, -1.3f);
-            var signTmp = signObj.AddComponent<TextMeshPro>();
-            signTmp.text = "Cửa Hàng Mồi";
-            signTmp.fontSize = 2f;
-            signTmp.alignment = TextAlignmentOptions.Center;
-            signTmp.color = new Color(0.2f, 0.15f, 0.1f);
-            signObj.AddComponent<BillboardText>();
+            // Cap
+            var cap = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            cap.name = "LHCap";
+            cap.transform.SetParent(area.transform, false);
+            cap.transform.localPosition = new Vector3(0, 4.35f, 0);
+            cap.transform.localScale = new Vector3(0.4f, 0.15f, 0.4f);
+            cap.GetComponent<Renderer>().material = ZoneFactory.MetalMat(new Color(0.3f, 0.3f, 0.35f));
+            Object.Destroy(cap.GetComponent<Collider>());
         }
 
         // ═══════════════════════ HELPER BUILDERS ═══════════════════════
@@ -514,41 +504,37 @@ namespace RangerCity.Lobby
             tree.transform.SetParent(parent, false);
             tree.transform.localPosition = pos;
 
-            // Curved trunk (slightly angled cylinder)
+            // Trunk
             var trunk = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
             trunk.name = "PalmTrunk_Collider";
             trunk.transform.SetParent(tree.transform, false);
             trunk.transform.localPosition = new Vector3(0, 1.2f, 0);
             trunk.transform.localScale = new Vector3(0.15f, 1.2f, 0.15f);
-            trunk.transform.localRotation = Quaternion.Euler(0, 0, Random.Range(-8f, 8f));
             trunk.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.5f, 0.38f, 0.22f));
 
-            // Fronds (4-5 elongated flat spheres radiating out)
-            int frondCount = Random.Range(4, 6);
-            for (int i = 0; i < frondCount; i++)
+            // Fronds (5, evenly spaced)
+            for (int i = 0; i < 5; i++)
             {
-                float angle = (i * 360f / frondCount + Random.Range(-15f, 15f)) * Mathf.Deg2Rad;
+                float angle = i * 72f * Mathf.Deg2Rad;
                 var frond = GameObject.CreatePrimitive(PrimitiveType.Cube);
                 frond.name = "Frond";
                 frond.transform.SetParent(tree.transform, false);
                 frond.transform.localPosition = new Vector3(
                     Mathf.Cos(angle) * 0.6f, 2.3f, Mathf.Sin(angle) * 0.6f);
                 frond.transform.localScale = new Vector3(0.15f, 0.03f, 1.0f);
-                frond.transform.localRotation = Quaternion.Euler(
-                    30f, angle * Mathf.Rad2Deg, 0);
-                frond.GetComponent<Renderer>().material = ZoneFactory.CreateMat(
-                    new Color(0.2f + Random.Range(0f, 0.1f), 0.6f, 0.2f));
+                frond.transform.localRotation = Quaternion.Euler(30f, angle * Mathf.Rad2Deg, 0);
+                frond.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.22f, 0.6f, 0.2f));
                 Object.Destroy(frond.GetComponent<Collider>());
             }
 
-            // Coconuts
+            // Coconuts (2)
             for (int i = 0; i < 2; i++)
             {
                 var coconut = GameObject.CreatePrimitive(PrimitiveType.Sphere);
                 coconut.name = "Coconut";
                 coconut.transform.SetParent(tree.transform, false);
                 coconut.transform.localPosition = new Vector3(
-                    Random.Range(-0.15f, 0.15f), 2.15f, Random.Range(-0.15f, 0.15f));
+                    (i == 0 ? -0.1f : 0.1f), 2.15f, (i == 0 ? 0.05f : -0.05f));
                 coconut.transform.localScale = Vector3.one * 0.1f;
                 coconut.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.5f, 0.35f, 0.15f));
                 Object.Destroy(coconut.GetComponent<Collider>());
@@ -561,7 +547,7 @@ namespace RangerCity.Lobby
             castle.transform.SetParent(parent, false);
             castle.transform.localPosition = pos;
 
-            Color sandColor = new Color(0.85f, 0.78f, 0.55f);
+            Color sandColor = new(0.85f, 0.78f, 0.55f);
 
             // Base mound
             var mound = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -572,7 +558,7 @@ namespace RangerCity.Lobby
             mound.GetComponent<Renderer>().material = ZoneFactory.CreateMat(sandColor);
             Object.Destroy(mound.GetComponent<Collider>());
 
-            // Towers (3 small cylinders)
+            // 3 towers
             Vector3[] towerPos = { new(-0.15f, 0.25f, 0.1f), new(0.15f, 0.25f, 0.1f), new(0, 0.3f, -0.1f) };
             foreach (var tp in towerPos)
             {
@@ -580,31 +566,9 @@ namespace RangerCity.Lobby
                 tower.name = "Tower";
                 tower.transform.SetParent(castle.transform, false);
                 tower.transform.localPosition = tp;
-                tower.transform.localScale = new Vector3(0.1f, 0.12f + Random.Range(0f, 0.05f), 0.1f);
+                tower.transform.localScale = new Vector3(0.1f, 0.14f, 0.1f);
                 tower.GetComponent<Renderer>().material = ZoneFactory.CreateMat(sandColor * 0.95f);
                 Object.Destroy(tower.GetComponent<Collider>());
-            }
-        }
-
-        private static void BuildRockyShore(Transform parent)
-        {
-            var rockData = new (Vector3 pos, float size)[] {
-                (new(-6f, 0.1f, -2f), 0.5f), (new(-5f, 0.15f, 1f), 0.7f),
-                (new(6f, 0.12f, -1.5f), 0.6f), (new(7f, 0.1f, 1f), 0.4f),
-                (new(-3f, 0.08f, -3f), 0.35f), (new(4f, 0.08f, -3f), 0.3f),
-                (new(-7f, 0.1f, 0f), 0.45f), (new(8f, 0.12f, -0.5f), 0.55f),
-            };
-            foreach (var (pos, size) in rockData)
-            {
-                var rock = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                rock.name = "ShoreRock";
-                rock.transform.SetParent(parent, false);
-                rock.transform.localPosition = pos;
-                rock.transform.localScale = new Vector3(size, size * 0.5f, size * 0.8f);
-                rock.transform.localRotation = Quaternion.Euler(0, Random.Range(0, 360), 0);
-                rock.GetComponent<Renderer>().material = ZoneFactory.StoneMat(
-                    new Color(0.4f + Random.Range(0f, 0.1f), 0.38f, 0.35f));
-                Object.Destroy(rock.GetComponent<Collider>());
             }
         }
     }

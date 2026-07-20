@@ -18,6 +18,7 @@ namespace RangerCity.Lobby
 
         private void Awake()
         {
+            if (NetworkSetup.IsHeadlessServer()) return;
             _rectTransform = GetComponent<RectTransform>();
             ApplySafeArea();
         }

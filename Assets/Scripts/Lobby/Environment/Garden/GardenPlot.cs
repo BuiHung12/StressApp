@@ -34,6 +34,11 @@ namespace RangerCity.Lobby
 
         private void Start()
         {
+            if (NetworkSetup.IsHeadlessServer())
+            {
+                enabled = false;
+                return;
+            }
             CreateMaterials();
             CreateVisuals();
             UpdateVisuals();
@@ -49,10 +54,30 @@ namespace RangerCity.Lobby
                 {
                     _state = PlotState.Ripe;
                     UpdateVisuals();
+                    if (_plantMature != null)
+                    {
+                        _plantMature.transform.localScale = Vector3.one * 1.5f; // Pop effect
+                    }
                 }
                 else
                 {
                     UpdateText();
+                    if (_plantSprout != null)
+                    {
+                        // Pulse the sprout scale during growth
+                        float pulse = 1f + Mathf.Sin(Time.time * 6f) * 0.15f;
+                        _plantSprout.transform.localScale = Vector3.one * (0.15f * pulse);
+                    }
+                }
+            }
+            else if (_state == PlotState.Ripe)
+            {
+                if (_plantMature != null)
+                {
+                    // Rotate and bounce the plant when ripe
+                    _plantMature.transform.localRotation = Quaternion.Euler(0, Time.time * 35f, 0);
+                    float bounce = 1f + Mathf.Sin(Time.time * 4f) * 0.08f;
+                    _plantMature.transform.localScale = Vector3.Lerp(_plantMature.transform.localScale, Vector3.one * bounce, Time.deltaTime * 5f);
                 }
             }
 
@@ -159,8 +184,16 @@ namespace RangerCity.Lobby
 
         private void UpdateVisuals()
         {
-            _plantSprout.SetActive(_state == PlotState.Growing);
-            _plantMature.SetActive(_state == PlotState.Ripe);
+            if (_plantSprout != null) _plantSprout.SetActive(_state == PlotState.Growing);
+            if (_plantMature != null)
+            {
+                _plantMature.SetActive(_state == PlotState.Ripe);
+                if (_state != PlotState.Ripe)
+                {
+                    _plantMature.transform.localScale = Vector3.one;
+                    _plantMature.transform.localRotation = Quaternion.identity;
+                }
+            }
             UpdateText();
         }
 
@@ -172,14 +205,14 @@ namespace RangerCity.Lobby
             {
                 case PlotState.Empty:
                     string hintE = Application.isMobilePlatform ? "Nhấn 💬" : "Phím E";
-                    _billboardText.text = $"[+] Gieo Hạt\n({hintE})";
+                    _billboardText.text = $"<color=#00FF66>[+] Gieo Hạt</color>\n<size=80%>({hintE})</size>";
                     break;
                 case PlotState.Growing:
-                    _billboardText.text = $"Đang Lớn\n({Mathf.Ceil(_growthTimer):0}s)";
+                    _billboardText.text = $"<color=#FFFF33>Đang Lớn</color>\n<size=80%>({Mathf.Ceil(_growthTimer):0}s)</size>";
                     break;
                 case PlotState.Ripe:
                     string hintH = Application.isMobilePlatform ? "Nhấn 💬" : "Phím E";
-                    _billboardText.text = $"[*] Thu Hoạch\n({hintH})";
+                    _billboardText.text = $"<color=#FF3333>★ THU HOẠCH ★</color>\n<size=80%>({hintH})</size>";
                     break;
             }
         }

@@ -40,6 +40,7 @@ namespace RangerCity.Lobby
         private float _hurtTimer;
         private Vector3 _knockbackVelocity;
 
+        private float _saveTimer = 0f;
         // IInteractable
         public string DisplayName => _displayName;
         public string AvatarEmoji => _avatarEmoji;
@@ -51,7 +52,29 @@ namespace RangerCity.Lobby
         {
             _homePosition = transform.position;
             _moveTimer = Random.Range(_pauseMin, _pauseMax);
+
+            // Load saved FakePlayer position if exists
+            if (PlayerPrefs.HasKey($"FakePlayer_{_displayName}_X"))
+            {
+                float x = PlayerPrefs.GetFloat($"FakePlayer_{_displayName}_X");
+                float y = PlayerPrefs.GetFloat($"FakePlayer_{_displayName}_Y");
+                float z = PlayerPrefs.GetFloat($"FakePlayer_{_displayName}_Z");
+                transform.position = new Vector3(x, y, z);
+                _homePosition = transform.position;
+            }
+
             EntityRegistry.RegisterFakePlayer(this);
+        }
+
+        private void SavePositionToPrefs()
+        {
+            if (Mirror.NetworkServer.active || !Mirror.NetworkClient.active)
+            {
+                PlayerPrefs.SetFloat($"FakePlayer_{_displayName}_X", transform.position.x);
+                PlayerPrefs.SetFloat($"FakePlayer_{_displayName}_Y", transform.position.y);
+                PlayerPrefs.SetFloat($"FakePlayer_{_displayName}_Z", transform.position.z);
+                PlayerPrefs.Save();
+            }
         }
 
         private void OnDestroy()
@@ -90,6 +113,17 @@ namespace RangerCity.Lobby
                 if (_behavior == FakePlayerBehavior.Wander)
                     UpdateWander();
                 // Idle = do nothing
+
+                // Save FakePlayer position periodically during wandering on server
+                if (_isMovingAI)
+                {
+                    _saveTimer += Time.deltaTime;
+                    if (_saveTimer >= 1.0f)
+                    {
+                        _saveTimer = 0f;
+                        SavePositionToPrefs();
+                    }
+                }
             }
             else
             {
@@ -102,6 +136,23 @@ namespace RangerCity.Lobby
             }
         }
 
+        // ── Zone definitions (shared with NPCController) ──
+        private static readonly Vector4[] _zoneAreas = new Vector4[]
+        {
+            new Vector4(-13f, -13f, 13f, 13f),   // Lobby
+            new Vector4(-13f, 47f, 13f, 73f),     // Garden
+            new Vector4(47f, -13f, 73f, 13f),     // Fishing
+            new Vector4(-73f, -13f, -47f, 13f),   // Study
+        };
+
+        private static readonly Vector3[] _zoneEntryPoints = new Vector3[]
+        {
+            new Vector3(0, 0.03f, 0),
+            new Vector3(0, 0.03f, 56f),
+            new Vector3(56f, 0.03f, 0),
+            new Vector3(-60f, 0.03f, -12f),
+        };
+
         private void UpdateWander()
         {
             if (_isMovingAI)
@@ -109,7 +160,7 @@ namespace RangerCity.Lobby
                 Vector3 dir = (_moveTarget - transform.position);
                 dir.y = 0;
 
-                if (dir.magnitude > 0.2f)
+                if (dir.magnitude > 0.4f)
                 {
                     Vector3 moveDir = dir.normalized;
                     transform.rotation = Quaternion.Slerp(transform.rotation, Quaternion.LookRotation(moveDir), Time.deltaTime * 8f);
@@ -120,15 +171,13 @@ namespace RangerCity.Lobby
                     }
                     else
                     {
-                        // Blocked by obstacle, cancel current wander and choose another target later
-                        Debug.Log($"[FakePlayerController] {_displayName} wandering blocked at: {transform.position}");
+                        // Blocked — pick new destination soon
                         _isMovingAI = false;
-                        _moveTimer = Random.Range(_pauseMin, _pauseMax);
+                        _moveTimer = Random.Range(0.5f, 1.5f);
                     }
                 }
                 else
                 {
-                    Debug.Log($"[FakePlayerController] {_displayName} finished wandering at: {transform.position}");
                     _isMovingAI = false;
                     _moveTimer = Random.Range(_pauseMin, _pauseMax);
                 }
@@ -138,12 +187,45 @@ namespace RangerCity.Lobby
                 _moveTimer -= Time.deltaTime;
                 if (_moveTimer <= 0f)
                 {
-                    Vector2 rnd = Random.insideUnitCircle * _wanderRadius;
-                    _moveTarget = _homePosition + new Vector3(rnd.x, 0, rnd.y);
-                    _isMovingAI = true;
-                    Debug.Log($"[FakePlayerController] {_displayName} started wandering to: {_moveTarget}");
+                    PickNextDestination();
                 }
             }
+        }
+
+        private void PickNextDestination()
+        {
+            // Pick a random zone, then random point inside it
+            int targetZone = Random.Range(0, _zoneAreas.Length);
+            int currentZone = GetCurrentZone();
+
+            Vector4 area = _zoneAreas[targetZone];
+            Vector3 target = new Vector3(
+                Random.Range(area.x + 1f, area.z - 1f),
+                0.03f,
+                Random.Range(area.y + 1f, area.w - 1f)
+            );
+
+            if (targetZone != currentZone)
+            {
+                // Teleport to the target zone entry point
+                transform.position = _zoneEntryPoints[targetZone];
+                _homePosition = transform.position;
+            }
+
+            _moveTarget = target;
+            _isMovingAI = true;
+        }
+
+        private int GetCurrentZone()
+        {
+            Vector3 pos = transform.position;
+            for (int i = 0; i < _zoneAreas.Length; i++)
+            {
+                Vector4 a = _zoneAreas[i];
+                if (pos.x >= a.x && pos.x <= a.z && pos.z >= a.y && pos.z <= a.w)
+                    return i;
+            }
+            return 0;
         }
 
         public string[] GetDialogueLines()

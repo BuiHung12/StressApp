@@ -63,11 +63,11 @@ namespace RangerCity.Lobby
             _puffBaseScales = new Vector3[puffCount];
 
             Color cloudColor = new Color(0.9f, 0.9f, 0.9f, 0.95f); // Light grey dust
+            var mat = CreateUnlitMat(cloudColor);
 
             for (int i = 0; i < puffCount; i++)
             {
-                var puff = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                puff.name = $"Puff_{i}";
+                var puff = CreateVisualObject($"Puff_{i}", true, mat);
                 puff.transform.SetParent(transform, false);
 
                 // Arrange puffs in a small bundle
@@ -84,10 +84,6 @@ namespace RangerCity.Lobby
                 _puffBaseScales[i] = puff.transform.localScale;
                 _puffSpeeds[i] = Random.Range(5f, 10f);
                 _puffOffsets[i] = Random.Range(0f, 2f * Mathf.PI);
-
-                // Unlit material for cartoon style
-                puff.GetComponent<Renderer>().material = CreateUnlitMat(cloudColor);
-                Destroy(puff.GetComponent<Collider>());
             }
 
             // Play camera shake via LobbyCamera
@@ -157,21 +153,18 @@ namespace RangerCity.Lobby
 
             if (isFist)
             {
-                visual = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-                visual.name = "Fist";
+                var mat = CreateUnlitMat(new Color(1f, 0.85f, 0.7f));
+                visual = CreateVisualObject("Fist", true, mat);
                 visual.transform.localScale = Vector3.one * 0.4f;
-                visual.GetComponent<Renderer>().material = CreateUnlitMat(new Color(1f, 0.85f, 0.7f)); // Skin color
             }
             else
             {
-                visual = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                visual.name = "Foot";
+                var mat = CreateUnlitMat(new Color(0.25f, 0.35f, 0.6f));
+                visual = CreateVisualObject("Foot", false, mat);
                 visual.transform.localScale = new Vector3(0.3f, 0.2f, 0.4f);
-                visual.GetComponent<Renderer>().material = CreateUnlitMat(new Color(0.25f, 0.35f, 0.6f)); // Shoe/pant color
             }
 
             visual.transform.SetParent(limb.transform, false);
-            Destroy(visual.GetComponent<Collider>());
 
             // Extend and retract animation
             var animator = limb.AddComponent<LimbAnimator>();
@@ -180,15 +173,12 @@ namespace RangerCity.Lobby
 
         private void SpawnFightStar()
         {
-            var star = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            star.name = "Star";
+            Color[] colors = { Color.yellow, Color.cyan, Color.magenta, new Color(1f, 0.5f, 0f) };
+            var mat = CreateUnlitMat(colors[Random.Range(0, colors.Length)]);
+            var star = CreateVisualObject("Star", true, mat);
             star.transform.SetParent(transform, false);
             star.transform.localPosition = Random.insideUnitSphere * 0.4f;
             star.transform.localScale = Vector3.one * 0.15f;
-
-            Color[] colors = { Color.yellow, Color.cyan, Color.magenta, new Color(1f, 0.5f, 0f) };
-            star.GetComponent<Renderer>().material = CreateUnlitMat(colors[Random.Range(0, colors.Length)]);
-            Destroy(star.GetComponent<Collider>());
 
             // Pop out and fall behavior
             var physics = star.AddComponent<StarPhysics>();
@@ -236,11 +226,56 @@ namespace RangerCity.Lobby
             if (_materialCache.TryGetValue(color, out var cached) && cached != null)
                 return cached;
 
-            var shader = Shader.Find("Unlit/Color") ?? Shader.Find("Standard");
-            var mat = new Material(shader);
-            mat.color = color;
+            var shader = Shader.Find("Unlit/Color");
+            if (shader == null) shader = Shader.Find("Standard");
+            if (shader == null) shader = Shader.Find("UI/Default");
+
+            Material mat = null;
+            try
+            {
+                if (shader != null)
+                {
+                    mat = new Material(shader);
+                    mat.color = color;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[FightCloudEffect] Failed to create material: {e.Message}");
+            }
             _materialCache[color] = mat;
             return mat;
+        }
+
+        // Static Mesh cache to avoid dynamic collider and mesh recreation crashes
+        private static Mesh _sphereMesh;
+        private static Mesh _cubeMesh;
+
+        private static void CacheMeshes()
+        {
+            if (_sphereMesh == null)
+            {
+                var temp = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                _sphereMesh = temp.GetComponent<MeshFilter>().sharedMesh;
+                Destroy(temp);
+            }
+            if (_cubeMesh == null)
+            {
+                var temp = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                _cubeMesh = temp.GetComponent<MeshFilter>().sharedMesh;
+                Destroy(temp);
+            }
+        }
+
+        private static GameObject CreateVisualObject(string name, bool isSphere, Material mat)
+        {
+            CacheMeshes();
+            var go = new GameObject(name);
+            var filter = go.AddComponent<MeshFilter>();
+            filter.sharedMesh = isSphere ? _sphereMesh : _cubeMesh;
+            var renderer = go.AddComponent<MeshRenderer>();
+            if (mat != null) renderer.material = mat;
+            return go;
         }
     }
 

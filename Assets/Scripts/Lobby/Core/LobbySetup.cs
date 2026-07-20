@@ -27,6 +27,23 @@ namespace RangerCity.Lobby
 
         private void Awake()
         {
+            if (NetworkSetup.IsHeadlessServer())
+            {
+                Debug.Log("[LobbySetup] Headless mode detected. Disabling all cameras, canvases, and renderers in the scene...");
+                foreach (var c in FindObjectsByType<Camera>(FindObjectsSortMode.None))
+                {
+                    c.enabled = false;
+                }
+                foreach (var canvas in FindObjectsByType<Canvas>(FindObjectsSortMode.None))
+                {
+                    canvas.gameObject.SetActive(false);
+                }
+                foreach (var r in FindObjectsByType<Renderer>(FindObjectsSortMode.None))
+                {
+                    r.enabled = false;
+                }
+            }
+
             var defaultLight = FindAnyObjectByType<Light>();
             if (defaultLight != null) Destroy(defaultLight.gameObject);
 
@@ -42,17 +59,22 @@ namespace RangerCity.Lobby
 
             CreateNPCs();
             CreateFakePlayers();
-            CreateCamera(player.transform);
-            CreateUI();
+            if (!NetworkSetup.IsHeadlessServer())
+            {
+                CreateCamera(player.transform);
+                CreateUI();
+            }
 
             Debug.Log("🎮 Ranger City Lobby (2D Top-Down) loaded!");
         }
 
         private void Start()
         {
+            Debug.Log("[LobbySetup] Start began");
             var player = GameObject.FindWithTag("Player");
             if (player != null)
             {
+                Debug.Log("[LobbySetup] Player found");
                 // Tải tùy chọn đã lưu từ PlayerPrefs và áp dụng ngay lập tức cho nhân vật local
                 int gender = PlayerPrefs.GetInt("PlayerGender", 0);
                 int bodyColorIdx = PlayerPrefs.GetInt("PlayerColorIndex", 0);
@@ -74,20 +96,45 @@ namespace RangerCity.Lobby
                     ? NetworkPlayer.PantsColorPalette[pantsColorIdx]
                     : NetworkPlayer.PantsColorPalette[0];
 
+                Debug.Log("[LobbySetup] Applying customization");
                 CharacterVisuals.ApplyCustomization(player, gender, hairStyleIdx, hairColor, outfitIdx, bodyColor, pantsStyleIdx, pantsColor);
 
+                // Load saved player name and apply to name tag
+                string savedName = PlayerPrefs.GetString("PlayerName", "");
+                if (string.IsNullOrEmpty(savedName))
+                {
+                    savedName = "Player";
+                }
+                var nameTag = player.transform.Find("NameTag");
+                if (nameTag != null)
+                {
+                    var tmp = nameTag.GetComponentInChildren<TMPro.TextMeshPro>();
+                    if (tmp != null) tmp.text = savedName;
+                }
+
+                Debug.Log("[LobbySetup] Setting up networking");
                 SetupNetworking(player);
                 Debug.Log("🌐 Multiplayer: Mirror networking enabled!");
             }
+            Debug.Log("[LobbySetup] Start finished");
         }
 
         private void SetupNetworking(GameObject player)
         {
-            var networkSetup = gameObject.AddComponent<NetworkSetup>();
+            // 1. Create a hidden templates parent to hold our active prefabs safely
+            GameObject templatesParent = new GameObject("NetworkTemplates");
+            templatesParent.SetActive(false);
+            DontDestroyOnLoad(templatesParent);
 
-            var identity = player.GetComponent<NetworkIdentity>();
+            // 2. Clone the player to create the prefab template
+            GameObject playerPrefab = Instantiate(player);
+            playerPrefab.name = "PlayerPrefab";
+            playerPrefab.transform.SetParent(templatesParent.transform);
+            playerPrefab.SetActive(true); // Keep it active internally so clones are spawned active
+
+            var identity = playerPrefab.GetComponent<NetworkIdentity>();
             if (identity == null)
-                identity = player.AddComponent<NetworkIdentity>();
+                identity = playerPrefab.AddComponent<NetworkIdentity>();
 
             if (identity.assetId == 0)
             {
@@ -98,14 +145,44 @@ namespace RangerCity.Lobby
                 }
             }
 
-            if (player.GetComponent<NetworkPlayer>() == null)
-                player.AddComponent<NetworkPlayer>();
+            if (playerPrefab.GetComponent<NetworkPlayer>() == null)
+                playerPrefab.AddComponent<NetworkPlayer>();
 
-            if (player.GetComponent<EmojiSystem>() == null)
-                player.AddComponent<EmojiSystem>();
+            if (playerPrefab.GetComponent<EmojiSystem>() == null)
+                playerPrefab.AddComponent<EmojiSystem>();
 
-            networkSetup.RegisterPlayerPrefab(player);
-            if (NetworkSetup.IsHeadlessServer())
+            // 3. Register the prefab to the network setup
+            var networkSetup = gameObject.AddComponent<NetworkSetup>();
+            networkSetup.RegisterPlayerPrefab(playerPrefab);
+
+            // 4. Destroy the original scene player since Mirror will spawn the correct networked player
+            Destroy(player);
+
+            // 5. Start the server/host or client based on command line arguments
+            string[] args = System.Environment.GetCommandLineArgs();
+            bool isClient = false;
+            string connectAddr = "127.0.0.1";
+            for (int i = 0; i < args.Length; i++)
+            {
+                if (args[i] == "-client")
+                {
+                    isClient = true;
+                }
+                else if (args[i] == "-connect" && i + 1 < args.Length)
+                {
+                    connectAddr = args[i + 1];
+                }
+            }
+
+            if (isClient)
+            {
+                networkSetup.StartAsClient(connectAddr);
+            }
+            else if (NetworkSetup.IsHeadlessServer())
+            {
+                networkSetup.StartAsServer();
+            }
+            else
             {
                 networkSetup.StartAsHost();
             }
@@ -113,6 +190,7 @@ namespace RangerCity.Lobby
 
         private void CreateEnvironment()
         {
+            if (NetworkSetup.IsHeadlessServer()) return;
             EnvironmentBuilder.CreateFlat("Ground", Vector3.zero, new Vector2(_lobbySize, _lobbySize), _grassColor);
 
             float pathLen = _lobbySize * 0.8f;
@@ -145,15 +223,16 @@ namespace RangerCity.Lobby
 
         private void CreateLighting()
         {
+            if (NetworkSetup.IsHeadlessServer()) return;
             var sunObj = new GameObject("Sun");
             var sun = sunObj.AddComponent<Light>();
             sun.type = LightType.Directional;
             sun.color = new Color(1f, 0.98f, 0.92f);
-            sun.intensity = 1.0f;
+            sun.intensity = 0.8f;
             sun.shadows = LightShadows.None;
             sunObj.transform.rotation = Quaternion.Euler(50f, -30f, 0f);
 
-            RenderSettings.ambientLight = new Color(0.9f, 0.92f, 0.95f);
+            RenderSettings.ambientLight = new Color(0.35f, 0.37f, 0.4f);
             RenderSettings.ambientMode = UnityEngine.Rendering.AmbientMode.Flat;
             RenderSettings.fog = false;
         }
@@ -180,6 +259,15 @@ namespace RangerCity.Lobby
 
         private GameObject CreatePlayer()
         {
+            if (NetworkSetup.IsHeadlessServer())
+            {
+                var headlessPlayer = new GameObject("Player");
+                headlessPlayer.transform.position = new Vector3(0, 0.03f, -3);
+                headlessPlayer.AddComponent<PlayerController>();
+                headlessPlayer.tag = "Player";
+                return headlessPlayer;
+            }
+
             GameObject player;
             if (_humanMalePrefab != null || _humanFemalePrefab != null)
             {
@@ -192,6 +280,10 @@ namespace RangerCity.Lobby
             player.transform.position = new Vector3(0, 0.03f, -3);
             player.AddComponent<PlayerController>();
             player.tag = "Player";
+
+            // Add NameTag for multiplayer name display
+            AddNameTag(player, "Player", new Color(0.3f, 0.8f, 1f));
+
             return player;
         }
 
@@ -233,6 +325,20 @@ namespace RangerCity.Lobby
 
         private void CreateNPC(string name, string emoji, Vector3 pos, Color bodyColor, string[] dialogues, Color? skinColor = null, float wanderRadius = 3f)
         {
+            if (NetworkSetup.IsHeadlessServer())
+            {
+                var npcHeadless = new GameObject(name);
+                npcHeadless.transform.position = new Vector3(pos.x, 0.03f, pos.z);
+                var ctrlHeadless = npcHeadless.AddComponent<NPCController>();
+                SetField(ctrlHeadless, "_displayName", name);
+                SetField(ctrlHeadless, "_avatarEmoji", emoji);
+                SetField(ctrlHeadless, "_dialogueLines", dialogues);
+                SetField(ctrlHeadless, "_moveSpeed", 1.2f);
+                SetField(ctrlHeadless, "_wanderPauseMin", 1f);
+                SetField(ctrlHeadless, "_wanderPauseMax", 3f);
+                SetField(ctrlHeadless, "_wanderRadius", wanderRadius);
+                return;
+            }
             Color skinCol = skinColor ?? new Color(1f, 0.88f, 0.7f);
             GameObject npc;
             
@@ -341,6 +447,19 @@ namespace RangerCity.Lobby
 
             foreach (var (fpName, pos, color, gender, greetings) in data)
             {
+                if (NetworkSetup.IsHeadlessServer())
+                {
+                    var fpHeadless = new GameObject(fpName);
+                    fpHeadless.transform.position = new Vector3(pos.x, 0.03f, pos.z);
+                    var ctrlHeadless = fpHeadless.AddComponent<FakePlayerController>();
+                    SetField(ctrlHeadless, "_displayName", fpName);
+                    SetField(ctrlHeadless, "_greetings", greetings);
+                    SetField(ctrlHeadless, "_moveSpeed", 1.2f);
+                    SetField(ctrlHeadless, "_pauseMin", 1f);
+                    SetField(ctrlHeadless, "_pauseMax", 3f);
+                    SetField(ctrlHeadless, "_wanderRadius", 4f);
+                    continue;
+                }
                 GameObject fp;
                 if (_humanMalePrefab != null || _humanFemalePrefab != null)
                 {
@@ -532,9 +651,59 @@ namespace RangerCity.Lobby
 
         private Sprite CreateFistSprite()
         {
-            // Use persistentDataPath — dataPath is read-only on iOS/Android
-            string customPath = System.IO.Path.Combine(Application.persistentDataPath, "Textures/fist.png");
-            if (System.IO.File.Exists(customPath))
+            // 1. Try loading from Resources first (works on both Editor and built Android/iOS APKs)
+            var resourceTex = Resources.Load<Texture2D>("fist");
+            if (resourceTex != null)
+            {
+                try
+                {
+                    // Create a duplicate texture that is readable at runtime
+                    Texture2D readableTex = new Texture2D(resourceTex.width, resourceTex.height);
+                    RenderTexture tmp = RenderTexture.GetTemporary(
+                        resourceTex.width,
+                        resourceTex.height,
+                        0,
+                        RenderTextureFormat.Default,
+                        RenderTextureReadWrite.Linear);
+                    Graphics.Blit(resourceTex, tmp);
+                    RenderTexture previous = RenderTexture.active;
+                    RenderTexture.active = tmp;
+                    readableTex.ReadPixels(new Rect(0, 0, tmp.width, tmp.height), 0, 0);
+                    readableTex.Apply();
+                    RenderTexture.active = previous;
+                    RenderTexture.ReleaseTemporary(tmp);
+
+                    Color[] pixels = readableTex.GetPixels();
+                    for (int i = 0; i < pixels.Length; i++)
+                    {
+                        if (pixels[i].r > 0.99f && pixels[i].g > 0.99f && pixels[i].b > 0.99f)
+                        {
+                            pixels[i] = new Color(0, 0, 0, 0);
+                        }
+                    }
+                    readableTex.SetPixels(pixels);
+                    readableTex.Apply();
+                    readableTex.filterMode = FilterMode.Bilinear;
+                    return Sprite.Create(readableTex, new Rect(0, 0, readableTex.width, readableTex.height), new Vector2(0.5f, 0.5f), readableTex.width);
+                }
+                catch (System.Exception ex)
+                {
+                    Debug.LogWarning($"Failed to key white from Resources texture, returning directly: {ex.Message}");
+                    return Sprite.Create(resourceTex, new Rect(0, 0, resourceTex.width, resourceTex.height), new Vector2(0.5f, 0.5f), resourceTex.width);
+                }
+            }
+
+            // 2. Fallback to reading file system (original logic)
+            string[] searchPaths = {
+                System.IO.Path.Combine(Application.dataPath, "Textures/fist.png"),
+                System.IO.Path.Combine(Application.persistentDataPath, "Textures/fist.png")
+            };
+            string customPath = null;
+            foreach (var p in searchPaths)
+            {
+                if (System.IO.File.Exists(p)) { customPath = p; break; }
+            }
+            if (customPath != null && System.IO.File.Exists(customPath))
             {
                 try
                 {
@@ -825,7 +994,7 @@ namespace RangerCity.Lobby
                 int count = 0;
                 foreach (var go in allObjects)
                 {
-                    if (go != null && (go.name.Contains("Player") || go.name.Contains("Char") || go.name.Contains("Preview")))
+                    if (go != null && (go.GetComponent<PlayerController>() != null || go.GetComponent<NetworkPlayer>() != null || go.name.Contains("Preview")))
                     {
                         count++;
                         report += $"- {go.name} (Active: {go.activeInHierarchy}, Tag: {go.tag}, Pos: {go.transform.position})\n";
@@ -833,7 +1002,17 @@ namespace RangerCity.Lobby
                         for (int i = 0; i < go.transform.childCount; i++)
                         {
                             var child = go.transform.GetChild(i);
-                            report += $"{child.name} (Active: {child.gameObject.activeSelf}), ";
+                            report += $"{child.name} (Active: {child.gameObject.activeSelf})";
+                            if (child.childCount > 0)
+                            {
+                                report += "[";
+                                for (int j = 0; j < child.childCount; j++)
+                                {
+                                    report += $"{child.GetChild(j).name}, ";
+                                }
+                                report += "]";
+                            }
+                            report += ", ";
                         }
                         report += "\n";
                     }
