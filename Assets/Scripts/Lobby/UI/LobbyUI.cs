@@ -172,6 +172,20 @@ namespace RangerCity.Lobby
                     OnDialogueAdvance();
                 }
             }
+
+            // Check for network disconnection to restore the connection screen
+            if (!NetworkSetup.IsHeadlessServer())
+            {
+                if (_connectionPanel != null && !_connectionPanel.activeSelf)
+                {
+                    if (!Mirror.NetworkClient.active && !Mirror.NetworkServer.active)
+                    {
+                        Debug.Log("[LobbyUI] Network disconnection detected. Returning to connection lobby.");
+                        RebuildConnectionUI();
+                        if (_connectionPanel != null) _connectionPanel.SetActive(true);
+                    }
+                }
+            }
         }
 
         public void StartDialogue(IInteractable target)
