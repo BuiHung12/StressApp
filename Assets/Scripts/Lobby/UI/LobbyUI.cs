@@ -587,6 +587,10 @@ namespace RangerCity.Lobby
             if (_noInternetOverlay != null)
             {
                 _noInternetOverlay.SetActive(!available);
+                if (!available)
+                {
+                    _noInternetOverlay.transform.SetAsLastSibling();
+                }
             }
 
             if (_connectionPanel != null)
