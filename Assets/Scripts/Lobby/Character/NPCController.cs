@@ -97,10 +97,18 @@ namespace RangerCity.Lobby
                 float x = PlayerPrefs.GetFloat($"NPC_{_displayName}_X");
                 float y = PlayerPrefs.GetFloat($"NPC_{_displayName}_Y");
                 float z = PlayerPrefs.GetFloat($"NPC_{_displayName}_Z");
-                transform.position = new Vector3(x, y, z);
-                if (!_isJailedNPC)
+                Vector3 loadedPos = new Vector3(x, y, z);
+                if (IsValidPosition(loadedPos))
                 {
-                    _homePosition = transform.position;
+                    transform.position = loadedPos;
+                    if (!_isJailedNPC)
+                    {
+                        _homePosition = transform.position;
+                    }
+                }
+                else
+                {
+                    Debug.LogWarning($"[NPCController] Saved position {loadedPos} for {_displayName} is inside an obstacle. Restoring default safe position {_homePosition}");
                 }
             }
 
@@ -296,7 +304,15 @@ namespace RangerCity.Lobby
             // Knockback
             if (_knockbackVelocity.sqrMagnitude > 0.1f)
             {
-                transform.position += _knockbackVelocity * Time.deltaTime;
+                Vector3 nextPos = transform.position + _knockbackVelocity * Time.deltaTime;
+                if (IsValidPosition(nextPos))
+                {
+                    transform.position = nextPos;
+                }
+                else
+                {
+                    _knockbackVelocity = Vector3.zero;
+                }
                 _knockbackVelocity *= 0.88f;
             }
 

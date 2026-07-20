@@ -53,14 +53,21 @@ namespace RangerCity.Lobby
             _homePosition = transform.position;
             _moveTimer = Random.Range(_pauseMin, _pauseMax);
 
-            // Load saved FakePlayer position if exists
             if (PlayerPrefs.HasKey($"FakePlayer_{_displayName}_X"))
             {
                 float x = PlayerPrefs.GetFloat($"FakePlayer_{_displayName}_X");
                 float y = PlayerPrefs.GetFloat($"FakePlayer_{_displayName}_Y");
                 float z = PlayerPrefs.GetFloat($"FakePlayer_{_displayName}_Z");
-                transform.position = new Vector3(x, y, z);
-                _homePosition = transform.position;
+                Vector3 loadedPos = new Vector3(x, y, z);
+                if (IsValidPosition(loadedPos))
+                {
+                    transform.position = loadedPos;
+                    _homePosition = transform.position;
+                }
+                else
+                {
+                    Debug.LogWarning($"[FakePlayerController] Saved position {loadedPos} for {_displayName} is inside an obstacle. Restoring default safe position {_homePosition}");
+                }
             }
 
             _hurtDuration = 5f;
@@ -261,7 +268,15 @@ namespace RangerCity.Lobby
             _hurtTimer -= Time.deltaTime;
             if (_knockbackVelocity.sqrMagnitude > 0.1f)
             {
-                transform.position += _knockbackVelocity * Time.deltaTime;
+                Vector3 nextPos = transform.position + _knockbackVelocity * Time.deltaTime;
+                if (IsValidPosition(nextPos))
+                {
+                    transform.position = nextPos;
+                }
+                else
+                {
+                    _knockbackVelocity = Vector3.zero;
+                }
                 _knockbackVelocity *= 0.88f;
             }
             if (_hurtTimer <= 0f)
