@@ -63,6 +63,7 @@ namespace RangerCity.Lobby
                 _homePosition = transform.position;
             }
 
+            _hurtDuration = 5f;
             EntityRegistry.RegisterFakePlayer(this);
         }
 

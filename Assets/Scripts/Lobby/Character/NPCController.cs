@@ -104,6 +104,7 @@ namespace RangerCity.Lobby
                 }
             }
 
+            _hurtDuration = 5f;
             EntityRegistry.RegisterNPC(this);
         }
 

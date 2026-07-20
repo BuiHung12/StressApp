@@ -434,7 +434,7 @@ namespace RangerCity.Lobby
                         var pc = targetNp.GetComponent<PlayerController>();
                         if (pc != null)
                         {
-                            pc.Stun(position, 1.5f);
+                            pc.Stun(position, 5f);
                         }
                     }
                 }
