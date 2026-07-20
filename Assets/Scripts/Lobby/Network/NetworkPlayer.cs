@@ -338,17 +338,20 @@ namespace RangerCity.Lobby
         // ── Punch sync ──
 
         [Command]
-        public void CmdExecutePunch(Vector3 position, Vector3 direction, int targetType, NetworkIdentity targetPlayerId, string targetName)
+        public void CmdExecutePunch(Vector3 position, Vector3 direction, int targetType, uint targetNetId, string targetName)
         {
-            RpcOnPunchExecuted(netIdentity, position, direction, targetType, targetPlayerId, targetName);
+            RpcOnPunchExecuted(netIdentity, position, direction, targetType, targetNetId, targetName);
 
             // Server-side reactions
-            if (targetType == 1 && targetPlayerId != null)
+            if (targetType == 1 && targetNetId != 0)
             {
-                var targetNp = targetPlayerId.GetComponent<NetworkPlayer>();
-                if (targetNp != null)
+                if (NetworkServer.spawned.TryGetValue(targetNetId, out NetworkIdentity identity))
                 {
-                    Invoke(nameof(ServerSendToJail), 1.6f);
+                    var targetNp = identity.GetComponent<NetworkPlayer>();
+                    if (targetNp != null)
+                    {
+                        Invoke(nameof(ServerSendToJail), 1.6f);
+                    }
                 }
             }
             else if (targetType == 2 && !string.IsNullOrEmpty(targetName))
@@ -393,7 +396,7 @@ namespace RangerCity.Lobby
         }
 
         [ClientRpc]
-        private void RpcOnPunchExecuted(NetworkIdentity puncher, Vector3 position, Vector3 direction, int targetType, NetworkIdentity targetPlayerId, string targetName)
+        private void RpcOnPunchExecuted(NetworkIdentity puncher, Vector3 position, Vector3 direction, int targetType, uint targetNetId, string targetName)
         {
             if (puncher == null) return;
 
@@ -407,9 +410,12 @@ namespace RangerCity.Lobby
             }
 
             Transform targetTrans = null;
-            if (targetType == 1 && targetPlayerId != null)
+            if (targetType == 1 && targetNetId != 0)
             {
-                targetTrans = targetPlayerId.transform;
+                if (NetworkClient.spawned.TryGetValue(targetNetId, out NetworkIdentity identity))
+                {
+                    targetTrans = identity.transform;
+                }
             }
             else if (targetType == 2 && !string.IsNullOrEmpty(targetName))
             {
@@ -426,15 +432,18 @@ namespace RangerCity.Lobby
             {
                 FightCloudEffect.Create(puncher.transform, targetTrans, 1.5f);
 
-                if (targetType == 1 && targetPlayerId != null)
+                if (targetType == 1 && targetNetId != 0)
                 {
-                    var targetNp = targetPlayerId.GetComponent<NetworkPlayer>();
-                    if (targetNp != null && targetNp.isLocalPlayer)
+                    if (NetworkClient.spawned.TryGetValue(targetNetId, out NetworkIdentity identity))
                     {
-                        var pc = targetNp.GetComponent<PlayerController>();
-                        if (pc != null)
+                        var targetNp = identity.GetComponent<NetworkPlayer>();
+                        if (targetNp != null && targetNp.isLocalPlayer)
                         {
-                            pc.Stun(position, 5f);
+                            var pc = targetNp.GetComponent<PlayerController>();
+                            if (pc != null)
+                            {
+                                pc.Stun(position, 5f);
+                            }
                         }
                     }
                 }

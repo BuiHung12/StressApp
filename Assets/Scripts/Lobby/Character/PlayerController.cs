@@ -103,6 +103,7 @@ namespace RangerCity.Lobby
         private void Update()
         {
             if (_teleportCooldownTimer > 0f) _teleportCooldownTimer -= Time.deltaTime;
+            if (_punchCooldownTimer > 0f) _punchCooldownTimer -= Time.deltaTime;
 
             if (_isJailed)
             {
@@ -273,80 +274,88 @@ namespace RangerCity.Lobby
             _punchCooldownTimer = _punchCooldown;
             _isPunching = true;
             _isClickMoving = false;
-            if (_animator) _animator.SetTrigger(AnimPunch);
 
-            MonoBehaviour closestTarget = null;
-            float closestDist = _punchRange;
-
-            // Find closest NPC (O(n) on registry, not full scene scan)
-            var npcs = EntityRegistry.AllNPCs;
-            foreach (var npc in npcs)
+            try
             {
-                float dist = Vector3.Distance(transform.position, npc.transform.position);
-                if (dist < closestDist) { closestDist = dist; closestTarget = npc; }
-            }
+                if (_animator) _animator.SetTrigger(AnimPunch);
 
-            // Find closest Fake Player
-            var fakePlayers = EntityRegistry.AllFakePlayers;
-            foreach (var fp in fakePlayers)
-            {
-                float dist = Vector3.Distance(transform.position, fp.transform.position);
-                if (dist < closestDist) { closestDist = dist; closestTarget = fp; }
-            }
+                MonoBehaviour closestTarget = null;
+                float closestDist = _punchRange;
 
-            // Find closest actual Player (other than self)
-            var players = EntityRegistry.AllNetworkPlayers;
-            foreach (var p in players)
-            {
-                if (p == null || p.gameObject == this.gameObject) continue;
-                float dist = Vector3.Distance(transform.position, p.transform.position);
-                if (dist < closestDist) { closestDist = dist; closestTarget = p; }
-            }
-
-            if (closestTarget != null)
-            {
-                OnPunchHit?.Invoke();
-
-                var localNp = GetComponent<NetworkPlayer>();
-                if (localNp != null)
+                // Find closest NPC (O(n) on registry, not full scene scan)
+                var npcs = EntityRegistry.AllNPCs;
+                foreach (var npc in npcs)
                 {
-                    int targetType = 0;
-                    Mirror.NetworkIdentity targetPlayerId = null;
-                    string targetName = "";
-
-                    if (closestTarget is NetworkPlayer npTarget)
-                    {
-                        targetType = 1;
-                        targetPlayerId = npTarget.GetComponent<Mirror.NetworkIdentity>();
-                    }
-                    else if (closestTarget is NPCController npcTarget)
-                    {
-                        targetType = 2;
-                        targetName = npcTarget.DisplayName;
-                    }
-                    else if (closestTarget is FakePlayerController fpTarget)
-                    {
-                        targetType = 3;
-                        targetName = fpTarget.DisplayName;
-                    }
-
-                    localNp.CmdExecutePunch(transform.position, _lastMoveDir, targetType, targetPlayerId, targetName);
+                    float dist = Vector3.Distance(transform.position, npc.transform.position);
+                    if (dist < closestDist) { closestDist = dist; closestTarget = npc; }
                 }
-                else
+
+                // Find closest Fake Player
+                var fakePlayers = EntityRegistry.AllFakePlayers;
+                foreach (var fp in fakePlayers)
                 {
-                    FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
-                    if (closestTarget is NPCController)
+                    float dist = Vector3.Distance(transform.position, fp.transform.position);
+                    if (dist < closestDist) { closestDist = dist; closestTarget = fp; }
+                }
+
+                // Find closest actual Player (other than self)
+                var players = EntityRegistry.AllNetworkPlayers;
+                foreach (var p in players)
+                {
+                    if (p == null || p.gameObject == this.gameObject) continue;
+                    float dist = Vector3.Distance(transform.position, p.transform.position);
+                    if (dist < closestDist) { closestDist = dist; closestTarget = p; }
+                }
+
+                if (closestTarget != null)
+                {
+                    OnPunchHit?.Invoke();
+
+                    var localNp = GetComponent<NetworkPlayer>();
+                    if (localNp != null)
                     {
-                        Debug.Log("[PlayerController] Punched NPC. No jail penalty.");
+                        int targetType = 0;
+                        uint targetNetId = 0;
+                        string targetName = "";
+
+                        if (closestTarget is NetworkPlayer npTarget)
+                        {
+                            targetType = 1;
+                            var identity = npTarget.GetComponent<Mirror.NetworkIdentity>();
+                            if (identity != null) targetNetId = identity.netId;
+                        }
+                        else if (closestTarget is NPCController npcTarget)
+                        {
+                            targetType = 2;
+                            targetName = npcTarget.DisplayName;
+                        }
+                        else if (closestTarget is FakePlayerController fpTarget)
+                        {
+                            targetType = 3;
+                            targetName = fpTarget.DisplayName;
+                        }
+
+                        localNp.CmdExecutePunch(transform.position, _lastMoveDir, targetType, targetNetId, targetName);
                     }
                     else
                     {
-                        Debug.Log("[PlayerController] Punched player/fake player! Sending to jail immediately.");
-                        Invoke(nameof(GoToJail), 1.6f);
+                        FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
+                        if (closestTarget is NPCController)
+                        {
+                            Debug.Log("[PlayerController] Punched NPC. No jail penalty.");
+                        }
+                        else
+                        {
+                            Debug.Log("[PlayerController] Punched player/fake player! Sending to jail immediately.");
+                            Invoke(nameof(GoToJail), 1.6f);
+                        }
                     }
                 }
             }
-            Invoke(nameof(EndPunch), 0.35f);
+            finally
+            {
+                Invoke(nameof(EndPunch), 0.35f);
+            }
         }
 
         public void GoToJail()
