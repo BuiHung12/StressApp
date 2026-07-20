@@ -310,8 +310,27 @@ namespace RangerCity.Lobby
                 var localNp = GetComponent<NetworkPlayer>();
                 if (localNp != null)
                 {
-                    var targetId = closestTarget.GetComponent<Mirror.NetworkIdentity>();
-                    localNp.CmdExecutePunch(transform.position, _lastMoveDir, targetId);
+                    int targetType = 0;
+                    Mirror.NetworkIdentity targetPlayerId = null;
+                    string targetName = "";
+
+                    if (closestTarget is NetworkPlayer npTarget)
+                    {
+                        targetType = 1;
+                        targetPlayerId = npTarget.GetComponent<Mirror.NetworkIdentity>();
+                    }
+                    else if (closestTarget is NPCController npcTarget)
+                    {
+                        targetType = 2;
+                        targetName = npcTarget.DisplayName;
+                    }
+                    else if (closestTarget is FakePlayerController fpTarget)
+                    {
+                        targetType = 3;
+                        targetName = fpTarget.DisplayName;
+                    }
+
+                    localNp.CmdExecutePunch(transform.position, _lastMoveDir, targetType, targetPlayerId, targetName);
                 }
                 else
                 {

@@ -330,16 +330,37 @@ namespace RangerCity.Lobby
         // ── Punch sync ──
 
         [Command]
-        public void CmdExecutePunch(Vector3 position, Vector3 direction, NetworkIdentity target)
+        public void CmdExecutePunch(Vector3 position, Vector3 direction, int targetType, NetworkIdentity targetPlayerId, string targetName)
         {
-            RpcOnPunchExecuted(netIdentity, position, direction, target);
+            RpcOnPunchExecuted(netIdentity, position, direction, targetType, targetPlayerId, targetName);
 
-            if (target != null)
+            // Server-side reactions
+            if (targetType == 1 && targetPlayerId != null)
             {
-                var targetNp = target.GetComponent<NetworkPlayer>();
+                var targetNp = targetPlayerId.GetComponent<NetworkPlayer>();
                 if (targetNp != null)
                 {
                     Invoke(nameof(ServerSendToJail), 1.6f);
+                }
+            }
+            else if (targetType == 2 && !string.IsNullOrEmpty(targetName))
+            {
+                var npc = EntityRegistry.GetNPC(targetName);
+                if (npc != null)
+                {
+                    Vector3 knockDir = (npc.transform.position - position).normalized;
+                    knockDir.y = 0;
+                    npc.ReceivePunch(knockDir, 8f);
+                }
+            }
+            else if (targetType == 3 && !string.IsNullOrEmpty(targetName))
+            {
+                var fp = EntityRegistry.GetFakePlayer(targetName);
+                if (fp != null)
+                {
+                    Vector3 knockDir = (fp.transform.position - position).normalized;
+                    knockDir.y = 0;
+                    fp.ReceivePunch(knockDir, 8f);
                 }
             }
         }
@@ -364,7 +385,7 @@ namespace RangerCity.Lobby
         }
 
         [ClientRpc]
-        private void RpcOnPunchExecuted(NetworkIdentity puncher, Vector3 position, Vector3 direction, NetworkIdentity target)
+        private void RpcOnPunchExecuted(NetworkIdentity puncher, Vector3 position, Vector3 direction, int targetType, NetworkIdentity targetPlayerId, string targetName)
         {
             if (puncher == null) return;
 
@@ -377,34 +398,57 @@ namespace RangerCity.Lobby
                 }
             }
 
-            if (target != null)
+            Transform targetTrans = null;
+            if (targetType == 1 && targetPlayerId != null)
             {
-                FightCloudEffect.Create(puncher.transform, target.transform, 1.5f);
+                targetTrans = targetPlayerId.transform;
+            }
+            else if (targetType == 2 && !string.IsNullOrEmpty(targetName))
+            {
+                var npc = EntityRegistry.GetNPC(targetName);
+                if (npc != null) targetTrans = npc.transform;
+            }
+            else if (targetType == 3 && !string.IsNullOrEmpty(targetName))
+            {
+                var fp = EntityRegistry.GetFakePlayer(targetName);
+                if (fp != null) targetTrans = fp.transform;
+            }
 
-                var targetNp = target.GetComponent<NetworkPlayer>();
-                if (targetNp != null && targetNp.isLocalPlayer)
+            if (targetTrans != null)
+            {
+                FightCloudEffect.Create(puncher.transform, targetTrans, 1.5f);
+
+                if (targetType == 1 && targetPlayerId != null)
                 {
-                    var pc = targetNp.GetComponent<PlayerController>();
-                    if (pc != null)
+                    var targetNp = targetPlayerId.GetComponent<NetworkPlayer>();
+                    if (targetNp != null && targetNp.isLocalPlayer)
                     {
-                        pc.Stun(position, 1.5f);
+                        var pc = targetNp.GetComponent<PlayerController>();
+                        if (pc != null)
+                        {
+                            pc.Stun(position, 1.5f);
+                        }
                     }
                 }
-
-                var npc = target.GetComponent<NPCController>();
-                if (npc != null)
+                else if (targetType == 2 && !string.IsNullOrEmpty(targetName))
                 {
-                    Vector3 knockDir = (target.transform.position - position).normalized;
-                    knockDir.y = 0;
-                    npc.ReceivePunch(knockDir, 8f);
+                    var npc = EntityRegistry.GetNPC(targetName);
+                    if (npc != null)
+                    {
+                        Vector3 knockDir = (npc.transform.position - position).normalized;
+                        knockDir.y = 0;
+                        npc.ReceivePunch(knockDir, 8f);
+                    }
                 }
-
-                var fp = target.GetComponent<FakePlayerController>();
-                if (fp != null)
+                else if (targetType == 3 && !string.IsNullOrEmpty(targetName))
                 {
-                    Vector3 knockDir = (target.transform.position - position).normalized;
-                    knockDir.y = 0;
-                    fp.ReceivePunch(knockDir, 8f);
+                    var fp = EntityRegistry.GetFakePlayer(targetName);
+                    if (fp != null)
+                    {
+                        Vector3 knockDir = (fp.transform.position - position).normalized;
+                        knockDir.y = 0;
+                        fp.ReceivePunch(knockDir, 8f);
+                    }
                 }
             }
         }
