@@ -293,14 +293,14 @@ namespace RangerCity.Lobby
                 FightCloudEffect.Create(transform, closestTarget.transform, 1.5f);
                 OnPunchHit?.Invoke();
 
-                if (closestTarget is NPCController)
+                if (closestTarget is NetworkPlayer)
                 {
-                    Debug.Log("[PlayerController] Punched NPC. No jail penalty.");
-                }
-                else // PlayerController, FakePlayerController, or NetworkPlayer
-                {
-                    Debug.Log("[PlayerController] Punched a player/fake player! Sending to jail immediately.");
+                    Debug.Log("[PlayerController] Punched a real player! Sending to jail immediately.");
                     Invoke(nameof(GoToJail), 1.6f);
+                }
+                else // NPCController or FakePlayerController
+                {
+                    Debug.Log("[PlayerController] Punched NPC or Fake Player. No jail penalty.");
                 }
             }
             Invoke(nameof(EndPunch), 0.35f);

@@ -188,22 +188,24 @@ namespace RangerCity.Lobby
             var bottomBar = CreatePanel(card.transform, "BottomBar", new Vector2(220, -235), new Vector2(440, 100), false);
             bottomBar.GetComponent<Image>().color = Color.clear;
 
+            // Row 1: Inputs (at y = 25)
+            var inputRow = CreatePanel(bottomBar.transform, "InputRow", new Vector2(0, 25), new Vector2(400, 42), false);
+            inputRow.GetComponent<Image>().color = Color.clear;
+
+            _addressInput = CreateInputFieldV2(inputRow.transform, "wool-delivery.gl.at.ply.gg", "",
+                new Vector2(-50, 0), new Vector2(295, 36));
+
+            _portInput = CreateInputFieldV2(inputRow.transform, "30645", "",
+                new Vector2(152.5f, 0), new Vector2(95, 36));
+
+            // Row 2: Buttons (at y = -25)
             CreateGradientButton(bottomBar.transform, "HostBtn", "HOST SERVER",
                 new Color(0.15f, 0.55f, 0.3f), new Color(0.2f, 0.7f, 0.4f),
-                new Vector2(0, 25), new Vector2(400, 46), OnHostServerClicked);
+                new Vector2(-102.5f, -25), new Vector2(195, 46), OnHostServerClicked);
 
-            var joinRow = CreatePanel(bottomBar.transform, "JoinRow", new Vector2(0, -25), new Vector2(400, 42), false);
-            joinRow.GetComponent<Image>().color = Color.clear;
-
-            _addressInput = CreateInputFieldV2(joinRow.transform, "wool-delivery.gl.at.ply.gg", "",
-                new Vector2(-75, 0), new Vector2(220, 36));
-
-            _portInput = CreateInputFieldV2(joinRow.transform, "30645", "",
-                new Vector2(75, 0), new Vector2(65, 36));
-
-            CreateGradientButton(joinRow.transform, "JoinBtn", "JOIN",
+            CreateGradientButton(bottomBar.transform, "JoinBtn", "JOIN",
                 new Color(0.2f, 0.4f, 0.75f), new Color(0.3f, 0.55f, 0.9f),
-                new Vector2(160, 0), new Vector2(85, 36), OnJoinServerClicked);
+                new Vector2(102.5f, -25), new Vector2(195, 46), OnJoinServerClicked);
         }
 
         private void BuildHairTab(Transform parent)
