@@ -215,6 +215,7 @@ namespace RangerCity.Lobby
             EnvironmentBuilder.CreateFences(_lobbySize);
             EnvironmentBuilder.CreateBuildings();
             EnvironmentBuilder.CreateStreetLamps();
+            EnvironmentBuilder.CreateMainLobbySignboards();
             EnvironmentBuilder.CreatePortals(_lobbySize);
 
             // Construct zones (delegated to builders)

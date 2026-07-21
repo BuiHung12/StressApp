@@ -424,22 +424,65 @@ namespace RangerCity.Lobby
         // ── Area Sign ──
 
         /// <summary>
-        /// Creates a small floating sign labeling a sub-area.
+        /// Creates a 3D wooden signboard with wooden posts planted in the ground, labeling a sub-area clearly without blocking pathways.
         /// </summary>
         public static void CreateAreaSign(Transform parent, Vector3 localPos, string text, Color textColor = default)
         {
-            if (textColor == default) textColor = Color.white;
-            var signObj = new GameObject("AreaSign_" + text.Replace(" ", ""));
-            signObj.transform.SetParent(parent, false);
-            signObj.transform.localPosition = localPos;
+            if (textColor == default) textColor = new Color(0.95f, 0.95f, 0.95f);
 
-            var tmp = signObj.AddComponent<TextMeshPro>();
+            var signHolder = new GameObject("AreaSign_" + text.Replace(" ", ""));
+            signHolder.transform.SetParent(parent, false);
+            signHolder.transform.localPosition = localPos;
+
+            Color woodDark = new Color(0.38f, 0.24f, 0.12f);
+            Color boardWood = new Color(0.24f, 0.15f, 0.08f);
+
+            // 1. Two Wooden Posts going down into the ground
+            float postHeight = 1.8f;
+            float postSpacing = 1.0f;
+            Vector3[] postPositions = { new Vector3(-postSpacing * 0.5f, -postHeight * 0.5f, 0), new Vector3(postSpacing * 0.5f, -postHeight * 0.5f, 0) };
+            foreach (var pPos in postPositions)
+            {
+                var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                post.name = "SignPost";
+                post.transform.SetParent(signHolder.transform, false);
+                post.transform.localPosition = pPos;
+                post.transform.localScale = new Vector3(0.08f, postHeight * 0.5f, 0.08f);
+                post.GetComponent<Renderer>().material = WoodMat(woodDark);
+                Object.Destroy(post.GetComponent<Collider>());
+            }
+
+            // 2. Wooden Board Frame
+            var boardFrame = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            boardFrame.name = "BoardFrame";
+            boardFrame.transform.SetParent(signHolder.transform, false);
+            boardFrame.transform.localPosition = Vector3.zero;
+            boardFrame.transform.localScale = new Vector3(1.6f, 0.65f, 0.08f);
+            boardFrame.GetComponent<Renderer>().material = WoodMat(woodDark);
+            Object.Destroy(boardFrame.GetComponent<Collider>());
+
+            // 3. Inner Dark Wooden Plate
+            var innerPlate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            innerPlate.name = "InnerPlate";
+            innerPlate.transform.SetParent(signHolder.transform, false);
+            innerPlate.transform.localPosition = new Vector3(0, 0, -0.01f);
+            innerPlate.transform.localScale = new Vector3(1.5f, 0.55f, 0.082f);
+            innerPlate.GetComponent<Renderer>().material = WoodMat(boardWood);
+            Object.Destroy(innerPlate.GetComponent<Collider>());
+
+            // 4. Clear, Crisp Text on Front
+            var textObj = new GameObject("SignText");
+            textObj.transform.SetParent(signHolder.transform, false);
+            textObj.transform.localPosition = new Vector3(0, 0, -0.06f);
+
+            var tmp = textObj.AddComponent<TextMeshPro>();
             tmp.text = text;
-            tmp.fontSize = 2.0f;
+            tmp.fontSize = 2.2f;
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = textColor;
-            signObj.AddComponent<BillboardText>();
+
+            signHolder.AddComponent<BillboardText>();
         }
 
         // ── Gate (opening in a wall/fence) ──
