@@ -23,15 +23,38 @@ namespace RangerCity.Lobby
         private float[] _puffSpeeds;
         private float[] _puffOffsets;
         private Vector3[] _puffBaseScales;
+        private float[] _puffOrbitAngles;
+        private float[] _puffOrbitSpeeds;
+        private float[] _puffOrbitRadii;
+        private float[] _puffHeights;
 
         private float _limbSpawnTimer = 0f;
         private float _starSpawnTimer = 0f;
+
+        /// <summary>
+        /// Kiểm tra xem một nhân vật có đang trong trận đánh nhau nào không.
+        /// </summary>
+        public static bool IsInFight(Transform trans)
+        {
+            if (trans == null) return false;
+            var effects = FindObjectsByType<FightCloudEffect>(FindObjectsSortMode.None);
+            if (effects == null) return false;
+            foreach (var effect in effects)
+            {
+                if (effect._playerTrans == trans || effect._targetTrans == trans)
+                    return true;
+            }
+            return false;
+        }
 
         /// <summary>
         /// Kích hoạt trận đấm nhau dạng đám mây bụi giữa Player và Target.
         /// </summary>
         public static void Create(Transform player, Transform target, float duration = 1.5f)
         {
+            if (player == null || target == null) return;
+            if (IsInFight(player) || IsInFight(target)) return;
+
             var go = new GameObject("FightCloud");
             var effect = go.AddComponent<FightCloudEffect>();
             effect.Initialize(player, target, duration);
@@ -45,7 +68,7 @@ namespace RangerCity.Lobby
 
             // Midpoint of the fight
             _midPoint = (player.position + target.position) * 0.5f;
-            _midPoint.y = 0.5f; // Raise slightly above ground
+            _midPoint.y = 0.4f; // Centered around character torso height
             transform.position = _midPoint;
 
             // Store and hide characters
@@ -56,33 +79,43 @@ namespace RangerCity.Lobby
             target.localScale = Vector3.zero;
 
             // Create dust cloud puffs
-            int puffCount = 6;
+            int puffCount = 14; // High puff count for dense cartoon whirlwind look
             _puffs = new Transform[puffCount];
             _puffSpeeds = new float[puffCount];
             _puffOffsets = new float[puffCount];
             _puffBaseScales = new Vector3[puffCount];
+            _puffOrbitAngles = new float[puffCount];
+            _puffOrbitSpeeds = new float[puffCount];
+            _puffOrbitRadii = new float[puffCount];
+            _puffHeights = new float[puffCount];
 
-            Color cloudColor = new Color(0.9f, 0.9f, 0.9f, 0.95f); // Light grey dust
+            Color cloudColor = new Color(0.93f, 0.93f, 0.93f, 0.96f); // Bright clean white dust
             var mat = CreateUnlitMat(cloudColor);
 
             for (int i = 0; i < puffCount; i++)
             {
-                var puff = CreateVisualObject($"Puff_{i}", true, mat);
+                var puff = CreateVisualObject($"Puff_{i}", PrimitiveType.Sphere, mat);
                 puff.transform.SetParent(transform, false);
 
-                // Arrange puffs in a small bundle
-                float angle = i * (360f / puffCount) * Mathf.Deg2Rad;
-                float dist = Random.Range(0.2f, 0.5f);
-                puff.transform.localPosition = new Vector3(Mathf.Cos(angle) * dist, Random.Range(-0.2f, 0.2f), Mathf.Sin(angle) * dist);
+                // Set up 2D orbital properties (in the local XY plane)
+                _puffOrbitAngles[i] = i * (360f / puffCount) + Random.Range(-15f, 15f);
+                _puffOrbitSpeeds[i] = Random.Range(180f, 360f) * (Random.value > 0.5f ? 1f : -1f); // Orbit clockwise or counterclockwise
+                _puffOrbitRadii[i] = Random.Range(0.08f, 0.25f);
+                _puffHeights[i] = Random.Range(-0.1f, 0.1f);
 
-                float sizeX = Random.Range(1.2f, 1.8f);
-                float sizeY = Random.Range(1.0f, 1.5f);
-                puff.transform.localScale = new Vector3(sizeX, sizeY, sizeX);
+                // Highly irregular oval scales, but flattened on Z (thickness) to look like 2D flat disks
+                float sizeX = Random.Range(0.4f, 0.9f);
+                float sizeY = Random.Range(0.4f, 0.8f);
+                float sizeZ = 0.001f; // Paper-thin flat disk
+                puff.transform.localScale = new Vector3(sizeX, sizeY, sizeZ);
+
+                // Random 2D rotation (only around the Z axis)
+                puff.transform.localRotation = Quaternion.Euler(0f, 0f, Random.Range(0f, 360f));
 
                 // Store info
                 _puffs[i] = puff.transform;
                 _puffBaseScales[i] = puff.transform.localScale;
-                _puffSpeeds[i] = Random.Range(5f, 10f);
+                _puffSpeeds[i] = Random.Range(8f, 15f);
                 _puffOffsets[i] = Random.Range(0f, 2f * Mathf.PI);
             }
 
@@ -102,28 +135,52 @@ namespace RangerCity.Lobby
                 return;
             }
 
-            // 1. Animate dust puffs (make them bubble and boil)
+            // Keep the entire effect billboard facing the camera
+            if (Camera.main != null)
+            {
+                transform.rotation = Camera.main.transform.rotation;
+            }
+
+            // 1. Animate dust puffs (orbiting, bobbing, shifting on flat 2D plane)
             for (int i = 0; i < _puffs.Length; i++)
             {
                 if (_puffs[i] == null) continue;
-                float sin = Mathf.Sin(Time.time * _puffSpeeds[i] + _puffOffsets[i]);
-                float scaleFactor = 1f + sin * 0.15f;
-                _puffs[i].localScale = _puffBaseScales[i] * scaleFactor;
 
-                // Slowly rotate
-                _puffs[i].Rotate(Vector3.up, 30f * Time.deltaTime);
+                // Orbit around the center in the local XY plane
+                _puffOrbitAngles[i] += _puffOrbitSpeeds[i] * Time.deltaTime;
+                float angleRad = _puffOrbitAngles[i] * Mathf.Deg2Rad;
+                float r = _puffOrbitRadii[i];
+
+                // Add slight Z offset to prevent depth fighting between layers
+                _puffs[i].localPosition = new Vector3(
+                    Mathf.Cos(angleRad) * r,
+                    _puffHeights[i] + Mathf.Sin(Time.time * 6f + _puffOffsets[i]) * 0.03f,
+                    i * 0.001f
+                );
+
+                // Pulsate scale only on X and Y (keeping Z flat)
+                float sin = Mathf.Sin(Time.time * _puffSpeeds[i] + _puffOffsets[i]);
+                float cos = Mathf.Cos(Time.time * (_puffSpeeds[i] * 0.9f) + _puffOffsets[i]);
+                _puffs[i].localScale = new Vector3(
+                    _puffBaseScales[i].x * (1f + sin * 0.22f),
+                    _puffBaseScales[i].y * (1f + cos * 0.28f),
+                    _puffBaseScales[i].z
+                );
+
+                // Rotate only around the local Z-axis (2D spin)
+                _puffs[i].Rotate(Vector3.forward, 90f * Time.deltaTime);
             }
 
             // Slowly slide the whole cloud slightly left/right/up to feel alive
             transform.position = _midPoint + new Vector3(
-                Mathf.Sin(Time.time * 15f) * 0.05f,
-                Mathf.Cos(Time.time * 12f) * 0.03f,
-                Mathf.Sin(Time.time * 9f) * 0.05f
+                Mathf.Sin(Time.time * 15f) * 0.02f,
+                Mathf.Cos(Time.time * 12f) * 0.01f,
+                Mathf.Sin(Time.time * 9f) * 0.02f
             );
 
-            // 2. Spawn limbs (fists/feet popping out)
+            // 2. Spawn limbs (white gloved arms and black legs thò thụt)
             _limbSpawnTimer += Time.deltaTime;
-            if (_limbSpawnTimer > 0.12f)
+            if (_limbSpawnTimer > 0.09f) // Spawn slightly faster
             {
                 _limbSpawnTimer = 0f;
                 SpawnLimb();
@@ -143,46 +200,87 @@ namespace RangerCity.Lobby
             var limb = new GameObject("Limb");
             limb.transform.SetParent(transform, false);
 
-            // Random direction out of cloud
+            // Random direction restricted to the local XY plane
             float angle = Random.Range(0f, 360f) * Mathf.Deg2Rad;
-            Vector3 dir = new Vector3(Mathf.Cos(angle), Random.Range(-0.3f, 0.4f), Mathf.Sin(angle)).normalized;
+            Vector3 dir = new Vector3(Mathf.Cos(angle), Mathf.Sin(angle), 0f).normalized;
 
-            // Random limb type: Fist (sphere) or Foot (cube)
+            // Random limb type: Fist (white-gloved hand) or Foot (dark leg with brown shoe)
             bool isFist = Random.value > 0.5f;
-            GameObject visual;
 
             if (isFist)
             {
-                var mat = CreateUnlitMat(new Color(1f, 0.85f, 0.7f));
-                visual = CreateVisualObject("Fist", true, mat);
-                visual.transform.localScale = Vector3.one * 0.4f;
+                // Cartoon White-Gloved Arm and Hand
+                var whiteMat = CreateUnlitMat(Color.white);
+                
+                // Arm/Sleeve (Cylinder)
+                var arm = CreateVisualObject("Arm", PrimitiveType.Cylinder, whiteMat);
+                arm.transform.SetParent(limb.transform, false);
+                arm.transform.localScale = new Vector3(0.04f, 0.15f, 0.001f); // Flattened on Z
+                arm.transform.localPosition = new Vector3(0, 0, 0.07f);
+                arm.transform.localRotation = Quaternion.Euler(90f, 0, 0); // Align on Z axis
+                
+                // Hand (Sphere)
+                var hand = CreateVisualObject("Hand", PrimitiveType.Sphere, whiteMat);
+                hand.transform.SetParent(limb.transform, false);
+                hand.transform.localScale = new Vector3(0.1f, 0.1f, 0.001f); // Flattened on Z
+                hand.transform.localPosition = new Vector3(0, 0, 0.22f);
             }
             else
             {
-                var mat = CreateUnlitMat(new Color(0.25f, 0.35f, 0.6f));
-                visual = CreateVisualObject("Foot", false, mat);
-                visual.transform.localScale = new Vector3(0.3f, 0.2f, 0.4f);
+                // Cartoon Black/Grey Leg and Foot (from reference image)
+                var blackMat = CreateUnlitMat(new Color(0.12f, 0.12f, 0.12f));
+                var brownMat = CreateUnlitMat(new Color(0.36f, 0.24f, 0.15f));
+                
+                // Leg (Cylinder)
+                var leg = CreateVisualObject("Leg", PrimitiveType.Cylinder, blackMat);
+                leg.transform.SetParent(limb.transform, false);
+                leg.transform.localScale = new Vector3(0.03f, 0.15f, 0.001f); // Flattened on Z
+                leg.transform.localPosition = new Vector3(0, 0, 0.07f);
+                leg.transform.localRotation = Quaternion.Euler(90f, 0, 0);
+                
+                // Shoe/Foot (Cube)
+                var shoe = CreateVisualObject("Shoe", PrimitiveType.Cube, brownMat);
+                shoe.transform.SetParent(limb.transform, false);
+                shoe.transform.localScale = new Vector3(0.06f, 0.04f, 0.001f); // Flattened on Z
+                shoe.transform.localPosition = new Vector3(0, 0, 0.22f);
             }
-
-            visual.transform.SetParent(limb.transform, false);
 
             // Extend and retract animation
             var animator = limb.AddComponent<LimbAnimator>();
-            animator.Setup(dir, Random.Range(0.6f, 1.2f), Random.Range(0.15f, 0.3f));
+            animator.Setup(dir, Random.Range(0.3f, 0.5f), Random.Range(0.12f, 0.22f));
         }
 
         private void SpawnFightStar()
         {
-            Color[] colors = { Color.yellow, Color.cyan, Color.magenta, new Color(1f, 0.5f, 0f) };
+            Color[] colors = { 
+                new Color(0.2f, 0.9f, 0.8f), // Teal/Cyan (like reference image)
+                new Color(0.35f, 1f, 0.55f),  // Mint Green
+                Color.yellow, 
+                Color.white 
+            };
             var mat = CreateUnlitMat(colors[Random.Range(0, colors.Length)]);
-            var star = CreateVisualObject("Star", true, mat);
-            star.transform.SetParent(transform, false);
-            star.transform.localPosition = Random.insideUnitSphere * 0.4f;
-            star.transform.localScale = Vector3.one * 0.15f;
 
-            // Pop out and fall behavior
-            var physics = star.AddComponent<StarPhysics>();
-            physics.Setup(new Vector3(Random.Range(-3f, 3f), Random.Range(4f, 8f), Random.Range(-3f, 3f)));
+            // Create a compound 4-pointed star (+)
+            var starContainer = new GameObject("Star");
+            starContainer.transform.SetParent(transform, false);
+            starContainer.transform.localPosition = Random.insideUnitSphere * 0.15f;
+
+            // Horizontal bar
+            var barH = CreateVisualObject("BarH", PrimitiveType.Cube, mat);
+            barH.transform.SetParent(starContainer.transform, false);
+            barH.transform.localScale = new Vector3(0.12f, 0.025f, 0.001f); // Flattened on Z
+
+            // Vertical bar
+            var barV = CreateVisualObject("BarV", PrimitiveType.Cube, mat);
+            barV.transform.SetParent(starContainer.transform, false);
+            barV.transform.localScale = new Vector3(0.025f, 0.12f, 0.001f); // Flattened on Z
+
+            // Pop out and fall behavior (restricted to local XY plane)
+            var physics = starContainer.AddComponent<StarPhysics>();
+            physics.Setup(new Vector3(Random.Range(-1.8f, 1.8f), Random.Range(2.5f, 4.5f), 0f));
+
+            // Add spinning animation
+            starContainer.AddComponent<StarSpinner>().Setup(Random.Range(180f, 360f));
         }
 
         private void FinishFight()
@@ -250,6 +348,7 @@ namespace RangerCity.Lobby
         // Static Mesh cache to avoid dynamic collider and mesh recreation crashes
         private static Mesh _sphereMesh;
         private static Mesh _cubeMesh;
+        private static Mesh _cylinderMesh;
 
         private static void CacheMeshes()
         {
@@ -265,14 +364,23 @@ namespace RangerCity.Lobby
                 _cubeMesh = temp.GetComponent<MeshFilter>().sharedMesh;
                 Destroy(temp);
             }
+            if (_cylinderMesh == null)
+            {
+                var temp = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                _cylinderMesh = temp.GetComponent<MeshFilter>().sharedMesh;
+                Destroy(temp);
+            }
         }
 
-        private static GameObject CreateVisualObject(string name, bool isSphere, Material mat)
+        private static GameObject CreateVisualObject(string name, PrimitiveType type, Material mat)
         {
             CacheMeshes();
             var go = new GameObject(name);
             var filter = go.AddComponent<MeshFilter>();
-            filter.sharedMesh = isSphere ? _sphereMesh : _cubeMesh;
+            if (type == PrimitiveType.Sphere) filter.sharedMesh = _sphereMesh;
+            else if (type == PrimitiveType.Cube) filter.sharedMesh = _cubeMesh;
+            else if (type == PrimitiveType.Cylinder) filter.sharedMesh = _cylinderMesh;
+
             var renderer = go.AddComponent<MeshRenderer>();
             if (mat != null) renderer.material = mat;
             return go;
@@ -288,12 +396,14 @@ namespace RangerCity.Lobby
         private float _maxDistance;
         private float _duration;
         private float _elapsed = 0f;
+        private float _angleDeg;
 
         public void Setup(Vector3 dir, float maxDistance, float duration)
         {
             _dir = dir;
             _maxDistance = maxDistance;
             _duration = duration;
+            _angleDeg = Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg;
         }
 
         private void Update()
@@ -310,7 +420,10 @@ namespace RangerCity.Lobby
             // Sine wave projection (0 -> max -> 0)
             float dist = Mathf.Sin(t * Mathf.PI) * _maxDistance;
             transform.localPosition = _dir * dist;
-            transform.localRotation = Quaternion.LookRotation(_dir);
+
+            // Rotate purely in 2D around Z axis, pointing along _dir with a frantic shake
+            float shakeAngle = Mathf.Sin(t * Mathf.PI * 7f) * 20f;
+            transform.localRotation = Quaternion.Euler(0f, 0f, _angleDeg - 90f + shakeAngle);
         }
     }
 
@@ -338,7 +451,18 @@ namespace RangerCity.Lobby
             }
 
             _velocity.y += _gravity * Time.deltaTime;
-            transform.localPosition += _velocity * Time.deltaTime;
+            // Move strictly in local XY plane
+            transform.localPosition += new Vector3(_velocity.x * Time.deltaTime, _velocity.y * Time.deltaTime, 0f);
         }
+    }
+
+    /// <summary>
+    /// Helper to spin the 4-pointed stars.
+    /// </summary>
+    internal class StarSpinner : MonoBehaviour
+    {
+        private float _spinSpeed;
+        public void Setup(float speed) { _spinSpeed = speed; }
+        private void Update() { transform.Rotate(Vector3.forward, _spinSpeed * Time.deltaTime); }
     }
 }

@@ -79,7 +79,7 @@ namespace RangerCity.Lobby
         // Zone teleport entry points (where NPC appears when entering a zone)
         private static readonly Vector3[] _zoneEntryPoints = new Vector3[]
         {
-            new Vector3(0, 0.03f, 0),              // Lobby center
+            new Vector3(0, 0.03f, -5f),            // Lobby center (offset to avoid central fountain)
             new Vector3(0, 0.03f, 56f),             // Garden entry
             new Vector3(56f, 0.03f, 0),             // Fishing entry
             new Vector3(-60f, 0.03f, -12f),         // Study entry

@@ -164,7 +164,7 @@ namespace RangerCity.Lobby
 
         private static readonly Vector3[] _zoneEntryPoints = new Vector3[]
         {
-            new Vector3(0, 0.03f, 0),
+            new Vector3(0, 0.03f, -5f),            // Lobby center (offset to avoid central fountain)
             new Vector3(0, 0.03f, 56f),
             new Vector3(56f, 0.03f, 0),
             new Vector3(-60f, 0.03f, -12f),

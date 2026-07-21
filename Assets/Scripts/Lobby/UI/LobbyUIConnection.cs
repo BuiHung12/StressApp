@@ -74,26 +74,32 @@ namespace RangerCity.Lobby
                 overlayRt.offsetMin = overlayRt.offsetMax = Vector2.zero;
                 
                 var overlayImg = _noInternetOverlay.AddComponent<Image>();
-                overlayImg.color = new Color(0.02f, 0.02f, 0.05f, 0.98f); // deep dark overlay
+                overlayImg.color = new Color(0f, 0f, 0.05f, 0.75f); // translucent dark blue wash overlay
                 
-                // Card panel inside overlay
-                var warnCard = CreatePanel(_noInternetOverlay.transform, "WarnCard", Vector2.zero, new Vector2(550, 220));
-                var warnImg = warnCard.GetComponent<Image>();
-                warnImg.color = new Color(0.15f, 0.08f, 0.09f, 0.95f); // reddish warning panel
+                // Border panel first (renders behind Card panel)
+                var warnBorder = CreateRoundedPanel(_noInternetOverlay.transform, "CardBorder", Vector2.zero, new Vector2(858, 458), new Color(1f, 0.65f, 0.15f, 0.8f));
                 
-                var warnBorder = CreatePanel(warnCard.transform, "CardBorder", Vector2.zero, new Vector2(554, 224));
-                warnBorder.transform.SetAsFirstSibling();
-                warnBorder.GetComponent<Image>().color = new Color(0.9f, 0.2f, 0.25f, 0.4f);
+                // Card panel second (renders in front of Border panel)
+                var warnCard = CreateRoundedPanel(_noInternetOverlay.transform, "WarnCard", Vector2.zero, new Vector2(850, 450), new Color(0.1f, 0.12f, 0.18f, 0.98f));
 
-                // Warning Texts
-                MakeText(warnCard.transform, "Title", "⚠️ KHÔNG CÓ KẾT NỐI INTERNET", 20,
-                    new Vector2(0, 60), new Vector2(500, 35), TextAlignmentOptions.Center, new Color(1f, 0.35f, 0.4f));
+                // Add 3D drop shadow to card
+                var shadow = warnCard.AddComponent<Shadow>();
+                shadow.effectColor = new Color(0f, 0f, 0f, 0.5f);
+                shadow.effectDistance = new Vector2(4, -4);
 
-                MakeText(warnCard.transform, "Content", "Vui lòng kiểm tra lại kết nối Wifi hoặc mạng di động trên thiết bị của bạn để tiếp tục.", 14,
-                    new Vector2(0, -10), new Vector2(460, 60), TextAlignmentOptions.Center, new Color(0.9f, 0.9f, 0.95f));
+                // Warning Texts (Children of warnCard)
+                MakeText(warnCard.transform, "Title", "⚠️ KHÔNG CÓ KẾT NỐI INTERNET", 32,
+                    new Vector2(0, 130), new Vector2(780, 50), TextAlignmentOptions.Center, new Color(1f, 0.65f, 0.15f));
 
-                MakeText(warnCard.transform, "Status", "Đang tự động kết nối lại...", 12,
-                    new Vector2(0, -65), new Vector2(500, 25), TextAlignmentOptions.Center, new Color(0.6f, 0.6f, 0.7f));
+                MakeText(warnCard.transform, "Content", "Vui lòng kiểm tra lại đường truyền Wifi hoặc dữ liệu di động 3G/4G trên thiết bị của bạn để tiếp tục.", 22,
+                    new Vector2(0, 15), new Vector2(780, 150), TextAlignmentOptions.Center, new Color(0.9f, 0.9f, 0.95f));
+
+                // Reconnection loading line (Rounded)
+                var progressBg = CreateRoundedPanel(warnCard.transform, "ProgressBg", new Vector2(0, -100), new Vector2(600, 12), new Color(0.05f, 0.06f, 0.1f, 1f));
+                var progressFill = CreateRoundedPanel(progressBg.transform, "ProgressFill", Vector2.zero, new Vector2(600, 12), new Color(1f, 0.65f, 0.15f, 0.9f));
+
+                MakeText(warnCard.transform, "Status", "Đang tự động kết nối lại...", 18,
+                    new Vector2(0, -140), new Vector2(780, 30), TextAlignmentOptions.Center, new Color(0.5f, 0.75f, 1f));
                 
                 // Initially active if internet was not verified yet, or handled by SetInternetState
                 _noInternetOverlay.SetActive(!_isInternetAvailable);
@@ -220,11 +226,11 @@ namespace RangerCity.Lobby
             // ═══════════════════════════════════
             //  BOTTOM — Connection Buttons
             // ═══════════════════════════════════
-            var bottomBar = CreatePanel(card.transform, "BottomBar", new Vector2(220, -235), new Vector2(440, 100), false);
+            var bottomBar = CreatePanel(card.transform, "BottomBar", new Vector2(220, -235), new Vector2(440, 120), false);
             bottomBar.GetComponent<Image>().color = Color.clear;
 
-            // Row 1: Inputs (at y = 25)
-            var inputRow = CreatePanel(bottomBar.transform, "InputRow", new Vector2(0, 25), new Vector2(400, 42), false);
+            // Row 1: Inputs (at y = 35)
+            var inputRow = CreatePanel(bottomBar.transform, "InputRow", new Vector2(0, 35), new Vector2(400, 42), false);
             inputRow.GetComponent<Image>().color = Color.clear;
 
             _addressInput = CreateInputFieldV2(inputRow.transform, "wool-delivery.gl.at.ply.gg", "",
@@ -233,14 +239,14 @@ namespace RangerCity.Lobby
             _portInput = CreateInputFieldV2(inputRow.transform, "30645", "",
                 new Vector2(152.5f, 0), new Vector2(95, 36));
 
-            // Row 2: Buttons (at y = -25)
+            // Row 2: Buttons (at y = -25) - JOIN button is made massive and prominent, HOST is secondary
             CreateGradientButton(bottomBar.transform, "HostBtn", "HOST SERVER",
-                new Color(0.15f, 0.55f, 0.3f), new Color(0.2f, 0.7f, 0.4f),
-                new Vector2(-102.5f, -25), new Vector2(195, 46), OnHostServerClicked);
+                new Color(0.18f, 0.19f, 0.24f), new Color(0.25f, 0.26f, 0.32f),
+                new Vector2(-135, -25), new Vector2(130, 48), OnHostServerClicked, 13f);
 
             CreateGradientButton(bottomBar.transform, "JoinBtn", "JOIN",
-                new Color(0.2f, 0.4f, 0.75f), new Color(0.3f, 0.55f, 0.9f),
-                new Vector2(102.5f, -25), new Vector2(195, 46), OnJoinServerClicked);
+                new Color(0.05f, 0.45f, 0.9f), new Color(0.0f, 0.75f, 1f),
+                new Vector2(70, -25), new Vector2(260, 58), OnJoinServerClicked, 22f);
         }
 
         private void BuildHairTab(Transform parent)
@@ -694,6 +700,21 @@ namespace RangerCity.Lobby
             return obj;
         }
 
+        private GameObject CreateRoundedPanel(Transform parent, string name, Vector2 pos, Vector2 size, Color color, bool raycastTarget = false)
+        {
+            var obj = new GameObject(name, typeof(RectTransform));
+            obj.transform.SetParent(parent, false);
+            var rt = obj.GetComponent<RectTransform>();
+            rt.anchoredPosition = pos;
+            rt.sizeDelta = size;
+            var img = obj.AddComponent<Image>();
+            img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
+            img.type = Image.Type.Sliced;
+            img.color = color;
+            img.raycastTarget = raycastTarget;
+            return obj;
+        }
+
         private GameObject MakeText(Transform parent, string name, string text, float fontSize, Vector2 pos, Vector2 size, TextAlignmentOptions align, Color color)
         {
             var obj = new GameObject(name, typeof(RectTransform));
@@ -706,7 +727,7 @@ namespace RangerCity.Lobby
             tmp.fontSize = fontSize;
             tmp.alignment = align;
             tmp.color = color;
-            tmp.enableWordWrapping = false;
+            tmp.enableWordWrapping = true;
             tmp.overflowMode = TextOverflowModes.Ellipsis;
             tmp.raycastTarget = false;
             return obj;
@@ -720,6 +741,8 @@ namespace RangerCity.Lobby
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
             var img = obj.AddComponent<Image>();
+            img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/InputFieldBackground.psd");
+            img.type = Image.Type.Sliced;
             img.color = new Color(0.06f, 0.06f, 0.1f, 1f);
             img.raycastTarget = true;
 
@@ -765,11 +788,12 @@ namespace RangerCity.Lobby
             }
         }
 
-        private void CreateGradientButton(Transform parent, string name, string label, Color colorA, Color colorB, Vector2 pos, Vector2 size, UnityEngine.Events.UnityAction action)
+        private void CreateGradientButton(Transform parent, string name, string label, Color colorA, Color colorB, Vector2 pos, Vector2 size, UnityEngine.Events.UnityAction action, float fontSize = 15f)
         {
-            var btnObj = CreatePanel(parent, name, pos, size, true);
+            var btnObj = CreateRoundedPanel(parent, name, pos, size, Color.Lerp(colorA, colorB, 0.5f), true);
             var img = btnObj.GetComponent<Image>();
-            img.color = Color.Lerp(colorA, colorB, 0.5f);
+            img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
+            img.type = Image.Type.Sliced;
 
             var btn = btnObj.AddComponent<Button>();
             btn.onClick.AddListener(action);
@@ -780,7 +804,7 @@ namespace RangerCity.Lobby
             colors.normalColor = Color.white;
             btn.colors = colors;
 
-            MakeText(btnObj.transform, "Label", label, 15, Vector2.zero, size, TextAlignmentOptions.Center, Color.white);
+            MakeText(btnObj.transform, "Label", label, fontSize, Vector2.zero, size, TextAlignmentOptions.Center, Color.white);
         }
 
         private IEnumerator LoadFromDatabaseServerCoroutine()

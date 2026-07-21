@@ -162,9 +162,22 @@ namespace RangerCity.Lobby
                 }
             }
 
-            if (_currentTarget != null && _interactionPanel != null && _interactionPanel.activeSelf)
+            if (_currentTarget != null && _interactionPanel != null)
             {
-                UpdatePromptPosition();
+                MonoBehaviour targetMB = _currentTarget as MonoBehaviour;
+                bool isTargetInFight = targetMB != null && FightCloudEffect.IsInFight(targetMB.transform);
+                bool isPlayerInFight = _player != null && FightCloudEffect.IsInFight(_player.transform);
+                bool shouldBeActive = !isTargetInFight && !isPlayerInFight;
+
+                if (_interactionPanel.activeSelf != shouldBeActive)
+                {
+                    _interactionPanel.SetActive(shouldBeActive);
+                }
+
+                if (shouldBeActive)
+                {
+                    UpdatePromptPosition();
+                }
             }
 
             if (_dialogueActive && Input.GetMouseButtonDown(0))
