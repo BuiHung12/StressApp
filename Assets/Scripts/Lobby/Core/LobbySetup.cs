@@ -1024,8 +1024,8 @@ namespace RangerCity.Lobby
                 {
                     report += "No player-related GameObjects found.\n";
                 }
-                Debug.Log(report);
-                yield return new WaitForSeconds(3.0f);
+                // Debug.Log(report);
+                yield return new WaitForSeconds(10.0f);
             }
         }
     }
