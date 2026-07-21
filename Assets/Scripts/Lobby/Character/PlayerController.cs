@@ -444,6 +444,17 @@ namespace RangerCity.Lobby
         public void ExecuteInteraction()
         {
             float interactDist = 3.5f;
+
+            var spots = FindObjectsByType<FishingSpot>(FindObjectsSortMode.None);
+            FishingSpot closestSpot = null;
+            float minSpotDist = interactDist;
+            foreach (var spot in spots)
+            {
+                float dist = Vector3.Distance(transform.position, spot.transform.position);
+                if (dist < minSpotDist) { minSpotDist = dist; closestSpot = spot; }
+            }
+            if (closestSpot != null) { closestSpot.TryInteract(this); return; }
+
             var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
             GardenPlot closestPlot = null;
             float minPlotDist = interactDist;
@@ -464,7 +475,7 @@ namespace RangerCity.Lobby
             }
             if (closestCloud != null) { closestCloud.TryInteract(this); return; }
 
-            // Nếu không có plot/cloud, thử talk với NPC gần nhất
+            // Nếu không có spot/plot/cloud, thử talk với NPC gần nhất
             if (_nearestInteractable != null)
             {
                 var lobbyUI = FindAnyObjectByType<LobbyUI>();
@@ -480,6 +491,13 @@ namespace RangerCity.Lobby
             if (_nearestInteractable != null) return true;
 
             float checkDist = 3.5f;
+
+            var spots = FindObjectsByType<FishingSpot>(FindObjectsSortMode.None);
+            foreach (var s in spots)
+            {
+                if (Vector3.Distance(transform.position, s.transform.position) < checkDist) return true;
+            }
+
             var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
             foreach (var p in plots)
             {
@@ -498,6 +516,21 @@ namespace RangerCity.Lobby
         public string GetInteractionLabel()
         {
             float checkDist = 3.5f;
+
+            var spots = FindObjectsByType<FishingSpot>(FindObjectsSortMode.None);
+            FishingSpot closestSpot = null;
+            float minSpotDist = checkDist;
+            foreach (var spot in spots)
+            {
+                float dist = Vector3.Distance(transform.position, spot.transform.position);
+                if (dist < minSpotDist) { minSpotDist = dist; closestSpot = spot; }
+            }
+            if (closestSpot != null)
+            {
+                if (closestSpot.State == FishingState.Idle) return "CÂU CÁ";
+                if (closestSpot.State == FishingState.Biting) return "GIẬT CẦN!";
+                return "ĐANG ĐỢI";
+            }
 
             var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
             GardenPlot closestPlot = null;

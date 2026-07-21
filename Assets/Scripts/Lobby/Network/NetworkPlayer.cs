@@ -601,6 +601,40 @@ namespace RangerCity.Lobby
             }
         }
 
+        // ── FishingSpot Sync ──
+
+        [Command]
+        public void CmdCastFish(int spotIndex)
+        {
+            RpcCastFish(spotIndex);
+        }
+
+        [ClientRpc]
+        private void RpcCastFish(int spotIndex)
+        {
+            var spots = FindObjectsByType<FishingSpot>(FindObjectsSortMode.None);
+            if (spotIndex >= 0 && spotIndex < spots.Length)
+            {
+                spots[spotIndex].ForceSetState(FishingState.Waiting);
+            }
+        }
+
+        [Command]
+        public void CmdCatchFish(int spotIndex)
+        {
+            RpcCatchFish(spotIndex);
+        }
+
+        [ClientRpc]
+        private void RpcCatchFish(int spotIndex)
+        {
+            var spots = FindObjectsByType<FishingSpot>(FindObjectsSortMode.None);
+            if (spotIndex >= 0 && spotIndex < spots.Length)
+            {
+                spots[spotIndex].ForceSetState(FishingState.Idle);
+            }
+        }
+
         // ── CloudLayer Unlock Sync ──
 
         [Command]
