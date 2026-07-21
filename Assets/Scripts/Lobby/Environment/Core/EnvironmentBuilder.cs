@@ -325,13 +325,13 @@ namespace RangerCity.Lobby
                     Object.Destroy(leg.GetComponent<Collider>());
                 }
 
-                // Add "I Love You" text on bench 1 & 2
+                // Add "I Love You" text centered right on the front surface of the wooden board
                 var textObj = new GameObject("BenchText");
                 textObj.transform.SetParent(bench.transform, false);
-                textObj.transform.localPosition = new Vector3(0, 1.0f, 0);
+                textObj.transform.localPosition = new Vector3(0, 0.55f, -0.22f);
                 var tmp = textObj.AddComponent<TextMeshPro>();
                 tmp.text = "<color=#FF6699><b>I Love You</b></color>";
-                tmp.fontSize = 2.4f;
+                tmp.fontSize = 1.8f;
                 tmp.alignment = TextAlignmentOptions.Center;
                 tmp.color = Color.white;
                 textObj.AddComponent<BillboardText>();
