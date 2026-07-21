@@ -203,8 +203,8 @@ namespace RangerCity.Lobby
             ZoneFactory.CreateLowFence(area.transform, new Vector3(-6f, 0, 0), 12f, 90f, FenceWood, 0.4f);  // West
             ZoneFactory.CreateLowFence(area.transform, new Vector3(0, 0, -6f), 12f, 0f, FenceWood, 0.4f);   // South
 
-            // Area sign
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(-1.5f, 0.6f, -1.5f), "Hoa Viên");
+            // Area sign at bottom-right corner inside FlowerMeadow (circled position)
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(4.0f, 0.6f, -4.0f), "Hoa Viên");
 
             // Flower bush clusters — arranged in 3 rows × 3 columns
             Color[] flowerColors = {
@@ -249,8 +249,8 @@ namespace RangerCity.Lobby
             ZoneFactory.CreateLowFence(area.transform, new Vector3(6f, 0, 0), 12f, 90f, WallStone, 0.35f); // East
             ZoneFactory.CreateLowFence(area.transform, new Vector3(0, 0, -6f), 12f, 0f, WallStone, 0.35f); // South
 
-            // Area sign
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0f, 0.6f, -1.8f), "Vườn Thiền");
+            // Area sign at bottom-left corner inside ZenGarden (circled position)
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(-4.0f, 0.6f, -4.0f), "Vườn Thiền");
 
             // Rake lines (parallel thin strips)
             for (float z = -4.5f; z <= 4.5f; z += 0.6f)
@@ -398,8 +398,8 @@ namespace RangerCity.Lobby
             ZoneFactory.CreateLowFence(area.transform, new Vector3(-6f, 0, 0), 12f, 90f, FenceWood, 0.4f); // West
             ZoneFactory.CreateLowFence(area.transform, new Vector3(0, 0, -6f), 12f, 0f, FenceWood, 0.4f);  // South
 
-            // Area sign
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0f, 0.6f, -1.6f), "Vườn Rau Sinh Thái");
+            // Area sign at top-right corner inside EcologyGarden (circled position)
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(4.0f, 0.6f, 4.0f), "Vườn Rau Sinh Thái");
 
             // 4 Corner Wooden Posts with Fairy Lantern Lights
             Vector3[] lanternPosts = { new(-5.8f, 0, 5.8f), new(5.8f, 0, 5.8f), new(-5.8f, 0, -5.8f), new(5.8f, 0, -5.8f) };
@@ -486,8 +486,8 @@ namespace RangerCity.Lobby
             ZoneFactory.CreateLowFence(area.transform, new Vector3(6f, 0, 0), 12f, 90f, WallStone, 0.3f);
             ZoneFactory.CreateLowFence(area.transform, new Vector3(0, 0, -6f), 12f, 0f, WallStone, 0.3f);
 
-            // Area sign
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0f, 0.6f, -2.6f), "Vườn Đài Phun");
+            // Area sign at top-left corner inside FountainGarden (circled position)
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(-4.0f, 0.6f, 4.0f), "Vườn Đài Phun");
 
             // Central fountain
             // Basin

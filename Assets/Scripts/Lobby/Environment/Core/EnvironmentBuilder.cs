@@ -291,7 +291,8 @@ namespace RangerCity.Lobby
 
         public static void CreateBenches3D()
         {
-            Vector3[] positions = { new(-4, 0, 5), new(4, 0, 5), new(-4, 0, -5), new(4, 0, -5) };
+            // Only create the 2 top benches (1 and 2 in user's diagram at Z = 5)
+            Vector3[] positions = { new(-4, 0, 5), new(4, 0, 5) };
             foreach (var pos in positions)
             {
                 var bench = new GameObject("Bench");
@@ -323,6 +324,17 @@ namespace RangerCity.Lobby
                     leg.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.3f, 0.3f, 0.3f));
                     Object.Destroy(leg.GetComponent<Collider>());
                 }
+
+                // Add "I Love You" text on bench 1 & 2
+                var textObj = new GameObject("BenchText");
+                textObj.transform.SetParent(bench.transform, false);
+                textObj.transform.localPosition = new Vector3(0, 1.0f, 0);
+                var tmp = textObj.AddComponent<TextMeshPro>();
+                tmp.text = "<color=#FF6699><b>I Love You</b></color>";
+                tmp.fontSize = 2.4f;
+                tmp.alignment = TextAlignmentOptions.Center;
+                tmp.color = Color.white;
+                textObj.AddComponent<BillboardText>();
 
                 bench.transform.position = pos;
             }
@@ -825,100 +837,6 @@ namespace RangerCity.Lobby
             obj.isStatic = true;
             Object.Destroy(obj.GetComponent<Collider>());
             return obj;
-        }
-
-        /// <summary>
-        /// Creates 2 small standing 3D wooden signboards in the Main Lobby Central Plaza displaying "I Love You".
-        /// </summary>
-        public static void CreateMainLobbySignboards()
-        {
-            Color woodDark = new Color(0.38f, 0.24f, 0.12f);
-            Color boardBg = new Color(0.24f, 0.15f, 0.08f);
-
-            // === 1. Left Small Signboard at (-2.8, 0.75, 2.2) ===
-            var leftSign = new GameObject("LobbyMapBoard");
-            leftSign.transform.position = new Vector3(-2.8f, 0.75f, 2.2f);
-
-            float pHeight = 0.6f;
-            float pSpace = 0.8f;
-            Vector3[] pPositions = { new Vector3(-pSpace * 0.5f, -pHeight * 0.5f, 0), new Vector3(pSpace * 0.5f, -pHeight * 0.5f, 0) };
-            foreach (var pPos in pPositions)
-            {
-                var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                post.name = "Post";
-                post.transform.SetParent(leftSign.transform, false);
-                post.transform.localPosition = pPos;
-                post.transform.localScale = new Vector3(0.06f, pHeight * 0.5f, 0.06f);
-                post.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodDark);
-                Object.Destroy(post.GetComponent<Collider>());
-            }
-
-            var lFrame = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            lFrame.name = "Frame";
-            lFrame.transform.SetParent(leftSign.transform, false);
-            lFrame.transform.localPosition = Vector3.zero;
-            lFrame.transform.localScale = new Vector3(1.3f, 0.45f, 0.06f);
-            lFrame.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodDark);
-            Object.Destroy(lFrame.GetComponent<Collider>());
-
-            var lPlate = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            lPlate.name = "Plate";
-            lPlate.transform.SetParent(leftSign.transform, false);
-            lPlate.transform.localPosition = new Vector3(0, 0, -0.01f);
-            lPlate.transform.localScale = new Vector3(1.22f, 0.38f, 0.062f);
-            lPlate.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(boardBg);
-            Object.Destroy(lPlate.GetComponent<Collider>());
-
-            var lTextObj = new GameObject("Text");
-            lTextObj.transform.SetParent(leftSign.transform, false);
-            lTextObj.transform.localPosition = new Vector3(0, 0, -0.04f);
-            var lTmp = lTextObj.AddComponent<TextMeshPro>();
-            lTmp.text = "<color=#FF6699><b>I Love You</b></color>";
-            lTmp.fontSize = 2.2f;
-            lTmp.alignment = TextAlignmentOptions.Center;
-            lTmp.color = Color.white;
-            leftSign.AddComponent<BillboardText>();
-
-            // === 2. Right Small Signboard at (2.8, 0.75, 2.2) ===
-            var rightSign = new GameObject("LobbyGuideBoard");
-            rightSign.transform.position = new Vector3(2.8f, 0.75f, 2.2f);
-
-            foreach (var pPos in pPositions)
-            {
-                var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-                post.name = "Post";
-                post.transform.SetParent(rightSign.transform, false);
-                post.transform.localPosition = pPos;
-                post.transform.localScale = new Vector3(0.06f, pHeight * 0.5f, 0.06f);
-                post.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodDark);
-                Object.Destroy(post.GetComponent<Collider>());
-            }
-
-            var rFrame = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            rFrame.name = "Frame";
-            rFrame.transform.SetParent(rightSign.transform, false);
-            rFrame.transform.localPosition = Vector3.zero;
-            rFrame.transform.localScale = new Vector3(1.3f, 0.45f, 0.06f);
-            rFrame.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodDark);
-            Object.Destroy(rFrame.GetComponent<Collider>());
-
-            var rPlate = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            rPlate.name = "Plate";
-            rPlate.transform.SetParent(rightSign.transform, false);
-            rPlate.transform.localPosition = new Vector3(0, 0, -0.01f);
-            rPlate.transform.localScale = new Vector3(1.22f, 0.38f, 0.062f);
-            rPlate.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(boardBg);
-            Object.Destroy(rPlate.GetComponent<Collider>());
-
-            var rTextObj = new GameObject("Text");
-            rTextObj.transform.SetParent(rightSign.transform, false);
-            rTextObj.transform.localPosition = new Vector3(0, 0, -0.04f);
-            var rTmp = rTextObj.AddComponent<TextMeshPro>();
-            rTmp.text = "<color=#FF6699><b>I Love You</b></color>";
-            rTmp.fontSize = 2.2f;
-            rTmp.alignment = TextAlignmentOptions.Center;
-            rTmp.color = Color.white;
-            rightSign.AddComponent<BillboardText>();
         }
     }
 }
