@@ -64,11 +64,8 @@ namespace RangerCity.Lobby
 
         private void Start()
         {
-            Debug.Log("[PlayerController] Start began");
             _mainCamera = Camera.main;
-            Debug.Log("[PlayerController] Start: mainCamera=" + (_mainCamera != null));
             _animator = GetComponentInChildren<Animator>();
-            Debug.Log("[PlayerController] Start: animator=" + (_animator != null));
 
             _gardenPortal = GameObject.Find("GardenPortal");
             _prisonPortal = GameObject.Find("PrisonPortal");
@@ -78,7 +75,6 @@ namespace RangerCity.Lobby
             _prisonRet = GameObject.Find("PrisonReturnPortal");
             _fishingRet = GameObject.Find("FishingReturnPortal");
             _studyRet = GameObject.Find("StudyReturnPortal");
-            Debug.Log("[PlayerController] Start: portals checked");
 
             // Load saved player position if exists
             if (PlayerPrefs.HasKey("PlayerPosX"))
@@ -87,9 +83,7 @@ namespace RangerCity.Lobby
                 float y = PlayerPrefs.GetFloat("PlayerPosY");
                 float z = PlayerPrefs.GetFloat("PlayerPosZ");
                 transform.position = new Vector3(x, y, z);
-                Debug.Log("[PlayerController] Start: position loaded: " + transform.position);
             }
-            Debug.Log("[PlayerController] Start finished");
         }
 
         private void SavePositionToPrefs()

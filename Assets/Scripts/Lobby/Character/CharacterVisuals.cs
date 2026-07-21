@@ -265,7 +265,7 @@ namespace RangerCity.Lobby
         {
             if (character == null) return;
             if (NetworkSetup.IsHeadlessServer()) return;
-            Debug.Log($"[ApplyCustomization] Character: {character.name}, Gender: {gender}, HairStyle: {hairStyle}, OutfitStyle: {outfitStyle}, PantsStyle: {pantsStyle}");
+            // Debug.Log($"[ApplyCustomization] Character: {character.name}, Gender: {gender}, HairStyle: {hairStyle}, OutfitStyle: {outfitStyle}, PantsStyle: {pantsStyle}");
 
             // Check if this character has custom prefab models inside
             var maleModel = character.transform.Find("MaleModel");

@@ -247,7 +247,7 @@ namespace RangerCity.Lobby
                 }
             }
 
-            Debug.Log($"[LobbyUI] Show prompt for: {target.DisplayName}");
+            // Debug.Log($"[LobbyUI] Show prompt for: {target.DisplayName}");
             UpdatePromptPosition();
         }
 
