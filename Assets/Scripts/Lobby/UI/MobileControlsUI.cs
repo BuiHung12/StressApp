@@ -51,11 +51,11 @@ namespace RangerCity.Lobby
 
             // === Action Buttons (góc phải dưới) ===
             controls._punchButton = CreateActionButton(root.transform, "PunchBtn", "",
-                new Vector2(-130f, 120f), new Color(0.9f, 0.25f, 0.2f, 0.85f), 95f, "fist");
+                new Vector2(-160f, 150f), new Color(0.9f, 0.25f, 0.2f, 0.85f), 95f, "fist");
             controls._punchButton.onClick.AddListener(controls.OnPunchPressed);
 
             controls._interactButton = CreateActionButton(root.transform, "InteractBtn", "TALK",
-                new Vector2(-130f, 235f), new Color(0.2f, 0.6f, 0.9f, 0.85f), 85f);
+                new Vector2(-160f, 280f), new Color(0.2f, 0.6f, 0.9f, 0.85f), 85f);
             controls._interactButton.onClick.AddListener(controls.OnInteractPressed);
             controls._interactButton.gameObject.SetActive(false); // Ẩn mặc định, hiện khi gần NPC
 

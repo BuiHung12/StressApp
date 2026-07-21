@@ -77,9 +77,10 @@ namespace RangerCity.Lobby.Editor
             EditorUserBuildSettings.SwitchActiveBuildTarget(BuildTargetGroup.Standalone, BuildTarget.StandaloneLinux64);
             EditorUserBuildSettings.standaloneBuildSubtarget = StandaloneBuildSubtarget.Player;
             
-            // Force Null graphics API for Linux to avoid Vulkan/OpenGL driver loading crashes on headless system
+            // Support OpenGLCore for full rendering/shader stability when running with DISPLAY=:0
             PlayerSettings.SetUseDefaultGraphicsAPIs(BuildTarget.StandaloneLinux64, false);
             PlayerSettings.SetGraphicsAPIs(BuildTarget.StandaloneLinux64, new UnityEngine.Rendering.GraphicsDeviceType[] {
+                UnityEngine.Rendering.GraphicsDeviceType.OpenGLCore,
                 UnityEngine.Rendering.GraphicsDeviceType.Null
             });
 

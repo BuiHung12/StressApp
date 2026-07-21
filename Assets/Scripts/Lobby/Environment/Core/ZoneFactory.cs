@@ -291,7 +291,7 @@ namespace RangerCity.Lobby
             coreGlow.transform.localPosition = new Vector3(0, 0.05f, 0);
             coreGlow.transform.localScale = new Vector3(padRadius * 1.1f, 0.026f, padRadius * 1.1f);
             Color intenseEnergy = new Color(energyColor.r * 1.2f, energyColor.g * 1.2f, energyColor.b * 1.2f, 0.9f);
-            coreGlow.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(intenseEnergy);
+            coreGlow.GetComponent<Renderer>().material = CharacterVisuals.CreateAdditiveMat(intenseEnergy);
             Object.Destroy(coreGlow.GetComponent<Collider>());
 
             // 5. Holo Beam
@@ -301,7 +301,7 @@ namespace RangerCity.Lobby
             holoBeam.transform.localPosition = new Vector3(0, 0.6f, 0);
             holoBeam.transform.localScale = new Vector3(padRadius * 1.1f, 0.6f, padRadius * 1.1f);
             Color beamColor = new Color(energyColor.r, energyColor.g, energyColor.b, 0.22f);
-            holoBeam.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(beamColor);
+            holoBeam.GetComponent<Renderer>().material = CharacterVisuals.CreateAdditiveMat(beamColor);
             Object.Destroy(holoBeam.GetComponent<Collider>());
 
             // 6. Corner Beacons

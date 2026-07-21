@@ -799,6 +799,11 @@ namespace RangerCity.Lobby
 
                     if (color.a < 1f)
                     {
+                        if (mat.HasProperty("_Surface"))
+                        {
+                            mat.SetFloat("_Surface", 1); // 1 = Transparent
+                            mat.SetFloat("_Blend", 0);   // 0 = Alpha
+                        }
                         mat.SetFloat("_Mode", 3);
                         mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
                         mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
@@ -819,6 +824,48 @@ namespace RangerCity.Lobby
                 Debug.LogWarning($"[CharacterVisuals] Failed to create material: {e.Message}");
             }
 
+            return mat;
+        }
+
+        public static Material CreateAdditiveMat(Color color)
+        {
+            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            if (shader == null) shader = Shader.Find("Unlit/Transparent");
+            if (shader == null) shader = Shader.Find("Unlit/Color");
+            if (shader == null) shader = Shader.Find("UI/Default");
+
+            Material mat = null;
+            try
+            {
+                if (shader != null)
+                {
+                    mat = new Material(shader);
+                    mat.color = color;
+                    if (mat.HasProperty("_BaseColor"))
+                    {
+                        mat.SetColor("_BaseColor", color);
+                    }
+
+                    if (mat.HasProperty("_Surface"))
+                    {
+                        mat.SetFloat("_Surface", 1); // 1 = Transparent
+                        mat.SetFloat("_Blend", 0);   // 0 = Alpha blend
+                    }
+
+                    mat.SetFloat("_Mode", 3);
+                    mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
+                    mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
+                    mat.SetInt("_ZWrite", 0);
+                    mat.DisableKeyword("_ALPHATEST_ON");
+                    mat.EnableKeyword("_ALPHABLEND_ON");
+                    mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
+                    mat.renderQueue = 3000;
+                }
+            }
+            catch (System.Exception e)
+            {
+                Debug.LogWarning($"[CharacterVisuals] Failed to create additive material: {e.Message}");
+            }
             return mat;
         }
 

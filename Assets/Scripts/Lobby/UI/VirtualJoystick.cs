@@ -57,7 +57,7 @@ namespace RangerCity.Lobby
             baseRT.anchorMin = new Vector2(0f, 0f);
             baseRT.anchorMax = new Vector2(0f, 0f);
             baseRT.pivot = new Vector2(0.5f, 0.5f);
-            baseRT.anchoredPosition = new Vector2(220f, 220f);
+            baseRT.anchoredPosition = new Vector2(250f, 250f);
             baseRT.sizeDelta = new Vector2(260f, 260f);
 
             var baseImg = baseObj.AddComponent<Image>();
