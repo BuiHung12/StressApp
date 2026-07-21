@@ -281,15 +281,13 @@ namespace RangerCity.Lobby
             switch (_state)
             {
                 case PlotState.Empty:
-                    string hintE = Application.isMobilePlatform ? "Nút GIEO HẠT" : "Phím E";
-                    _billboardText.text = $"<color=#00FF66>[+] Gieo Hạt</color>\n<size=80%>({hintE})</size>";
+                    _billboardText.text = "<color=#00FF66>[+] Gieo Hạt</color>";
                     break;
                 case PlotState.Growing:
-                    _billboardText.text = $"<color=#FFFF33>Đang Lớn</color>\n<size=80%>({Mathf.Ceil(_growthTimer):0}s)</size>";
+                    _billboardText.text = $"<color=#FFFF33>Đang Lớn ({Mathf.Ceil(_growthTimer):0}s)</color>";
                     break;
                 case PlotState.Ripe:
-                    string hintH = Application.isMobilePlatform ? "Nút THU HOẠCH" : "Phím E";
-                    _billboardText.text = $"<color=#FF3333>★ THU HOẠCH ★</color>\n<size=80%>({hintH})</size>";
+                    _billboardText.text = "<color=#FFDD00>[!] Thu Hoạch</color>";
                     break;
             }
         }
