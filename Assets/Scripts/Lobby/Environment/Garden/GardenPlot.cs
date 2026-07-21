@@ -17,6 +17,7 @@ namespace RangerCity.Lobby
         [SerializeField] private int _harvestReward = 10;
 
         private PlotState _state = PlotState.Empty;
+        public PlotState State => _state;
         private float _growthTimer;
 
         // Visuals
@@ -90,95 +91,171 @@ namespace RangerCity.Lobby
 
         private void CreateMaterials()
         {
-            // Use ZoneFactory cached materials instead of creating new ones per plot
-            _greenMat = ZoneFactory.CreateMat(new Color(0.2f, 0.8f, 0.3f));
-            _redMat = ZoneFactory.CreateMat(new Color(0.9f, 0.15f, 0.15f));
-            _brownMat = ZoneFactory.CreateMat(new Color(0.45f, 0.3f, 0.15f));
+            _greenMat = ZoneFactory.CreateMat(new Color(0.18f, 0.72f, 0.25f));
+            _redMat = ZoneFactory.GlossyMat(new Color(0.95f, 0.18f, 0.18f));
+            _brownMat = ZoneFactory.CreateMat(new Color(0.28f, 0.18f, 0.09f));
         }
 
         private void CreateVisuals()
         {
-            // Pot Base (Soil)
-            _soil = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            _soil.name = "Soil";
+            // Planter Box Frame (Rich dark wood)
+            var frame = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            frame.name = "PlanterBoxFrame";
+            frame.transform.SetParent(transform, false);
+            frame.transform.localPosition = new Vector3(0, 0.06f, 0);
+            frame.transform.localScale = new Vector3(2.4f, 0.12f, 1.8f);
+            frame.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.42f, 0.28f, 0.14f));
+            Destroy(frame.GetComponent<Collider>());
+
+            // Inner Fertile Soil Bed
+            _soil = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            _soil.name = "SoilBed";
             _soil.transform.SetParent(transform, false);
-            _soil.transform.localPosition = new Vector3(0, 0.05f, 0);
-            _soil.transform.localScale = new Vector3(0.5f, 0.05f, 0.5f);
+            _soil.transform.localPosition = new Vector3(0, 0.08f, 0);
+            _soil.transform.localScale = new Vector3(2.22f, 0.10f, 1.62f);
             _soil.GetComponent<Renderer>().material = _brownMat;
             Destroy(_soil.GetComponent<Collider>());
 
-            // Outer Pot Ring (Decorative)
-            var potOuter = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            potOuter.name = "OuterPot";
-            potOuter.transform.SetParent(transform, false);
-            potOuter.transform.localPosition = new Vector3(0, 0.04f, 0);
-            potOuter.transform.localScale = new Vector3(0.58f, 0.04f, 0.58f);
-            potOuter.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.7f, 0.45f, 0.35f));
-            Destroy(potOuter.GetComponent<Collider>());
+            // Corner Metallic Brackets
+            Vector3[] cornerOffsets = {
+                new(1.18f, 0.07f, 0.88f), new(-1.18f, 0.07f, 0.88f),
+                new(1.18f, 0.07f, -0.88f), new(-1.18f, 0.07f, -0.88f)
+            };
+            foreach (var offset in cornerOffsets)
+            {
+                var bracket = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                bracket.name = "CornerBracket";
+                bracket.transform.SetParent(transform, false);
+                bracket.transform.localPosition = offset;
+                bracket.transform.localScale = new Vector3(0.1f, 0.14f, 0.1f);
+                bracket.GetComponent<Renderer>().material = ZoneFactory.MetalMat(new Color(0.25f, 0.25f, 0.28f));
+                Destroy(bracket.GetComponent<Collider>());
+            }
 
-            // Sprout plant (Small green sphere)
-            _plantSprout = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            _plantSprout.name = "Sprout";
+            // Sprout Plant (Cute multi-leaf seedling)
+            _plantSprout = new GameObject("SproutGroup");
             _plantSprout.transform.SetParent(transform, false);
-            _plantSprout.transform.localPosition = new Vector3(0, 0.15f, 0);
-            _plantSprout.transform.localScale = Vector3.one * 0.15f;
-            _plantSprout.GetComponent<Renderer>().material = _greenMat;
-            Destroy(_plantSprout.GetComponent<Collider>());
+            _plantSprout.transform.localPosition = new Vector3(0, 0.14f, 0);
 
-            // Mature plant (Nice cartoon apple bush)
+            Vector3[] sproutPos = { new(0, 0, 0), new(-0.35f, 0, 0.2f), new(0.35f, 0, -0.2f) };
+            foreach (var pos in sproutPos)
+            {
+                var stem = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                stem.transform.SetParent(_plantSprout.transform, false);
+                stem.transform.localPosition = pos + new Vector3(0, 0.06f, 0);
+                stem.transform.localScale = new Vector3(0.03f, 0.06f, 0.03f);
+                stem.GetComponent<Renderer>().material = _greenMat;
+                Destroy(stem.GetComponent<Collider>());
+
+                var leaf = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                leaf.transform.SetParent(_plantSprout.transform, false);
+                leaf.transform.localPosition = pos + new Vector3(0, 0.12f, 0);
+                leaf.transform.localScale = new Vector3(0.18f, 0.08f, 0.12f);
+                leaf.GetComponent<Renderer>().material = _greenMat;
+                Destroy(leaf.GetComponent<Collider>());
+            }
+
+            // Mature Plant (3 Crop Varieties based on plot index position)
             _plantMature = new GameObject("MaturePlant");
             _plantMature.transform.SetParent(transform, false);
             _plantMature.transform.localPosition = Vector3.zero;
 
-            // Foliage base (Larger green sphere)
-            var leaves = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            leaves.transform.SetParent(_plantMature.transform, false);
-            leaves.transform.localPosition = new Vector3(0, 0.3f, 0);
-            leaves.transform.localScale = Vector3.one * 0.35f;
-            leaves.GetComponent<Renderer>().material = _greenMat;
-            Destroy(leaves.GetComponent<Collider>());
+            int plotIndex = GetPlotIndex();
+            int cropType = (plotIndex >= 0 ? plotIndex : Mathf.Abs(gameObject.GetInstanceID())) % 3;
 
-            // Apple 1 (Red)
-            var a1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            a1.transform.SetParent(_plantMature.transform, false);
-            a1.transform.localPosition = new Vector3(0.12f, 0.38f, 0.08f);
-            a1.transform.localScale = Vector3.one * 0.08f;
-            a1.GetComponent<Renderer>().material = _redMat;
-            Destroy(a1.GetComponent<Collider>());
+            if (cropType == 0)
+            {
+                // Crop Variety 0: Carrot Patch 🥕
+                Vector3[] carrotOffsets = { new(-0.5f, 0.14f, 0.3f), new(0.4f, 0.14f, 0.25f), new(-0.3f, 0.14f, -0.3f), new(0.5f, 0.14f, -0.25f) };
+                var carrotMat = ZoneFactory.CreateMat(new Color(0.98f, 0.45f, 0.05f));
+                foreach (var pos in carrotOffsets)
+                {
+                    // Carrot Root Top
+                    var root = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                    root.transform.SetParent(_plantMature.transform, false);
+                    root.transform.localPosition = pos;
+                    root.transform.localScale = new Vector3(0.14f, 0.12f, 0.14f);
+                    root.GetComponent<Renderer>().material = carrotMat;
+                    Destroy(root.GetComponent<Collider>());
 
-            // Apple 2 (Red)
-            var a2 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            a2.transform.SetParent(_plantMature.transform, false);
-            a2.transform.localPosition = new Vector3(-0.1f, 0.28f, 0.1f);
-            a2.transform.localScale = Vector3.one * 0.08f;
-            a2.GetComponent<Renderer>().material = _redMat;
-            Destroy(a2.GetComponent<Collider>());
+                    // Leafy Top
+                    var foliage = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    foliage.transform.SetParent(_plantMature.transform, false);
+                    foliage.transform.localPosition = pos + new Vector3(0, 0.16f, 0);
+                    foliage.transform.localScale = new Vector3(0.22f, 0.28f, 0.22f);
+                    foliage.GetComponent<Renderer>().material = _greenMat;
+                    Destroy(foliage.GetComponent<Collider>());
+                }
+            }
+            else if (cropType == 1)
+            {
+                // Crop Variety 1: Tomato Bush 🍅
+                var mainBush = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                mainBush.transform.SetParent(_plantMature.transform, false);
+                mainBush.transform.localPosition = new Vector3(0, 0.35f, 0);
+                mainBush.transform.localScale = new Vector3(0.75f, 0.55f, 0.65f);
+                mainBush.GetComponent<Renderer>().material = _greenMat;
+                Destroy(mainBush.GetComponent<Collider>());
 
-            // Apple 3 (Red)
-            var a3 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            a3.transform.SetParent(_plantMature.transform, false);
-            a3.transform.localPosition = new Vector3(0.02f, 0.25f, -0.12f);
-            a3.transform.localScale = Vector3.one * 0.08f;
-            a3.GetComponent<Renderer>().material = _redMat;
-            Destroy(a3.GetComponent<Collider>());
+                Vector3[] tomOffsets = {
+                    new(0.25f, 0.38f, 0.22f), new(-0.28f, 0.28f, 0.2f),
+                    new(0.18f, 0.25f, -0.25f), new(-0.2f, 0.42f, -0.15f), new(0.0f, 0.48f, 0.05f)
+                };
+                foreach (var tPos in tomOffsets)
+                {
+                    var tom = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                    tom.transform.SetParent(_plantMature.transform, false);
+                    tom.transform.localPosition = tPos;
+                    tom.transform.localScale = Vector3.one * 0.15f;
+                    tom.GetComponent<Renderer>().material = _redMat;
+                    Destroy(tom.GetComponent<Collider>());
+                }
+            }
+            else
+            {
+                // Crop Variety 2: Golden Pumpkin Patch 🎃
+                var pumpkinMat = ZoneFactory.GlossyMat(new Color(0.96f, 0.55f, 0.05f));
+                var p1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                p1.transform.SetParent(_plantMature.transform, false);
+                p1.transform.localPosition = new Vector3(0, 0.28f, 0);
+                p1.transform.localScale = new Vector3(0.65f, 0.45f, 0.65f);
+                p1.GetComponent<Renderer>().material = pumpkinMat;
+                Destroy(p1.GetComponent<Collider>());
 
-            // Text Billboard
+                var stem = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                stem.transform.SetParent(_plantMature.transform, false);
+                stem.transform.localPosition = new Vector3(0, 0.52f, 0);
+                stem.transform.localScale = new Vector3(0.06f, 0.08f, 0.06f);
+                stem.transform.localRotation = Quaternion.Euler(0, 0, 15f);
+                stem.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.2f, 0.5f, 0.15f));
+                Destroy(stem.GetComponent<Collider>());
+
+                // Vines around
+                var vine = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                vine.transform.SetParent(_plantMature.transform, false);
+                vine.transform.localPosition = new Vector3(0, 0.12f, 0);
+                vine.transform.localScale = new Vector3(0.9f, 0.02f, 0.7f);
+                vine.GetComponent<Renderer>().material = _greenMat;
+                Destroy(vine.GetComponent<Collider>());
+            }
+
+            // Text Billboard UI Banner
             _billboardObj = new GameObject("PlotBillboard");
             _billboardObj.transform.SetParent(transform, false);
-            _billboardObj.transform.localPosition = new Vector3(0, 0.8f, 0);
+            _billboardObj.transform.localPosition = new Vector3(0, 0.95f, 0);
 
             _billboardText = _billboardObj.AddComponent<TextMeshPro>();
-            _billboardText.fontSize = 2f;
+            _billboardText.fontSize = 2.4f;
             _billboardText.alignment = TextAlignmentOptions.Center;
             _billboardText.color = Color.white;
 
-            // Text background card
+            // Glassmorphic background card
             var bg = GameObject.CreatePrimitive(PrimitiveType.Cube);
             bg.name = "TextBg";
             bg.transform.SetParent(_billboardObj.transform, false);
             bg.transform.localPosition = new Vector3(0, 0, 0.01f);
-            bg.transform.localScale = new Vector3(1.2f, 0.32f, 0.005f);
-            bg.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.1f, 0.1f, 0.1f, 0.8f));
+            bg.transform.localScale = new Vector3(1.4f, 0.45f, 0.005f);
+            bg.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.06f, 0.09f, 0.15f, 0.85f));
             Destroy(bg.GetComponent<Collider>());
         }
 
@@ -204,14 +281,14 @@ namespace RangerCity.Lobby
             switch (_state)
             {
                 case PlotState.Empty:
-                    string hintE = Application.isMobilePlatform ? "Nhấn 💬" : "Phím E";
+                    string hintE = Application.isMobilePlatform ? "Nút GIEO HẠT" : "Phím E";
                     _billboardText.text = $"<color=#00FF66>[+] Gieo Hạt</color>\n<size=80%>({hintE})</size>";
                     break;
                 case PlotState.Growing:
                     _billboardText.text = $"<color=#FFFF33>Đang Lớn</color>\n<size=80%>({Mathf.Ceil(_growthTimer):0}s)</size>";
                     break;
                 case PlotState.Ripe:
-                    string hintH = Application.isMobilePlatform ? "Nhấn 💬" : "Phím E";
+                    string hintH = Application.isMobilePlatform ? "Nút THU HOẠCH" : "Phím E";
                     _billboardText.text = $"<color=#FF3333>★ THU HOẠCH ★</color>\n<size=80%>({hintH})</size>";
                     break;
             }

@@ -367,9 +367,31 @@ namespace RangerCity.Lobby
             area.transform.SetParent(parent, false);
             area.transform.localPosition = new Vector3(-7.75f, 0, -7.75f);
 
-            // Brown soil floor
+            // Rich fertile soil floor
             ZoneFactory.CreateSubAreaFloor(area.transform, Vector3.zero,
-                new Vector3(12.5f, 0, 12.5f), new Color(0.35f, 0.22f, 0.1f), "SoilFloor");
+                new Vector3(12.5f, 0, 12.5f), new Color(0.26f, 0.17f, 0.09f), "SoilFloor");
+
+            // Cobblestone walking paths between rows
+            for (float pathX = -5.2f; pathX <= 5.2f; pathX += 3.5f)
+            {
+                var pathTile = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                pathTile.name = "CobblePath_V";
+                pathTile.transform.SetParent(area.transform, false);
+                pathTile.transform.localPosition = new Vector3(pathX, 0.015f, 0);
+                pathTile.transform.localScale = new Vector3(0.7f, 0.03f, 11.5f);
+                pathTile.GetComponent<Renderer>().material = ZoneFactory.StoneMat(new Color(0.55f, 0.52f, 0.48f));
+                Object.Destroy(pathTile.GetComponent<Collider>());
+            }
+            for (float pathZ = -4.5f; pathZ <= 4.5f; pathZ += 3.0f)
+            {
+                var pathTile = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                pathTile.name = "CobblePath_H";
+                pathTile.transform.SetParent(area.transform, false);
+                pathTile.transform.localPosition = new Vector3(0, 0.012f, pathZ);
+                pathTile.transform.localScale = new Vector3(11.5f, 0.03f, 0.6f);
+                pathTile.GetComponent<Renderer>().material = ZoneFactory.StoneMat(new Color(0.52f, 0.5f, 0.45f));
+                Object.Destroy(pathTile.GetComponent<Collider>());
+            }
 
             // Wooden fence borders
             ZoneFactory.CreateLowFence(area.transform, new Vector3(0, 0, 6f), 12f, 0f, FenceWood, 0.4f);   // North
@@ -377,7 +399,28 @@ namespace RangerCity.Lobby
             ZoneFactory.CreateLowFence(area.transform, new Vector3(0, 0, -6f), 12f, 0f, FenceWood, 0.4f);  // South
 
             // Area sign
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 1.5f, 6.2f), "🥕 Vườn Rau");
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 1.5f, 6.2f), "🥕 Vườn Rau Sinh Thái");
+
+            // 4 Corner Wooden Posts with Fairy Lantern Lights
+            Vector3[] lanternPosts = { new(-5.8f, 0, 5.8f), new(5.8f, 0, 5.8f), new(-5.8f, 0, -5.8f), new(5.8f, 0, -5.8f) };
+            foreach (var lPos in lanternPosts)
+            {
+                var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                post.name = "LanternPost";
+                post.transform.SetParent(area.transform, false);
+                post.transform.localPosition = lPos + new Vector3(0, 0.8f, 0);
+                post.transform.localScale = new Vector3(0.12f, 0.8f, 0.12f);
+                post.GetComponent<Renderer>().material = ZoneFactory.WoodMat(FenceWood * 0.8f);
+                Object.Destroy(post.GetComponent<Collider>());
+
+                var lamp = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                lamp.name = "LanternGlow";
+                lamp.transform.SetParent(area.transform, false);
+                lamp.transform.localPosition = lPos + new Vector3(0, 1.65f, 0);
+                lamp.transform.localScale = Vector3.one * 0.28f;
+                lamp.GetComponent<Renderer>().material = CharacterVisuals.CreateAdditiveMat(new Color(1f, 0.8f, 0.3f, 0.9f));
+                Object.Destroy(lamp.GetComponent<Collider>());
+            }
 
             // 3×3 grid of interactive GardenPlots
             for (int row = 0; row < 3; row++)
@@ -387,30 +430,41 @@ namespace RangerCity.Lobby
                     float x = -3.5f + col * 3.5f;
                     float z = -3f + row * 3f;
 
-                    // Raised soil bed
-                    var bed = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    bed.name = "SoilBed";
-                    bed.transform.SetParent(area.transform, false);
-                    bed.transform.localPosition = new Vector3(x, 0.08f, z);
-                    bed.transform.localScale = new Vector3(2.8f, 0.16f, 2.2f);
-                    bed.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.32f, 0.2f, 0.09f));
-                    Object.Destroy(bed.GetComponent<Collider>());
-
                     // Interactive plot
                     var plot = new GameObject("GardenPlot");
                     plot.transform.SetParent(area.transform, false);
-                    plot.transform.localPosition = new Vector3(x, 0.12f, z);
+                    plot.transform.localPosition = new Vector3(x, 0.05f, z);
                     var gp = plot.AddComponent<GardenPlot>();
                     ZoneFactory.SetField(gp, "_growthDuration", 15f);
                     ZoneFactory.SetField(gp, "_harvestReward", 20);
                 }
             }
 
-            // Scarecrow
-            BuildScarecrow(area.transform, new Vector3(-5f, 0, 0));
+            // Upgraded Scarecrow
+            BuildScarecrow(area.transform, new Vector3(-5.2f, 0, -1.5f));
 
-            // Tool shed
-            BuildToolShed(area.transform, new Vector3(5f, 0, -4.5f));
+            // Upgraded Tool shed
+            BuildToolShed(area.transform, new Vector3(4.8f, 0, -4.5f));
+
+            // Wooden Crate Props with Harvested Produce
+            Vector3[] cratePositions = { new(3.5f, 0, -4.2f), new(4.8f, 0, -3.0f) };
+            foreach (var cPos in cratePositions)
+            {
+                var crate = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                crate.name = "HarvestCrate";
+                crate.transform.SetParent(area.transform, false);
+                crate.transform.localPosition = cPos + new Vector3(0, 0.25f, 0);
+                crate.transform.localScale = new Vector3(0.6f, 0.5f, 0.6f);
+                crate.GetComponent<Renderer>().material = ZoneFactory.WoodMat(new Color(0.55f, 0.38f, 0.2f));
+                Object.Destroy(crate.GetComponent<Collider>());
+
+                var veg = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                veg.transform.SetParent(crate.transform, false);
+                veg.transform.localPosition = new Vector3(0, 0.55f, 0);
+                veg.transform.localScale = new Vector3(0.8f, 0.6f, 0.8f);
+                veg.GetComponent<Renderer>().material = ZoneFactory.CreateMat(new Color(0.96f, 0.5f, 0.08f));
+                Object.Destroy(veg.GetComponent<Collider>());
+            }
         }
 
         // ────────────────────────────────────────────────────────

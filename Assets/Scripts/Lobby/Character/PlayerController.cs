@@ -437,9 +437,13 @@ namespace RangerCity.Lobby
         /// Thực hiện tương tác với đối tượng gần nhất.
         /// Gọi bởi phím E (PC) hoặc nút Interact (mobile).
         /// </summary>
+        /// <summary>
+        /// Thực hiện tương tác với đối tượng gần nhất.
+        /// Gọi bởi phím E (PC) hoặc nút Interact (mobile).
+        /// </summary>
         public void ExecuteInteraction()
         {
-            float interactDist = 2.0f;
+            float interactDist = 3.5f;
             var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
             GardenPlot closestPlot = null;
             float minPlotDist = interactDist;
@@ -469,6 +473,56 @@ namespace RangerCity.Lobby
                     lobbyUI.StartDialogue(_nearestInteractable);
                 }
             }
+        }
+
+        public bool HasAnyNearbyInteractable()
+        {
+            if (_nearestInteractable != null) return true;
+
+            float checkDist = 3.5f;
+            var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
+            foreach (var p in plots)
+            {
+                if (Vector3.Distance(transform.position, p.transform.position) < checkDist) return true;
+            }
+
+            var clouds = FindObjectsByType<CloudLayer>(FindObjectsSortMode.None);
+            foreach (var c in clouds)
+            {
+                if (Vector3.Distance(transform.position, c.transform.position) < checkDist) return true;
+            }
+
+            return false;
+        }
+
+        public string GetInteractionLabel()
+        {
+            float checkDist = 3.5f;
+
+            var plots = FindObjectsByType<GardenPlot>(FindObjectsSortMode.None);
+            GardenPlot closestPlot = null;
+            float minPlotDist = checkDist;
+            foreach (var plot in plots)
+            {
+                float dist = Vector3.Distance(transform.position, plot.transform.position);
+                if (dist < minPlotDist) { minPlotDist = dist; closestPlot = plot; }
+            }
+            if (closestPlot != null)
+            {
+                if (closestPlot.State == PlotState.Empty) return "GIEO HẠT";
+                if (closestPlot.State == PlotState.Ripe) return "THU HOẠCH";
+                return "ĐANG LỚN";
+            }
+
+            var clouds = FindObjectsByType<CloudLayer>(FindObjectsSortMode.None);
+            foreach (var c in clouds)
+            {
+                if (Vector3.Distance(transform.position, c.transform.position) < checkDist) return "NHẢY MÂY";
+            }
+
+            if (_nearestInteractable != null) return "TRÒ CHUYỆN";
+
+            return "TƯƠNG TÁC";
         }
 
         private void CheckPortals()

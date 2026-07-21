@@ -15,6 +15,7 @@ namespace RangerCity.Lobby
         private GameObject _controlsRoot;
         private Button _punchButton;
         private Button _interactButton;
+        private TextMeshProUGUI _interactButtonLabel;
         private PlayerController _player;
 
         public static MobileControlsUI Instance { get; private set; }
@@ -54,10 +55,11 @@ namespace RangerCity.Lobby
                 new Vector2(-160f, 150f), new Color(0.9f, 0.25f, 0.2f, 0.85f), 95f, "fist");
             controls._punchButton.onClick.AddListener(controls.OnPunchPressed);
 
-            controls._interactButton = CreateActionButton(root.transform, "InteractBtn", "TALK",
-                new Vector2(-160f, 280f), new Color(0.2f, 0.6f, 0.9f, 0.85f), 85f);
+            controls._interactButton = CreateActionButton(root.transform, "InteractBtn", "TƯƠNG TÁC",
+                new Vector2(-160f, 280f), new Color(0.2f, 0.75f, 0.95f, 0.9f), 85f);
             controls._interactButton.onClick.AddListener(controls.OnInteractPressed);
-            controls._interactButton.gameObject.SetActive(false); // Ẩn mặc định, hiện khi gần NPC
+            controls._interactButtonLabel = controls._interactButton.GetComponentInChildren<TextMeshProUGUI>();
+            controls._interactButton.gameObject.SetActive(false); // Ẩn mặc định, hiện khi gần NPC/Vườn rau/Mây
 
             // Chỉ hiện trên mobile hoặc khi test trong Editor
             bool showControls = Application.isMobilePlatform;
@@ -83,11 +85,23 @@ namespace RangerCity.Lobby
                 return;
             }
 
-            // Hiện/ẩn nút Interact dựa vào có đối tượng gần không
-            bool hasNearby = _player.GetNearestInteractable() != null;
-            if (_interactButton != null && _interactButton.gameObject.activeSelf != hasNearby)
+            // Hiện/ẩn nút Interact dựa vào có đối tượng gần không (NPC, Luống rau GardenPlot, Đám mây CloudLayer)
+            bool hasNearby = _player.HasAnyNearbyInteractable();
+            if (_interactButton != null)
             {
-                _interactButton.gameObject.SetActive(hasNearby);
+                if (_interactButton.gameObject.activeSelf != hasNearby)
+                {
+                    _interactButton.gameObject.SetActive(hasNearby);
+                }
+
+                if (hasNearby)
+                {
+                    string dynamicLabel = _player.GetInteractionLabel();
+                    if (_interactButtonLabel != null && _interactButtonLabel.text != dynamicLabel)
+                    {
+                        _interactButtonLabel.text = dynamicLabel;
+                    }
+                }
             }
         }
 
