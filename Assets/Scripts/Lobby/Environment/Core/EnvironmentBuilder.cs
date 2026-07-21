@@ -828,19 +828,19 @@ namespace RangerCity.Lobby
         }
 
         /// <summary>
-        /// Creates 2 large standing 3D wooden signboards in the Main Lobby Central Plaza (Lobby Map & Controls Guide).
+        /// Creates 2 small standing 3D wooden signboards in the Main Lobby Central Plaza.
         /// </summary>
         public static void CreateMainLobbySignboards()
         {
             Color woodDark = new Color(0.35f, 0.22f, 0.12f);
-            Color boardBg = new Color(0.16f, 0.11f, 0.07f);
+            Color boardBg = new Color(0.18f, 0.12f, 0.08f);
 
-            // === 1. Left Signboard (BẢN ĐỒ RANGER CITY) at (-3.5, 1.6, 2.5) ===
+            // === 1. Left Small Signboard at (-2.8, 0.75, 2.2) ===
             var leftSign = new GameObject("LobbyMapBoard");
-            leftSign.transform.position = new Vector3(-3.5f, 1.6f, 2.5f);
+            leftSign.transform.position = new Vector3(-2.8f, 0.75f, 2.2f);
 
-            float pHeight = 1.6f;
-            float pSpace = 1.4f;
+            float pHeight = 0.6f;
+            float pSpace = 0.8f;
             Vector3[] pPositions = { new Vector3(-pSpace * 0.5f, -pHeight * 0.5f, 0), new Vector3(pSpace * 0.5f, -pHeight * 0.5f, 0) };
             foreach (var pPos in pPositions)
             {
@@ -848,7 +848,7 @@ namespace RangerCity.Lobby
                 post.name = "Post";
                 post.transform.SetParent(leftSign.transform, false);
                 post.transform.localPosition = pPos;
-                post.transform.localScale = new Vector3(0.1f, pHeight * 0.5f, 0.1f);
+                post.transform.localScale = new Vector3(0.06f, pHeight * 0.5f, 0.06f);
                 post.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodDark);
                 Object.Destroy(post.GetComponent<Collider>());
             }
@@ -857,31 +857,31 @@ namespace RangerCity.Lobby
             lFrame.name = "Frame";
             lFrame.transform.SetParent(leftSign.transform, false);
             lFrame.transform.localPosition = Vector3.zero;
-            lFrame.transform.localScale = new Vector3(2.4f, 1.3f, 0.1f);
+            lFrame.transform.localScale = new Vector3(1.3f, 0.5f, 0.06f);
             lFrame.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodDark);
             Object.Destroy(lFrame.GetComponent<Collider>());
 
             var lPlate = GameObject.CreatePrimitive(PrimitiveType.Cube);
             lPlate.name = "Plate";
             lPlate.transform.SetParent(leftSign.transform, false);
-            lPlate.transform.localPosition = new Vector3(0, 0, -0.015f);
-            lPlate.transform.localScale = new Vector3(2.26f, 1.16f, 0.102f);
+            lPlate.transform.localPosition = new Vector3(0, 0, -0.01f);
+            lPlate.transform.localScale = new Vector3(1.22f, 0.42f, 0.062f);
             lPlate.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(boardBg);
             Object.Destroy(lPlate.GetComponent<Collider>());
 
             var lTextObj = new GameObject("Text");
             lTextObj.transform.SetParent(leftSign.transform, false);
-            lTextObj.transform.localPosition = new Vector3(0, 0, -0.07f);
+            lTextObj.transform.localPosition = new Vector3(0, 0, -0.04f);
             var lTmp = lTextObj.AddComponent<TextMeshPro>();
-            lTmp.text = "<color=#FFDD00><b>BẢN ĐỒ RANGER CITY</b></color>\n━━━━━━━━━━━━━━━━━\n[1] Vườn Trên Cao (Bắc)\n[2] Khu Nhà Tù (Nam)\n[3] Khu Câu Cá (Đông)\n[4] Khu Học Tập (Tây)";
-            lTmp.fontSize = 1.6f;
+            lTmp.text = "<color=#FFDD00><b>WELCOME</b></color>\nRANGER CITY";
+            lTmp.fontSize = 1.8f;
             lTmp.alignment = TextAlignmentOptions.Center;
             lTmp.color = Color.white;
             leftSign.AddComponent<BillboardText>();
 
-            // === 2. Right Signboard (BẢNG HƯỚNG DẪN) at (3.5, 1.6, 2.5) ===
+            // === 2. Right Small Signboard at (2.8, 0.75, 2.2) ===
             var rightSign = new GameObject("LobbyGuideBoard");
-            rightSign.transform.position = new Vector3(3.5f, 1.6f, 2.5f);
+            rightSign.transform.position = new Vector3(2.8f, 0.75f, 2.2f);
 
             foreach (var pPos in pPositions)
             {
@@ -889,7 +889,7 @@ namespace RangerCity.Lobby
                 post.name = "Post";
                 post.transform.SetParent(rightSign.transform, false);
                 post.transform.localPosition = pPos;
-                post.transform.localScale = new Vector3(0.1f, pHeight * 0.5f, 0.1f);
+                post.transform.localScale = new Vector3(0.06f, pHeight * 0.5f, 0.06f);
                 post.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodDark);
                 Object.Destroy(post.GetComponent<Collider>());
             }
@@ -898,24 +898,24 @@ namespace RangerCity.Lobby
             rFrame.name = "Frame";
             rFrame.transform.SetParent(rightSign.transform, false);
             rFrame.transform.localPosition = Vector3.zero;
-            rFrame.transform.localScale = new Vector3(2.4f, 1.3f, 0.1f);
+            rFrame.transform.localScale = new Vector3(1.3f, 0.5f, 0.06f);
             rFrame.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodDark);
             Object.Destroy(rFrame.GetComponent<Collider>());
 
             var rPlate = GameObject.CreatePrimitive(PrimitiveType.Cube);
             rPlate.name = "Plate";
             rPlate.transform.SetParent(rightSign.transform, false);
-            rPlate.transform.localPosition = new Vector3(0, 0, -0.015f);
-            rPlate.transform.localScale = new Vector3(2.26f, 1.16f, 0.102f);
+            rPlate.transform.localPosition = new Vector3(0, 0, -0.01f);
+            rPlate.transform.localScale = new Vector3(1.22f, 0.42f, 0.062f);
             rPlate.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(boardBg);
             Object.Destroy(rPlate.GetComponent<Collider>());
 
             var rTextObj = new GameObject("Text");
             rTextObj.transform.SetParent(rightSign.transform, false);
-            rTextObj.transform.localPosition = new Vector3(0, 0, -0.07f);
+            rTextObj.transform.localPosition = new Vector3(0, 0, -0.04f);
             var rTmp = rTextObj.AddComponent<TextMeshPro>();
-            rTmp.text = "<color=#00E5FF><b>BẢNG HƯỚNG DẪN</b></color>\n━━━━━━━━━━━━━━━━━\n[+] Đấm: Tương Tác / Đánh\n[+] Tương Tác: Gieo & Thu Hoạch\n[+] Mở Đám Mây: Mở Lối Đi\n[+] Tích Lũy Ranger Coins";
-            rTmp.fontSize = 1.5f;
+            rTmp.text = "<color=#00E5FF><b>HAVE FUN!</b></color>\nSTRESS RELIEF";
+            rTmp.fontSize = 1.8f;
             rTmp.alignment = TextAlignmentOptions.Center;
             rTmp.color = Color.white;
             rightSign.AddComponent<BillboardText>();

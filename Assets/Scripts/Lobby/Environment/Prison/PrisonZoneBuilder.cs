@@ -95,7 +95,7 @@ namespace RangerCity.Lobby
             ZoneFactory.CreatePortal("PrisonReturnPortal", new Vector3(0, 0.05f, -54f), 0f,
                 new Color(0.25f, 0.25f, 0.3f),
                 new Color(0.85f, 0.15f, 0.15f, 0.7f),
-                "Về Sảnh Chờ");
+                "");
         }
     }
 }

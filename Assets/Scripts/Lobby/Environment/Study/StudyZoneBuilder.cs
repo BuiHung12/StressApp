@@ -132,7 +132,7 @@ namespace RangerCity.Lobby
             // Floor
             ZoneFactory.CreateSubAreaFloor(area.transform, Vector3.zero, new Vector3(15f, 0.1f, 16f), ClassroomFloor, "ClassroomFloor");
 
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2.5f, -6.5f), "Lớp Học");
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(-5f, 0.6f, -4f), "Lớp Học");
 
             Color woodColor = new(0.48f, 0.32f, 0.18f);
             Color legColor = new(0.2f, 0.2f, 0.2f);
@@ -220,7 +220,7 @@ namespace RangerCity.Lobby
             // Floor
             ZoneFactory.CreateSubAreaFloor(area.transform, Vector3.zero, new Vector3(11f, 0.1f, 16f), LibraryFloor, "LibraryFloor");
 
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2.5f, -6.5f), "Thư Viện");
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(-3.5f, 0.6f, -4f), "Thư Viện");
 
             Color woodColor = new(0.45f, 0.3f, 0.15f);
 
@@ -299,7 +299,7 @@ namespace RangerCity.Lobby
             // Grass floor
             ZoneFactory.CreateSubAreaFloor(area.transform, Vector3.zero, new Vector3(26f, 0.1f, 12f), CourtyardGrass, "CourtyardFloor");
 
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2.2f, -5.5f), "Sân Trường");
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(-5.5f, 0.6f, 2f), "Sân Trường");
 
             // Pathways from south edges to school doors
             BuildStonePath(area.transform, new Vector3(-5.5f, 0, 0), new Vector3(2f, 0.02f, 12f)); // Path to classroom door

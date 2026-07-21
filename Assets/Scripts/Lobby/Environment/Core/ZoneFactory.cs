@@ -330,34 +330,37 @@ namespace RangerCity.Lobby
                 Object.Destroy(laserLine.GetComponent<Collider>());
             }
 
-            // 7. Floating Sign
-            var signObj = new GameObject("PortalSign");
-            signObj.transform.SetParent(portal.transform, false);
-            signObj.transform.localPosition = new Vector3(0, 1.8f, 0);
+            // 7. Floating Sign (Skip if label is empty)
+            if (!string.IsNullOrEmpty(label))
+            {
+                var signObj = new GameObject("PortalSign");
+                signObj.transform.SetParent(portal.transform, false);
+                signObj.transform.localPosition = new Vector3(0, 1.8f, 0);
 
-            var signTmp = signObj.AddComponent<TextMeshPro>();
-            signTmp.text = label;
-            signTmp.fontSize = 3.2f;
-            signTmp.alignment = TextAlignmentOptions.Center;
-            signTmp.color = Color.white;
-            signObj.AddComponent<BillboardText>();
+                var signTmp = signObj.AddComponent<TextMeshPro>();
+                signTmp.text = label;
+                signTmp.fontSize = 3.2f;
+                signTmp.alignment = TextAlignmentOptions.Center;
+                signTmp.color = Color.white;
+                signObj.AddComponent<BillboardText>();
 
-            var signBg = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            signBg.name = "SignBg";
-            signBg.transform.SetParent(signObj.transform, false);
-            signBg.transform.localPosition = new Vector3(0, 0, 0.01f);
-            signBg.transform.localScale = new Vector3(1.6f, 0.45f, 0.005f);
-            Color glassColor = new Color(energyColor.r * 0.2f, energyColor.g * 0.2f, energyColor.b * 0.2f, 0.45f);
-            signBg.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(glassColor);
-            Object.Destroy(signBg.GetComponent<Collider>());
+                var signBg = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                signBg.name = "SignBg";
+                signBg.transform.SetParent(signObj.transform, false);
+                signBg.transform.localPosition = new Vector3(0, 0, 0.01f);
+                signBg.transform.localScale = new Vector3(1.6f, 0.45f, 0.005f);
+                Color glassColor = new Color(energyColor.r * 0.2f, energyColor.g * 0.2f, energyColor.b * 0.2f, 0.45f);
+                signBg.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(glassColor);
+                Object.Destroy(signBg.GetComponent<Collider>());
 
-            var neonFrame = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            neonFrame.name = "SignNeonFrame";
-            neonFrame.transform.SetParent(signObj.transform, false);
-            neonFrame.transform.localPosition = new Vector3(0, 0, 0.005f);
-            neonFrame.transform.localScale = new Vector3(1.62f, 0.47f, 0.002f);
-            neonFrame.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(energyColor * 0.8f);
-            Object.Destroy(neonFrame.GetComponent<Collider>());
+                var neonFrame = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                neonFrame.name = "SignNeonFrame";
+                neonFrame.transform.SetParent(signObj.transform, false);
+                neonFrame.transform.localPosition = new Vector3(0, 0, 0.005f);
+                neonFrame.transform.localScale = new Vector3(1.62f, 0.47f, 0.002f);
+                neonFrame.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(energyColor * 0.8f);
+                Object.Destroy(neonFrame.GetComponent<Collider>());
+            }
         }
 
         // ── Cloud Visual ──
@@ -424,7 +427,7 @@ namespace RangerCity.Lobby
         // ── Area Sign ──
 
         /// <summary>
-        /// Creates a 3D wooden signboard with wooden posts planted in the ground, labeling a sub-area clearly without blocking pathways.
+        /// Creates a compact 3D wooden signboard with short wooden legs, planted inside a sub-area.
         /// </summary>
         public static void CreateAreaSign(Transform parent, Vector3 localPos, string text, Color textColor = default)
         {
@@ -437,9 +440,9 @@ namespace RangerCity.Lobby
             Color woodDark = new Color(0.38f, 0.24f, 0.12f);
             Color boardWood = new Color(0.24f, 0.15f, 0.08f);
 
-            // 1. Two Wooden Posts going down into the ground
-            float postHeight = 1.8f;
-            float postSpacing = 1.0f;
+            // 1. Two Short Wooden Legs planted into the ground
+            float postHeight = 0.55f;
+            float postSpacing = 0.65f;
             Vector3[] postPositions = { new Vector3(-postSpacing * 0.5f, -postHeight * 0.5f, 0), new Vector3(postSpacing * 0.5f, -postHeight * 0.5f, 0) };
             foreach (var pPos in postPositions)
             {
@@ -447,17 +450,17 @@ namespace RangerCity.Lobby
                 post.name = "SignPost";
                 post.transform.SetParent(signHolder.transform, false);
                 post.transform.localPosition = pPos;
-                post.transform.localScale = new Vector3(0.08f, postHeight * 0.5f, 0.08f);
+                post.transform.localScale = new Vector3(0.05f, postHeight * 0.5f, 0.05f);
                 post.GetComponent<Renderer>().material = WoodMat(woodDark);
                 Object.Destroy(post.GetComponent<Collider>());
             }
 
-            // 2. Wooden Board Frame
+            // 2. Small Wooden Board Frame
             var boardFrame = GameObject.CreatePrimitive(PrimitiveType.Cube);
             boardFrame.name = "BoardFrame";
             boardFrame.transform.SetParent(signHolder.transform, false);
             boardFrame.transform.localPosition = Vector3.zero;
-            boardFrame.transform.localScale = new Vector3(1.6f, 0.65f, 0.08f);
+            boardFrame.transform.localScale = new Vector3(1.15f, 0.42f, 0.05f);
             boardFrame.GetComponent<Renderer>().material = WoodMat(woodDark);
             Object.Destroy(boardFrame.GetComponent<Collider>());
 
@@ -465,19 +468,19 @@ namespace RangerCity.Lobby
             var innerPlate = GameObject.CreatePrimitive(PrimitiveType.Cube);
             innerPlate.name = "InnerPlate";
             innerPlate.transform.SetParent(signHolder.transform, false);
-            innerPlate.transform.localPosition = new Vector3(0, 0, -0.01f);
-            innerPlate.transform.localScale = new Vector3(1.5f, 0.55f, 0.082f);
+            innerPlate.transform.localPosition = new Vector3(0, 0, -0.008f);
+            innerPlate.transform.localScale = new Vector3(1.08f, 0.35f, 0.052f);
             innerPlate.GetComponent<Renderer>().material = WoodMat(boardWood);
             Object.Destroy(innerPlate.GetComponent<Collider>());
 
-            // 4. Clear, Crisp Text on Front
+            // 4. Text on Front
             var textObj = new GameObject("SignText");
             textObj.transform.SetParent(signHolder.transform, false);
-            textObj.transform.localPosition = new Vector3(0, 0, -0.06f);
+            textObj.transform.localPosition = new Vector3(0, 0, -0.04f);
 
             var tmp = textObj.AddComponent<TextMeshPro>();
             tmp.text = text;
-            tmp.fontSize = 2.2f;
+            tmp.fontSize = 1.6f;
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;
             tmp.color = textColor;

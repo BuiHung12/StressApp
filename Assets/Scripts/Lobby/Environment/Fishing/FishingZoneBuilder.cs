@@ -124,7 +124,7 @@ namespace RangerCity.Lobby
             area.transform.localPosition = new Vector3(-5f, 0, -8f);
 
             // Area sign
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2f, -5f), "Bãi Cát");
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(-3.5f, 0.6f, 2f), "Bãi Cát");
 
             // Palm trees at fixed positions
             BuildPalmTree(area.transform, new Vector3(-6f, 0, 0));
@@ -172,7 +172,7 @@ namespace RangerCity.Lobby
             area.transform.localPosition = new Vector3(8f, 0, -8f);
 
             // Area sign
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2f, -4f), "Lửa Trại");
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(-3.5f, 0.6f, 2f), "Lửa Trại");
 
             // Stone circle floor
             var fireFloor = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
@@ -305,7 +305,7 @@ namespace RangerCity.Lobby
             area.transform.localPosition = new Vector3(0, 0f, 8f);
 
             // Area sign
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2f, -4.5f), "Cầu Tàu");
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(-4f, 0.6f, -2.5f), "Cầu Tàu");
 
             // Plank details (8 planks, evenly spaced)
             for (int i = 0; i < 8; i++)
