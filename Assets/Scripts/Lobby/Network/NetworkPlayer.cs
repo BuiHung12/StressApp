@@ -300,16 +300,15 @@ namespace RangerCity.Lobby
         [Command]
         private void CmdSyncPosition(Vector3 position, float rotationY, bool isMoving)
         {
-            string connIdStr = connectionToClient != null ? connectionToClient.connectionId.ToString() : "N/A";
-            if (_syncIsMoving != isMoving)
-            {
-                Debug.Log($"[NetworkPlayer] {DisplayName} (connId={connIdStr}) {(isMoving ? "STARTED moving" : "STOPPED moving")} at position {position}");
-            }
-            else if (isMoving && Time.time - _lastMoveLogTime >= 2.0f)
-            {
-                _lastMoveLogTime = Time.time;
-                Debug.Log($"[NetworkPlayer] {DisplayName} (connId={connIdStr}) moving at position {position}");
-            }
+            // if (_syncIsMoving != isMoving)
+            // {
+            //     Debug.Log($"[NetworkPlayer] {DisplayName} (connId={connIdStr}) {(isMoving ? "STARTED moving" : "STOPPED moving")} at position {position}");
+            // }
+            // else if (isMoving && Time.time - _lastMoveLogTime >= 2.0f)
+            // {
+            //     _lastMoveLogTime = Time.time;
+            //     Debug.Log($"[NetworkPlayer] {DisplayName} (connId={connIdStr}) moving at position {position}");
+            // }
 
             _syncPosition = position;
             _syncRotationY = rotationY;
