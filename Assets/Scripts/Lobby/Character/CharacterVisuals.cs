@@ -771,7 +771,16 @@ namespace RangerCity.Lobby
 
         public static Material CreateMat(Color color)
         {
-            var shader = Shader.Find("Universal Render Pipeline/Lit");
+            if (color.a < 0.98f)
+            {
+                return CreateAdditiveMat(color);
+            }
+
+            Shader shader = null;
+            if (UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline != null)
+            {
+                shader = Shader.Find("Universal Render Pipeline/Lit");
+            }
             if (shader == null) shader = Shader.Find("Standard");
             if (shader == null) shader = Shader.Find("Unlit/Color");
             if (shader == null) shader = Shader.Find("UI/Default");
@@ -783,40 +792,11 @@ namespace RangerCity.Lobby
                 {
                     mat = new Material(shader);
                     mat.color = color;
+                    if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
 
-                    if (mat.HasProperty("_Smoothness"))
-                    {
-                        mat.SetFloat("_Smoothness", 0.05f);
-                    }
-                    else if (mat.HasProperty("_Glossiness"))
-                    {
-                        mat.SetFloat("_Glossiness", 0.05f);
-                    }
-                    if (mat.HasProperty("_Metallic"))
-                    {
-                        mat.SetFloat("_Metallic", 0.0f);
-                    }
-
-                    if (color.a < 1f)
-                    {
-                        if (mat.HasProperty("_Surface"))
-                        {
-                            mat.SetFloat("_Surface", 1); // 1 = Transparent
-                            mat.SetFloat("_Blend", 0);   // 0 = Alpha
-                        }
-                        mat.SetFloat("_Mode", 3);
-                        mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
-                        mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
-                        mat.SetInt("_ZWrite", 0);
-                        mat.DisableKeyword("_ALPHATEST_ON");
-                        mat.EnableKeyword("_ALPHABLEND_ON");
-                        mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
-                        mat.renderQueue = 3000;
-                    }
-                }
-                else
-                {
-                    Debug.LogWarning("[CharacterVisuals] All shaders stripped/null in CreateMat.");
+                    if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.05f);
+                    else if (mat.HasProperty("_Glossiness")) mat.SetFloat("_Glossiness", 0.05f);
+                    if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0.0f);
                 }
             }
             catch (System.Exception e)
@@ -829,9 +809,15 @@ namespace RangerCity.Lobby
 
         public static Material CreateAdditiveMat(Color color)
         {
-            var shader = Shader.Find("Universal Render Pipeline/Unlit");
+            Shader shader = null;
+            if (UnityEngine.Rendering.GraphicsSettings.currentRenderPipeline != null)
+            {
+                shader = Shader.Find("Universal Render Pipeline/Unlit");
+                if (shader == null) shader = Shader.Find("Universal Render Pipeline/Lit");
+            }
             if (shader == null) shader = Shader.Find("Unlit/Transparent");
-            if (shader == null) shader = Shader.Find("Unlit/Color");
+            if (shader == null) shader = Shader.Find("Legacy Shaders/Transparent/Diffuse");
+            if (shader == null) shader = Shader.Find("Standard");
             if (shader == null) shader = Shader.Find("UI/Default");
 
             Material mat = null;
@@ -841,23 +827,20 @@ namespace RangerCity.Lobby
                 {
                     mat = new Material(shader);
                     mat.color = color;
-                    if (mat.HasProperty("_BaseColor"))
-                    {
-                        mat.SetColor("_BaseColor", color);
-                    }
+                    if (mat.HasProperty("_Color")) mat.SetColor("_Color", color);
+                    if (mat.HasProperty("_BaseColor")) mat.SetColor("_BaseColor", color);
 
-                    if (mat.HasProperty("_Surface"))
-                    {
-                        mat.SetFloat("_Surface", 1); // 1 = Transparent
-                        mat.SetFloat("_Blend", 0);   // 0 = Alpha blend
-                    }
+                    // Configure URP & Standard Shader Transparency
+                    if (mat.HasProperty("_Surface")) mat.SetFloat("_Surface", 1); // 1 = Transparent
+                    if (mat.HasProperty("_Blend")) mat.SetFloat("_Blend", 0);     // 0 = Alpha blend
+                    if (mat.HasProperty("_Mode")) mat.SetFloat("_Mode", 3);       // 3 = Transparent
 
-                    mat.SetFloat("_Mode", 3);
                     mat.SetInt("_SrcBlend", (int)UnityEngine.Rendering.BlendMode.SrcAlpha);
                     mat.SetInt("_DstBlend", (int)UnityEngine.Rendering.BlendMode.OneMinusSrcAlpha);
                     mat.SetInt("_ZWrite", 0);
                     mat.DisableKeyword("_ALPHATEST_ON");
                     mat.EnableKeyword("_ALPHABLEND_ON");
+                    mat.EnableKeyword("_SURFACE_TYPE_TRANSPARENT");
                     mat.DisableKeyword("_ALPHAPREMULTIPLY_ON");
                     mat.renderQueue = 3000;
                 }
