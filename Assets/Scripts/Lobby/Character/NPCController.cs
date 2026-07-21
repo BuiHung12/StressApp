@@ -13,15 +13,15 @@ namespace RangerCity.Lobby
     {
         [Header("Identity")]
         [SerializeField] private string _displayName = "NPC";
-        [SerializeField] private string _avatarEmoji = "🧑";
+        [SerializeField] private string _avatarEmoji = "";
         [SerializeField] private InteractableType _type = InteractableType.NPC;
 
         [Header("Dialogue")]
         [SerializeField, TextArea(2, 4)]
         private string[] _dialogueLines = new string[]
         {
-            "Xin chào! 👋",
-            "Hôm nay đẹp trời nhỉ! ☀️",
+            "Xin chào!",
+            "Hôm nay đẹp trời nhỉ!",
         };
 
         [Header("Wandering AI")]

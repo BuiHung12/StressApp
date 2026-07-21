@@ -132,7 +132,7 @@ namespace RangerCity.Lobby
             // Floor
             ZoneFactory.CreateSubAreaFloor(area.transform, Vector3.zero, new Vector3(15f, 0.1f, 16f), ClassroomFloor, "ClassroomFloor");
 
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2.5f, -6.5f), "✏️ Lớp Học");
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2.5f, -6.5f), "Lớp Học");
 
             Color woodColor = new(0.48f, 0.32f, 0.18f);
             Color legColor = new(0.2f, 0.2f, 0.2f);
@@ -149,7 +149,7 @@ namespace RangerCity.Lobby
             boardText.transform.SetParent(board.transform, false);
             boardText.transform.localPosition = new Vector3(0, 0, -0.6f);
             var btmp = boardText.AddComponent<TextMeshPro>();
-            btmp.text = "Ranger Academy\n━━━━━━━━━━\n🌳 Bài 1: Bảo Vệ Rừng\n📐 Bài 2: Toán Sinh Tồn\n🗺️ Bài 3: Đọc Bản Đồ";
+            btmp.text = "Ranger Academy\n━━━━━━━━━━\n[1] Bài 1: Bảo Vệ Rừng\n[2] Bài 2: Toán Sinh Tồn\n[3] Bài 3: Đọc Bản Đồ";
             btmp.fontSize = 1.6f;
             btmp.color = Color.white;
             btmp.alignment = TextAlignmentOptions.Center;
@@ -220,7 +220,7 @@ namespace RangerCity.Lobby
             // Floor
             ZoneFactory.CreateSubAreaFloor(area.transform, Vector3.zero, new Vector3(11f, 0.1f, 16f), LibraryFloor, "LibraryFloor");
 
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2.5f, -6.5f), "📚 Thư Viện");
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2.5f, -6.5f), "Thư Viện");
 
             Color woodColor = new(0.45f, 0.3f, 0.15f);
 
@@ -299,7 +299,7 @@ namespace RangerCity.Lobby
             // Grass floor
             ZoneFactory.CreateSubAreaFloor(area.transform, Vector3.zero, new Vector3(26f, 0.1f, 12f), CourtyardGrass, "CourtyardFloor");
 
-            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2.2f, -5.5f), "🏫 Sân Trường");
+            ZoneFactory.CreateAreaSign(area.transform, new Vector3(0, 2.2f, -5.5f), "Sân Trường");
 
             // Pathways from south edges to school doors
             BuildStonePath(area.transform, new Vector3(-5.5f, 0, 0), new Vector3(2f, 0.02f, 12f)); // Path to classroom door

@@ -76,8 +76,7 @@ namespace RangerCity.Lobby
 
             if (_isLocked && _billboardText != null)
             {
-                string hint = Application.isMobilePlatform ? "Nhấn 💬" : "Phím E";
-                _billboardText.text = $"Mở Khóa\n{_unlockCost} Coins ({hint})";
+                _billboardText.text = $"Mở Khóa\n{_unlockCost} Coins";
             }
         }
 
@@ -145,7 +144,7 @@ namespace RangerCity.Lobby
         {
             if (_billboardText != null && _signBg != null)
             {
-                _billboardText.text = "⚠️ Không Đủ Coins!\nCần thêm coins";
+                _billboardText.text = "[!] KHÔNG ĐỦ COINS\nCần thêm coins";
                 _signBg.GetComponent<Renderer>().material.color = new Color(0.9f, 0.1f, 0.1f, 0.95f);
                 yield return new WaitForSeconds(1.5f);
                 UpdateVisuals();

@@ -292,34 +292,34 @@ namespace RangerCity.Lobby
 
         private void CreateNPCs()
         {
-            CreateNPC("Chief Rosa", "👩‍✈️", new Vector3(-5, 0.03f, 4), new Color(0.81f, 0.58f, 0.86f), new[] {
-                "Chào mừng Junior Ranger! 🌟",
+            CreateNPC("Chief Rosa", "", new Vector3(-5, 0.03f, 4), new Color(0.81f, 0.58f, 0.86f), new[] {
+                "Chào mừng Junior Ranger!",
                 "Tôi là Chief Rosa, người hướng dẫn.",
-                "Hãy khám phá sảnh chờ nhé! 💪",
+                "Hãy khám phá sảnh chờ nhé!",
             });
 
-            CreateNPC("Sr. Stoplight", "🚦", new Vector3(5, 0.03f, 4), new Color(0.4f, 0.73f, 0.42f), new[] {
-                "Xin chào! Tôi là Señor Stoplight! 🚦",
-                "Đèn đỏ = DỪNG, đèn xanh = ĐI! 🔴🟢",
-                "Kiên nhẫn là chìa khóa! ⏰",
+            CreateNPC("Sr. Stoplight", "", new Vector3(5, 0.03f, 4), new Color(0.4f, 0.73f, 0.42f), new[] {
+                "Xin chào! Tôi là Señor Stoplight!",
+                "Đèn đỏ = DỪNG, đèn xanh = ĐI!",
+                "Kiên nhẫn là chìa khóa!",
             });
 
-            CreateNPC("Milo", "🧑‍🍳", new Vector3(-3, 0.03f, -6), new Color(1f, 0.72f, 0.3f), new[] {
-                "Chào! Tôi là Milo, chủ cửa hàng! 🛒",
-                "Quay lại khi có Ranger Coins nhé! 💰",
+            CreateNPC("Milo", "", new Vector3(-3, 0.03f, -6), new Color(1f, 0.72f, 0.3f), new[] {
+                "Chào! Tôi là Milo, chủ cửa hàng!",
+                "Quay lại khi có Ranger Coins nhé!",
             });
 
-            CreateNPC("Zhang Guang Yu", "🦨", new Vector3(-6, 0.03f, -2), new Color(0.12f, 0.12f, 0.12f), new[] {
+            CreateNPC("Zhang Guang Yu", "", new Vector3(-6, 0.03f, -2), new Color(0.12f, 0.12f, 0.12f), new[] {
                 "Chào bồ! Tôi là Zhang Guang Yu đây!",
                 "Đừng đứng gần tôi quá, tôi chưa tắm 3 tuần rồi...",
                 "Người ta bảo tôi đen hôi, nhưng tôi thấy mình men lỳ!"
             }, new Color(0.25f, 0.18f, 0.12f));
 
-            CreateNPC("Yan Min Sheng", "😷", new Vector3(6f, 0.03f, -61.2f), new Color(0.15f, 0.1f, 0.08f), new[] {
+            CreateNPC("Yan Min Sheng", "", new Vector3(6f, 0.03f, -61.2f), new Color(0.15f, 0.1f, 0.08f), new[] {
                 "Xin lỗi Xiao Ling từ nay tui không dám giao việc linh tinh cho Xiao Ling nữa huhuhu"
             }, new Color(0.2f, 0.14f, 0.09f), wanderRadius: 0.5f);
 
-            CreateNPC("Tang Xu Yu", "⛓️", new Vector3(-6, 0.03f, -61.2f), new Color(0.2f, 0.4f, 0.7f), new[] {
+            CreateNPC("Tang Xu Yu", "", new Vector3(-6, 0.03f, -61.2f), new Color(0.2f, 0.4f, 0.7f), new[] {
                 "Tôi bị nhốt rồi, tôi sai rồi...",
                 "Xin lỗi Xiao Ling từ nay tui không dám giao việc linh tinh cho Xiao Ling nữa huhuhu.",
                 "Tôi sẵn sàng làm trâu ngựa để chuộc lỗi lầm của tôi!"
@@ -440,12 +440,12 @@ namespace RangerCity.Lobby
         private void CreateFakePlayers()
         {
             var data = new (string name, Vector3 pos, Color color, int gender, string[] greetings)[] {
-                ("Luna", new(4, 0, -2), new(0.94f, 0.33f, 0.31f), 1, new[] { "Chào! Mình là Luna! 🌙", "Sảnh này vui lắm! 🎉" }),
-                ("Kai", new(-4, 0, 0), new(0.4f, 0.73f, 0.42f), 0, new[] { "Yo! 🏃", "Đừng đấm mình nha! 😅" }),
-                ("Sakura", new(7, 0, -5), new(0.49f, 0.34f, 0.76f), 1, new[] { "Konnichiwa! 🌸", "Mình thích sảnh này! 🎨" }),
-                ("Tí", new(-7, 0, -5), new(1f, 0.54f, 0.4f), 0, new[] { "Ê bạn! 👋", "Tìm được bí mật chưa? 🕵️" }),
-                ("Mochi", new(0, 0, 8), new(1f, 0.65f, 0.15f), 1, new[] { "Zzz... mình đang nghỉ! 😴", "Ồ xin lỗi! 😊" }),
-                ("Rex", new(8, 0, 2), new(0.36f, 0.42f, 0.75f), 0, new[] { "Hey! Bạn cũng Ranger hả? 💪", "Đã xong 50 nhiệm vụ! 🏆" }),
+                ("Luna", new(4, 0, -2), new(0.94f, 0.33f, 0.31f), 1, new[] { "Chào! Mình là Luna!", "Sảnh này vui lắm!" }),
+                ("Kai", new(-4, 0, 0), new(0.4f, 0.73f, 0.42f), 0, new[] { "Yo!", "Đừng đấm mình nha!" }),
+                ("Sakura", new(7, 0, -5), new(0.49f, 0.34f, 0.76f), 1, new[] { "Konnichiwa!", "Mình thích sảnh này!" }),
+                ("Tí", new(-7, 0, -5), new(1f, 0.54f, 0.4f), 0, new[] { "Ê bạn!", "Tìm được bí mật chưa?" }),
+                ("Mochi", new(0, 0, 8), new(1f, 0.65f, 0.15f), 1, new[] { "Zzz... mình đang nghỉ!", "Ồ xin lỗi!" }),
+                ("Rex", new(8, 0, 2), new(0.36f, 0.42f, 0.75f), 0, new[] { "Hey! Bạn cũng Ranger hả?", "Đã xong 50 nhiệm vụ!" }),
             };
 
             foreach (var (fpName, pos, color, gender, greetings) in data)

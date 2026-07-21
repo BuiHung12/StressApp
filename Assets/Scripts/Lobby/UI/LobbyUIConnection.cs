@@ -88,7 +88,7 @@ namespace RangerCity.Lobby
                 shadow.effectDistance = new Vector2(4, -4);
 
                 // Warning Texts (Children of warnCard)
-                MakeText(warnCard.transform, "Title", "⚠️ KHÔNG CÓ KẾT NỐI INTERNET", 32,
+                MakeText(warnCard.transform, "Title", "[!] KHÔNG CÓ KẾT NỐI INTERNET", 32,
                     new Vector2(0, 130), new Vector2(780, 50), TextAlignmentOptions.Center, new Color(1f, 0.65f, 0.15f));
 
                 MakeText(warnCard.transform, "Content", "Vui lòng kiểm tra lại đường truyền Wifi hoặc dữ liệu di động 3G/4G trên thiết bị của bạn để tiếp tục.", 22,

@@ -428,13 +428,13 @@ namespace RangerCity.Lobby
                 new Color(0.9f, 0.76f, 0.58f),
                 new Color(0.76f, 0.22f, 0.18f),
                 new Vector3(3.2f, 2.5f, 2.5f),
-                "☕ Cafe", new Color(1.0f, 0.2f, 0.2f));
+                "Cafe", new Color(1.0f, 0.2f, 0.2f));
 
             CreateBuilding("ToolShop", new Vector3(-9, 0, 8),
                 new Color(0.7f, 0.72f, 0.75f),
                 new Color(0.2f, 0.42f, 0.65f),
                 new Vector3(3.2f, 2.5f, 2.5f),
-                "🛠️ Tools", new Color(0.2f, 0.5f, 0.9f));
+                "Tools", new Color(0.2f, 0.5f, 0.9f));
 
             CreateBuilding("MiloShop", new Vector3(-5, 0, -8),
                 new Color(0.92f, 0.8f, 0.6f),
@@ -677,7 +677,7 @@ namespace RangerCity.Lobby
             CreatePortal("GardenPortal", new Vector3(0, 0, pathEnd), 0f,
                 new Color(0.3f, 0.35f, 0.4f),
                 new Color(0.15f, 0.85f, 0.3f, 0.7f),
-                "Vuon Tren Cao");
+                "Vườn Trên Cao");
 
             CreatePortal("PrisonPortal", new Vector3(0, 0, -pathEnd), 0f,
                 new Color(0.25f, 0.25f, 0.3f),
@@ -687,12 +687,12 @@ namespace RangerCity.Lobby
             CreatePortal("FishingPortal", new Vector3(pathEnd, 0, 0), 90f,
                 new Color(0.3f, 0.35f, 0.4f),
                 new Color(0.2f, 0.5f, 0.95f, 0.7f),
-                "Khu Cau Ca");
+                "Khu Câu Cá");
 
             CreatePortal("StudyPortal", new Vector3(-pathEnd, 0, 0), 90f,
                 new Color(0.4f, 0.32f, 0.22f),
                 new Color(0.95f, 0.75f, 0.15f, 0.7f),
-                "Khu Hoc Tap");
+                "Khu Học Tập");
         }
 
         public static void CreatePortal(string name, Vector3 pos, float rotY, Color ringColor, Color energyColor, string label)
