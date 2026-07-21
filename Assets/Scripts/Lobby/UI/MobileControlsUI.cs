@@ -17,7 +17,6 @@ namespace RangerCity.Lobby
         private Button _interactButton;
         private Image _interactButtonImage;
         private TextMeshProUGUI _interactButtonLabel;
-        private TextMeshProUGUI _interactIconTMP;
         private string _lastInteractionState = "";
         private PlayerController _player;
 
@@ -58,11 +57,12 @@ namespace RangerCity.Lobby
                 new Vector2(-160f, 150f), new Color(0.9f, 0.25f, 0.2f, 0.85f), 95f, "fist");
             controls._punchButton.onClick.AddListener(controls.OnPunchPressed);
 
-            // === Dynamic Capsule Action Button (nút Tương Tác / Gieo Hạt / Thu Hoạch cao cấp) ===
-            controls._interactButton = CreateCapsuleActionButton(root.transform, "InteractBtn", "✨", "TƯƠNG TÁC",
-                new Vector2(-185f, 280f), new Color(0.2f, 0.75f, 0.95f, 0.9f), new Vector2(175f, 74f),
-                out controls._interactIconTMP, out controls._interactButtonLabel, out controls._interactButtonImage);
+            // === Dynamic Circle Action Button (Nút tròn tương tác cao cấp) ===
+            controls._interactButton = CreateActionButton(root.transform, "InteractBtn", "TƯƠNG TÁC",
+                new Vector2(-160f, 280f), new Color(0.2f, 0.75f, 0.95f, 0.9f), 90f);
             controls._interactButton.onClick.AddListener(controls.OnInteractPressed);
+            controls._interactButtonLabel = controls._interactButton.GetComponentInChildren<TextMeshProUGUI>();
+            controls._interactButtonImage = controls._interactButton.GetComponent<Image>();
             controls._interactButton.gameObject.SetActive(false); // Ẩn mặc định, hiện khi gần NPC/Vườn rau/Mây
 
             // Chỉ hiện trên mobile hoặc khi test trong Editor
@@ -104,42 +104,37 @@ namespace RangerCity.Lobby
                     if (_lastInteractionState != state)
                     {
                         _lastInteractionState = state;
-                        string icon = "✨";
                         Color theme = new Color(0.2f, 0.75f, 0.95f, 0.95f);
                         switch (state)
                         {
                             case "GIEO HẠT":
-                                icon = "🌱";
                                 theme = new Color(0.0f, 1.0f, 0.45f, 0.95f);
                                 break;
                             case "THU HOẠCH":
-                                icon = "🧺";
                                 theme = new Color(1.0f, 0.85f, 0.1f, 0.95f);
                                 break;
                             case "ĐANG LỚN":
-                                icon = "⏳";
                                 theme = new Color(0.3f, 0.75f, 1.0f, 0.7f);
                                 break;
                             case "TRÒ CHUYỆN":
-                                icon = "💬";
                                 theme = new Color(0.0f, 0.9f, 1.0f, 0.95f);
                                 break;
                             case "NHẢY MÂY":
-                                icon = "☁️";
                                 theme = new Color(0.75f, 0.45f, 1.0f, 0.95f);
                                 break;
                         }
 
-                        if (_interactIconTMP != null) _interactIconTMP.text = icon;
                         if (_interactButtonLabel != null)
                         {
                             _interactButtonLabel.text = state;
                             _interactButtonLabel.color = theme;
+                            _interactButtonLabel.fontSize = 16f;
+                            _interactButtonLabel.fontStyle = FontStyles.Bold;
                         }
                         if (_interactButtonImage != null)
                         {
-                            Color darkGlass = new Color(0.06f, 0.08f, 0.12f, 0.82f);
-                            _interactButtonImage.sprite = CreateCapsuleSprite(darkGlass, theme, 5f);
+                            Color darkGlass = new Color(0.08f, 0.09f, 0.12f, 0.75f);
+                            _interactButtonImage.sprite = CreateCircleSprite(darkGlass, theme, 5f);
                         }
                     }
                 }
@@ -327,124 +322,6 @@ namespace RangerCity.Lobby
             }
             tex.Apply();
             return Sprite.Create(tex, new Rect(0, 0, sz, sz), new Vector2(0.5f, 0.5f), 100f);
-        }
-
-        /// <summary>
-        /// Tạo nút capsule nằm ngang sang trọng với Icon + Text và viền Neon Glassmorphism.
-        /// </summary>
-        private static Button CreateCapsuleActionButton(Transform parent, string name, string defaultIcon, string defaultText,
-            Vector2 offsetFromBottomRight, Color themeColor, Vector2 size, out TextMeshProUGUI iconTMP, out TextMeshProUGUI labelTMP, out Image bgImage)
-        {
-            var btnObj = new GameObject(name);
-            btnObj.transform.SetParent(parent, false);
-
-            var rt = btnObj.AddComponent<RectTransform>();
-            rt.anchorMin = new Vector2(1f, 0f); // Bottom-right anchor
-            rt.anchorMax = new Vector2(1f, 0f);
-            rt.pivot = new Vector2(0.5f, 0.5f);
-            rt.anchoredPosition = offsetFromBottomRight;
-            rt.sizeDelta = size;
-
-            bgImage = btnObj.AddComponent<Image>();
-            Color darkGlass = new Color(0.06f, 0.08f, 0.12f, 0.82f);
-            bgImage.sprite = CreateCapsuleSprite(darkGlass, themeColor, 5f);
-            bgImage.color = Color.white;
-            bgImage.type = Image.Type.Simple;
-
-            var btn = btnObj.AddComponent<Button>();
-            var colors = btn.colors;
-            colors.normalColor = Color.white;
-            colors.highlightedColor = new Color(1.15f, 1.15f, 1.15f, 1f);
-            colors.pressedColor = new Color(0.85f, 0.85f, 0.85f, 0.95f);
-            btn.colors = colors;
-
-            // Icon on left
-            var iconObj = new GameObject("Icon");
-            iconObj.transform.SetParent(btnObj.transform, false);
-            var iconRT = iconObj.AddComponent<RectTransform>();
-            iconRT.anchorMin = new Vector2(0f, 0f);
-            iconRT.anchorMax = new Vector2(0.38f, 1f);
-            iconRT.offsetMin = iconRT.offsetMax = Vector2.zero;
-
-            iconTMP = iconObj.AddComponent<TextMeshProUGUI>();
-            iconTMP.text = defaultIcon;
-            iconTMP.fontSize = 30f;
-            iconTMP.alignment = TextAlignmentOptions.Center;
-            iconTMP.raycastTarget = false;
-
-            // Text on right
-            var textObj = new GameObject("Label");
-            textObj.transform.SetParent(btnObj.transform, false);
-            var textRT = textObj.AddComponent<RectTransform>();
-            textRT.anchorMin = new Vector2(0.35f, 0f);
-            textRT.anchorMax = new Vector2(0.96f, 1f);
-            textRT.offsetMin = textRT.offsetMax = Vector2.zero;
-
-            labelTMP = textObj.AddComponent<TextMeshProUGUI>();
-            labelTMP.text = defaultText;
-            labelTMP.fontSize = 19f;
-            labelTMP.fontStyle = FontStyles.Bold;
-            labelTMP.color = themeColor;
-            labelTMP.alignment = TextAlignmentOptions.Left;
-            labelTMP.verticalAlignment = VerticalAlignmentOptions.Middle;
-            labelTMP.raycastTarget = false;
-
-            return btn;
-        }
-
-        /// <summary>
-        /// Tạo sprite capsule bo tròn 2 đầu với hiệu ứng Glassmorphism và viền Neon sáng mịn.
-        /// </summary>
-        private static Sprite CreateCapsuleSprite(Color fillColor, Color borderColor, float borderThickness)
-        {
-            int w = 256;
-            int h = 112;
-            var tex = new Texture2D(w, h, TextureFormat.RGBA32, false);
-            float radius = (h * 0.5f) - 2f;
-            float innerRadius = radius - borderThickness;
-
-            Vector2 leftCenter = new Vector2(radius + 2f, h * 0.5f);
-            Vector2 rightCenter = new Vector2(w - radius - 2f, h * 0.5f);
-
-            for (int y = 0; y < h; y++)
-            {
-                for (int x = 0; x < w; x++)
-                {
-                    Vector2 p = new Vector2(x, y);
-                    float distToCenter;
-                    if (x < leftCenter.x)
-                        distToCenter = Vector2.Distance(p, leftCenter);
-                    else if (x > rightCenter.x)
-                        distToCenter = Vector2.Distance(p, rightCenter);
-                    else
-                        distToCenter = Mathf.Abs(y - h * 0.5f);
-
-                    if (distToCenter <= innerRadius - 1f)
-                    {
-                        tex.SetPixel(x, y, fillColor);
-                    }
-                    else if (distToCenter <= innerRadius)
-                    {
-                        float alpha = 1f - (distToCenter - (innerRadius - 1f));
-                        tex.SetPixel(x, y, Color.Lerp(fillColor, borderColor, alpha));
-                    }
-                    else if (distToCenter <= radius - 1f)
-                    {
-                        tex.SetPixel(x, y, borderColor);
-                    }
-                    else if (distToCenter <= radius)
-                    {
-                        float alpha = 1f - (distToCenter - (radius - 1f));
-                        tex.SetPixel(x, y, new Color(borderColor.r, borderColor.g, borderColor.b, borderColor.a * alpha));
-                    }
-                    else
-                    {
-                        tex.SetPixel(x, y, Color.clear);
-                    }
-                }
-            }
-            tex.Apply();
-            return Sprite.Create(tex, new Rect(0, 0, w, h), new Vector2(0.5f, 0.5f), 100f);
         }
     }
 }
