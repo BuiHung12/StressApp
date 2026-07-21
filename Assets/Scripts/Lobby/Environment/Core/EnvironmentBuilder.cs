@@ -325,10 +325,10 @@ namespace RangerCity.Lobby
                     Object.Destroy(leg.GetComponent<Collider>());
                 }
 
-                // Add "I Love You" text centered right on the front surface of the wooden board
+                // Add "I Love You" text positioned cleanly in front of the wooden backrest to prevent mesh clipping
                 var textObj = new GameObject("BenchText");
                 textObj.transform.SetParent(bench.transform, false);
-                textObj.transform.localPosition = new Vector3(0, 0.55f, -0.22f);
+                textObj.transform.localPosition = new Vector3(0, 0.58f, -0.28f);
                 var tmp = textObj.AddComponent<TextMeshPro>();
                 tmp.text = "<color=#FF6699><b>I Love You</b></color>";
                 tmp.fontSize = 1.8f;
