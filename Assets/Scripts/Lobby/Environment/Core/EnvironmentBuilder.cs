@@ -828,12 +828,12 @@ namespace RangerCity.Lobby
         }
 
         /// <summary>
-        /// Creates 2 small standing 3D wooden signboards in the Main Lobby Central Plaza.
+        /// Creates 2 small standing 3D wooden signboards in the Main Lobby Central Plaza displaying "I Love You".
         /// </summary>
         public static void CreateMainLobbySignboards()
         {
-            Color woodDark = new Color(0.35f, 0.22f, 0.12f);
-            Color boardBg = new Color(0.18f, 0.12f, 0.08f);
+            Color woodDark = new Color(0.38f, 0.24f, 0.12f);
+            Color boardBg = new Color(0.24f, 0.15f, 0.08f);
 
             // === 1. Left Small Signboard at (-2.8, 0.75, 2.2) ===
             var leftSign = new GameObject("LobbyMapBoard");
@@ -857,7 +857,7 @@ namespace RangerCity.Lobby
             lFrame.name = "Frame";
             lFrame.transform.SetParent(leftSign.transform, false);
             lFrame.transform.localPosition = Vector3.zero;
-            lFrame.transform.localScale = new Vector3(1.3f, 0.5f, 0.06f);
+            lFrame.transform.localScale = new Vector3(1.3f, 0.45f, 0.06f);
             lFrame.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodDark);
             Object.Destroy(lFrame.GetComponent<Collider>());
 
@@ -865,7 +865,7 @@ namespace RangerCity.Lobby
             lPlate.name = "Plate";
             lPlate.transform.SetParent(leftSign.transform, false);
             lPlate.transform.localPosition = new Vector3(0, 0, -0.01f);
-            lPlate.transform.localScale = new Vector3(1.22f, 0.42f, 0.062f);
+            lPlate.transform.localScale = new Vector3(1.22f, 0.38f, 0.062f);
             lPlate.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(boardBg);
             Object.Destroy(lPlate.GetComponent<Collider>());
 
@@ -873,8 +873,8 @@ namespace RangerCity.Lobby
             lTextObj.transform.SetParent(leftSign.transform, false);
             lTextObj.transform.localPosition = new Vector3(0, 0, -0.04f);
             var lTmp = lTextObj.AddComponent<TextMeshPro>();
-            lTmp.text = "<color=#FFDD00><b>WELCOME</b></color>\nRANGER CITY";
-            lTmp.fontSize = 1.8f;
+            lTmp.text = "<color=#FF6699><b>I Love You</b></color>";
+            lTmp.fontSize = 2.2f;
             lTmp.alignment = TextAlignmentOptions.Center;
             lTmp.color = Color.white;
             leftSign.AddComponent<BillboardText>();
@@ -898,7 +898,7 @@ namespace RangerCity.Lobby
             rFrame.name = "Frame";
             rFrame.transform.SetParent(rightSign.transform, false);
             rFrame.transform.localPosition = Vector3.zero;
-            rFrame.transform.localScale = new Vector3(1.3f, 0.5f, 0.06f);
+            rFrame.transform.localScale = new Vector3(1.3f, 0.45f, 0.06f);
             rFrame.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(woodDark);
             Object.Destroy(rFrame.GetComponent<Collider>());
 
@@ -906,7 +906,7 @@ namespace RangerCity.Lobby
             rPlate.name = "Plate";
             rPlate.transform.SetParent(rightSign.transform, false);
             rPlate.transform.localPosition = new Vector3(0, 0, -0.01f);
-            rPlate.transform.localScale = new Vector3(1.22f, 0.42f, 0.062f);
+            rPlate.transform.localScale = new Vector3(1.22f, 0.38f, 0.062f);
             rPlate.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(boardBg);
             Object.Destroy(rPlate.GetComponent<Collider>());
 
@@ -914,8 +914,8 @@ namespace RangerCity.Lobby
             rTextObj.transform.SetParent(rightSign.transform, false);
             rTextObj.transform.localPosition = new Vector3(0, 0, -0.04f);
             var rTmp = rTextObj.AddComponent<TextMeshPro>();
-            rTmp.text = "<color=#00E5FF><b>HAVE FUN!</b></color>\nSTRESS RELIEF";
-            rTmp.fontSize = 1.8f;
+            rTmp.text = "<color=#FF6699><b>I Love You</b></color>";
+            rTmp.fontSize = 2.2f;
             rTmp.alignment = TextAlignmentOptions.Center;
             rTmp.color = Color.white;
             rightSign.AddComponent<BillboardText>();
