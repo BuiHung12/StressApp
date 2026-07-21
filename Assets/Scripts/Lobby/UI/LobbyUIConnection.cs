@@ -862,7 +862,7 @@ namespace RangerCity.Lobby
                 }
                 else
                 {
-                    Debug.LogWarning($"[LobbyUIConnection] Database server unreachable or player not found. Using local PlayerPrefs fallback. Error: {webRequest.error}");
+                    Debug.Log($"[LobbyUIConnection] Database server unreachable or player not found. Using local PlayerPrefs fallback. Error: {webRequest.error}");
                 }
             }
         }
@@ -901,7 +901,7 @@ namespace RangerCity.Lobby
                 }
                 else
                 {
-                    Debug.LogWarning($"[LobbyUIConnection] Failed to save character to database server (using local fallback). Error: {webRequest.error}");
+                    Debug.Log($"[LobbyUIConnection] Saved locally via PlayerPrefs (Database server offline: {webRequest.error})");
                 }
             }
         }
