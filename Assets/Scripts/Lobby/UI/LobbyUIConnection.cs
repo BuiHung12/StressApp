@@ -700,6 +700,20 @@ namespace RangerCity.Lobby
             return obj;
         }
 
+        private static Sprite _defaultSprite;
+        private static Sprite GetDefaultSprite()
+        {
+            if (_defaultSprite == null)
+            {
+                Texture2D tex = new Texture2D(2, 2);
+                Color[] pixels = new Color[4] { Color.white, Color.white, Color.white, Color.white };
+                tex.SetPixels(pixels);
+                tex.Apply();
+                _defaultSprite = Sprite.Create(tex, new Rect(0, 0, 2, 2), new Vector2(0.5f, 0.5f));
+            }
+            return _defaultSprite;
+        }
+
         private GameObject CreateRoundedPanel(Transform parent, string name, Vector2 pos, Vector2 size, Color color, bool raycastTarget = false)
         {
             var obj = new GameObject(name, typeof(RectTransform));
@@ -708,8 +722,8 @@ namespace RangerCity.Lobby
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
             var img = obj.AddComponent<Image>();
-            img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/Background.psd");
-            img.type = Image.Type.Sliced;
+            img.sprite = GetDefaultSprite();
+            img.type = Image.Type.Simple;
             img.color = color;
             img.raycastTarget = raycastTarget;
             return obj;
@@ -741,8 +755,8 @@ namespace RangerCity.Lobby
             rt.anchoredPosition = pos;
             rt.sizeDelta = size;
             var img = obj.AddComponent<Image>();
-            img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/InputFieldBackground.psd");
-            img.type = Image.Type.Sliced;
+            img.sprite = GetDefaultSprite();
+            img.type = Image.Type.Simple;
             img.color = new Color(0.06f, 0.06f, 0.1f, 1f);
             img.raycastTarget = true;
 
@@ -792,8 +806,8 @@ namespace RangerCity.Lobby
         {
             var btnObj = CreateRoundedPanel(parent, name, pos, size, Color.Lerp(colorA, colorB, 0.5f), true);
             var img = btnObj.GetComponent<Image>();
-            img.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite.psd");
-            img.type = Image.Type.Sliced;
+            img.sprite = GetDefaultSprite();
+            img.type = Image.Type.Simple;
 
             var btn = btnObj.AddComponent<Button>();
             btn.onClick.AddListener(action);
