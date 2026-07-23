@@ -149,7 +149,7 @@ namespace RangerCity.Lobby
             boardText.transform.SetParent(board.transform, false);
             boardText.transform.localPosition = new Vector3(0, 0, -0.6f);
             var btmp = boardText.AddComponent<TextMeshPro>();
-            btmp.text = "Ranger Academy\n━━━━━━━━━━\n[1] Bài 1: Bảo Vệ Rừng\n[2] Bài 2: Toán Sinh Tồn\n[3] Bài 3: Đọc Bản Đồ";
+            btmp.text = "Ranger Academy\n----------\n[1] Bài 1: Bảo Vệ Rừng\n[2] Bài 2: Toán Sinh Tồn\n[3] Bài 3: Đọc Bản Đồ";
             btmp.fontSize = 1.6f;
             btmp.color = Color.white;
             btmp.alignment = TextAlignmentOptions.Center;

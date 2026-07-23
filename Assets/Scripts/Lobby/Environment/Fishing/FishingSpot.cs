@@ -183,13 +183,13 @@ namespace RangerCity.Lobby
             switch (_state)
             {
                 case FishingState.Idle:
-                    _billboardText.text = "<color=#33CCFF>[🎣] Thả Cần</color>";
+                    _billboardText.text = "<color=#33CCFF>[+] Thả Cần</color>";
                     break;
                 case FishingState.Waiting:
                     _billboardText.text = $"<color=#FFFF33>Đang Đợi ({Mathf.Ceil(_waitTimer):0}s)</color>";
                     break;
                 case FishingState.Biting:
-                    _billboardText.text = "<color=#FF3366>💥 CÁ CẮN! GIẬT!</color>";
+                    _billboardText.text = "<color=#FF3366>[!] CÁ CẮN! GIẬT!</color>";
                     break;
             }
         }
