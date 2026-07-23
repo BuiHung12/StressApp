@@ -347,63 +347,67 @@ namespace RangerCity.Lobby
                 {
                     case 0:
                         AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
-                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.44f, 0.25f, 0.42f), color);
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.52f, 0.32f, 0.52f), color);
+                        AddPrimChild(container, "HairFront", PrimitiveType.Sphere,
+                            new Vector3(0, 1.46f, 0.12f), new Vector3(0.44f, 0.22f, 0.25f), color * 1.05f);
+                        AddPrimChild(container, "HairSideL", PrimitiveType.Capsule,
+                            new Vector3(-0.25f, 1.35f, 0.05f), new Vector3(0.12f, 0.22f, 0.12f), color);
+                        AddPrimChild(container, "HairSideR", PrimitiveType.Capsule,
+                            new Vector3(0.25f, 1.35f, 0.05f), new Vector3(0.12f, 0.22f, 0.12f), color);
                         AddPrimChild(container, "Ponytail", PrimitiveType.Capsule,
-                            new Vector3(0, 1.25f, -0.2f), new Vector3(0.1f, 0.28f, 0.1f), color);
+                            new Vector3(0, 1.25f, -0.22f), new Vector3(0.14f, 0.32f, 0.14f), color);
                         AddPrimChild(container, "PonytailBand", PrimitiveType.Sphere,
-                            new Vector3(0, 1.38f, -0.18f), new Vector3(0.12f, 0.06f, 0.12f), color * 0.6f);
+                            new Vector3(0, 1.4f, -0.2f), new Vector3(0.14f, 0.08f, 0.14f), new Color(1f, 0.3f, 0.5f));
                         break;
 
                     case 1:
                         AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
-                            new Vector3(0, 1.5f, -0.02f), new Vector3(0.48f, 0.28f, 0.46f), color);
+                            new Vector3(0, 1.5f, -0.02f), new Vector3(0.53f, 0.34f, 0.52f), color);
                         AddPrimChild(container, "HairBackL", PrimitiveType.Capsule,
-                            new Vector3(-0.12f, 1.15f, -0.1f), new Vector3(0.18f, 0.35f, 0.15f), color);
+                            new Vector3(-0.16f, 1.15f, -0.1f), new Vector3(0.18f, 0.38f, 0.16f), color);
                         AddPrimChild(container, "HairBackR", PrimitiveType.Capsule,
-                            new Vector3(0.12f, 1.15f, -0.1f), new Vector3(0.18f, 0.35f, 0.15f), color);
+                            new Vector3(0.16f, 1.15f, -0.1f), new Vector3(0.18f, 0.38f, 0.16f), color);
                         AddPrimChild(container, "HairFringe", PrimitiveType.Sphere,
-                            new Vector3(0, 1.42f, 0.2f), new Vector3(0.38f, 0.12f, 0.12f), color);
+                            new Vector3(0, 1.44f, 0.2f), new Vector3(0.42f, 0.16f, 0.15f), color * 1.1f);
                         break;
 
                     case 2:
                         AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
-                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.44f, 0.25f, 0.42f), color);
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.52f, 0.32f, 0.5f), color);
                         AddPrimChild(container, "Bun", PrimitiveType.Sphere,
-                            new Vector3(0f, 1.62f, -0.08f), new Vector3(0.2f, 0.2f, 0.2f), color);
+                            new Vector3(0f, 1.66f, -0.08f), new Vector3(0.24f, 0.24f, 0.24f), color);
                         break;
 
                     case 3:
                         AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
-                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.46f, 0.26f, 0.44f), color);
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.53f, 0.32f, 0.52f), color);
                         AddPrimChild(container, "BobL", PrimitiveType.Sphere,
-                            new Vector3(-0.16f, 1.3f, 0.02f), new Vector3(0.18f, 0.25f, 0.18f), color);
+                            new Vector3(-0.18f, 1.3f, 0.02f), new Vector3(0.22f, 0.28f, 0.22f), color);
                         AddPrimChild(container, "BobR", PrimitiveType.Sphere,
-                            new Vector3(0.16f, 1.3f, 0.02f), new Vector3(0.18f, 0.25f, 0.18f), color);
+                            new Vector3(0.18f, 1.3f, 0.02f), new Vector3(0.22f, 0.28f, 0.22f), color);
                         break;
 
                     case 4:
                         AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
-                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.44f, 0.25f, 0.42f), color);
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.52f, 0.32f, 0.52f), color);
                         AddPrimChild(container, "BraidL", PrimitiveType.Capsule,
-                            new Vector3(-0.16f, 1.1f, 0.06f), new Vector3(0.08f, 0.24f, 0.08f), color);
+                            new Vector3(-0.18f, 1.08f, 0.06f), new Vector3(0.1f, 0.26f, 0.1f), color);
                         AddPrimChild(container, "BraidR", PrimitiveType.Capsule,
-                            new Vector3(0.16f, 1.1f, 0.06f), new Vector3(0.08f, 0.24f, 0.08f), color);
+                            new Vector3(0.18f, 1.08f, 0.06f), new Vector3(0.1f, 0.26f, 0.1f), color);
                         break;
 
                     case 5:
-                        // CAT EARS (Tai mèo)
-                        var head = character.transform.Find("Head");
-                        var skinColor = head != null ? head.GetComponent<Renderer>().material.color : new Color(1f, 0.88f, 0.7f);
-                        
+                        AddPrimChild(container, "HairTop", PrimitiveType.Sphere,
+                            new Vector3(0, 1.48f, -0.02f), new Vector3(0.52f, 0.32f, 0.52f), color);
                         var catEarL = AddPrimChild(container, "CatEarL", PrimitiveType.Cube,
-                            new Vector3(-0.13f, 1.57f, 0f), new Vector3(0.07f, 0.07f, 0.07f), skinColor);
+                            new Vector3(-0.15f, 1.62f, 0f), new Vector3(0.09f, 0.09f, 0.09f), color);
                         catEarL.transform.localRotation = Quaternion.Euler(0, 0, 45);
 
                         AddPrimChild(catEarL.transform, "InnerEarL", PrimitiveType.Cube,
                             new Vector3(0f, 0f, 0.45f), new Vector3(0.6f, 0.6f, 0.2f), new Color(1f, 0.6f, 0.6f));
 
                         var catEarR = AddPrimChild(container, "CatEarR", PrimitiveType.Cube,
-                            new Vector3(0.13f, 1.57f, 0f), new Vector3(0.07f, 0.07f, 0.07f), skinColor);
+                            new Vector3(0.15f, 1.62f, 0f), new Vector3(0.09f, 0.09f, 0.09f), color);
                         catEarR.transform.localRotation = Quaternion.Euler(0, 0, -45);
 
                         AddPrimChild(catEarR.transform, "InnerEarR", PrimitiveType.Cube,
