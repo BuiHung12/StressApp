@@ -716,11 +716,18 @@ namespace RangerCity.Lobby
         {
             if (_connectionPanel != null) _connectionPanel.SetActive(false);
             if (_previewCharacter != null) Destroy(_previewCharacter);
-            if (_previewCamera != null) Destroy(_previewCamera.gameObject);
+            if (_previewCamera != null)
+            {
+                _previewCamera.targetTexture = null;
+                Destroy(_previewCamera.gameObject);
+                _previewCamera = null;
+            }
             if (_previewRT != null)
             {
+                if (RenderTexture.active == _previewRT) RenderTexture.active = null;
                 _previewRT.Release();
                 Destroy(_previewRT);
+                _previewRT = null;
             }
         }
 
@@ -968,11 +975,18 @@ namespace RangerCity.Lobby
             bool wasActive = _connectionPanel.activeSelf;
 
             if (_previewCharacter != null) Destroy(_previewCharacter);
-            if (_previewCamera != null) Destroy(_previewCamera.gameObject);
+            if (_previewCamera != null)
+            {
+                _previewCamera.targetTexture = null;
+                Destroy(_previewCamera.gameObject);
+                _previewCamera = null;
+            }
             if (_previewRT != null)
             {
+                if (RenderTexture.active == _previewRT) RenderTexture.active = null;
                 _previewRT.Release();
                 Destroy(_previewRT);
+                _previewRT = null;
             }
             if (_connectionPanel != null) Destroy(_connectionPanel);
             if (_noInternetOverlay != null) Destroy(_noInternetOverlay);

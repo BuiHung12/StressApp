@@ -1,5 +1,4 @@
-"""Automated 4-step deployment script for Ranger City Linux Game Server."""
-import subprocess
+"""Automated deployment script for Ranger City Linux Game Server (No Auto Git Push)."""
 import time
 import paramiko
 
@@ -9,29 +8,24 @@ PASSWORD = "1234"
 PROJECT_PATH = "/home/hung/Applications/resolve_stress_project/project2"
 
 def main():
-    print("=== Step 1: Git Push local changes ===")
-    subprocess.run(["git", "add", "-A"], check=True)
-    subprocess.run(["git", "commit", "-m", "Automated deployment sync"], check=False)
-    subprocess.run(["git", "push", "origin", "main"], check=True)
-
-    print("\n=== Connecting SSH to Linux Server ===")
+    print("=== Connecting SSH to Linux Server ===")
     client = paramiko.SSHClient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
     client.connect(SERVER, port=22, username=USER, password=PASSWORD, timeout=15)
 
-    print("\n=== Step 2: Git Pull & Clean stale Unity processes ===")
+    print("\n=== Step 1: Git Pull & Clean stale Unity processes ===")
     cmd_pull = f"cd {PROJECT_PATH} && git pull origin main && pkill -9 Unity; killall -9 Unity"
     stdin, stdout, stderr = client.exec_command(cmd_pull)
     stdout.channel.recv_exit_status()
     print("Git pull completed.")
 
-    print("\n=== Step 3: Unity Batchmode Build Linux Standalone Server ===")
+    print("\n=== Step 2: Unity Batchmode Build Linux Standalone Server ===")
     cmd_build = f"/home/hung/Unity/Hub/Editor/6000.0.23f1/Editor/Unity -batchmode -nographics -projectPath {PROJECT_PATH} -executeMethod RangerCity.Lobby.Editor.BuildScript.BuildLinuxServer -quit -logFile {PROJECT_PATH}/Builds/Linux/build.log"
     stdin, stdout, stderr = client.exec_command(cmd_build)
     stdout.channel.recv_exit_status()
     print("Linux Game Server binary build completed.")
 
-    print("\n=== Step 4: Restart systemd rangercity service ===")
+    print("\n=== Step 3: Restart systemd rangercity service ===")
     cmd_restart = "systemctl --user restart rangercity"
     stdin, stdout, stderr = client.exec_command(cmd_restart)
     stdout.channel.recv_exit_status()

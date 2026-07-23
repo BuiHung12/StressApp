@@ -35,15 +35,28 @@ namespace RangerCity.Lobby
             // Thêm KCP Transport (UDP-based, nhanh và đáng tin cậy)
             var transport = gameObject.AddComponent<KcpTransport>();
             transport.port = (ushort)_port;
+            Mirror.Transport.active = transport;
 
-            // Thêm NetworkManager
-            _networkManager = gameObject.AddComponent<NetworkManager>();
+            // Thêm NetworkManager chuẩn không gây log warning
+            _networkManager = gameObject.AddComponent<RangerNetworkManager>();
             _networkManager.transport = transport;
             _networkManager.maxConnections = _maxConnections;
 
             // Đăng ký player prefab sẽ được set sau khi LobbySetup tạo xong
             Debug.Log($"[NetworkSetup] Mirror initialized on port {_port}, max {_maxConnections} connections");
         }
+
+    public class RangerNetworkManager : NetworkManager
+    {
+        public override void Awake()
+        {
+            if (transport == null)
+            {
+                transport = GetComponent<Transport>();
+            }
+            base.Awake();
+        }
+    }
 
         /// <summary>
         /// Đăng ký player prefab cho NetworkManager spawn.

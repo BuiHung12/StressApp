@@ -522,32 +522,157 @@ namespace RangerCity.Lobby
 
         public static void CreateBuildings()
         {
-            CreateBuilding("CafeShop", new Vector3(9, 0, 8),
-                new Color(0.95f, 0.88f, 0.75f),
-                new Color(0.82f, 0.28f, 0.22f),
-                new Vector3(3.6f, 2.8f, 2.8f),
-                "Bakery & Cafe", new Color(0.9f, 0.25f, 0.2f));
+            // ── 1. GÓC ĐÔNG BẮC (Top-Right): CỬA HÀNG TRANG PHỤC ──
+            var outfitShop = CreateBuilding("OutfitShop", new Vector3(9, 0, 8),
+                new Color(0.95f, 0.88f, 0.98f),
+                new Color(0.6f, 0.25f, 0.85f),
+                new Vector3(3.8f, 2.9f, 3.0f),
+                "CỬA HÀNG TRANG PHỤC", new Color(0.85f, 0.35f, 0.9f));
+            CreateFashionDisplayProps(outfitShop);
 
-            CreateBuilding("ToolShop", new Vector3(-9, 0, 8),
-                new Color(0.75f, 0.78f, 0.82f),
-                new Color(0.22f, 0.48f, 0.75f),
-                new Vector3(3.6f, 2.8f, 2.8f),
-                "Gear & Tools", new Color(0.2f, 0.55f, 0.92f));
+            // ── 2. GÓC TÂY BẮC (Top-Left): CỬA HÀNG PHƯƠNG TIỆN ──
+            var vehicleShop = CreateBuilding("VehicleShop", new Vector3(-9, 0, 8),
+                new Color(0.88f, 0.94f, 0.98f),
+                new Color(0.15f, 0.45f, 0.85f),
+                new Vector3(3.8f, 2.9f, 3.0f),
+                "CỬA HÀNG PHƯƠNG TIỆN", new Color(0.1f, 0.7f, 0.95f));
+            CreateVehicleDisplayProps(vehicleShop);
 
-            CreateBuilding("MiloShop", new Vector3(-5, 0, -8),
-                new Color(0.94f, 0.85f, 0.68f),
-                new Color(0.22f, 0.65f, 0.28f),
-                new Vector3(3.6f, 2.8f, 2.8f),
-                "Fresh Market", new Color(0.2f, 0.75f, 0.35f));
+            // ── 3. GÓC TÂY NAM (Bottom-Left): SẮP RA MẮT ──
+            CreateBuilding("FutureShop1", new Vector3(-9, 0, -8),
+                new Color(0.9f, 0.92f, 0.94f),
+                new Color(0.35f, 0.4f, 0.48f),
+                new Vector3(3.8f, 2.9f, 3.0f),
+                "SẮP RA MẮT", new Color(0.45f, 0.5f, 0.58f));
 
-            CreateBuilding("SweetShop", new Vector3(5, 0, -8),
-                new Color(0.98f, 0.85f, 0.9f),
-                new Color(0.92f, 0.48f, 0.68f),
-                new Vector3(3.6f, 2.8f, 2.8f),
-                "Sweet Shop", new Color(1.0f, 0.45f, 0.75f));
+            // ── 4. GÓC ĐÔNG NAM (Bottom-Right): KHU THƯ GIÃN ──
+            CreateBuilding("LoungeShop", new Vector3(9, 0, -8),
+                new Color(0.94f, 0.96f, 0.88f),
+                new Color(0.25f, 0.65f, 0.35f),
+                new Vector3(3.8f, 2.9f, 3.0f),
+                "KHU THƯ GIÃN", new Color(0.35f, 0.8f, 0.45f));
         }
 
-        public static void CreateBuilding(string name, Vector3 pos, Color wallColor, Color roofColor, Vector3 size, string signText, Color stripeColor)
+        private static void CreateFashionDisplayProps(GameObject parent)
+        {
+            // Trưng bày Ma-nơ-canh thời trang 3D phía trước cửa hàng trang phục
+            Vector3[] positions = { new Vector3(-1.2f, 0f, -1.8f), new Vector3(1.2f, 0f, -1.8f) };
+            Color[] outfitColors = { new Color(0.95f, 0.35f, 0.5f), new Color(0.2f, 0.65f, 0.95f) };
+
+            for (int i = 0; i < 2; i++)
+            {
+                var mannequin = new GameObject($"Mannequin_{i}");
+                mannequin.transform.SetParent(parent.transform, false);
+                mannequin.transform.localPosition = positions[i];
+
+                // Stand Base
+                var basePlate = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                basePlate.name = "StandBase";
+                basePlate.transform.SetParent(mannequin.transform, false);
+                basePlate.transform.localPosition = new Vector3(0, 0.02f, 0);
+                basePlate.transform.localScale = new Vector3(0.45f, 0.02f, 0.45f);
+                basePlate.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.85f, 0.85f, 0.9f));
+                Object.Destroy(basePlate.GetComponent<Collider>());
+
+                // Pole
+                var pole = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                pole.name = "Pole";
+                pole.transform.SetParent(mannequin.transform, false);
+                pole.transform.localPosition = new Vector3(0, 0.4f, 0);
+                pole.transform.localScale = new Vector3(0.04f, 0.4f, 0.04f);
+                pole.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(Color.white);
+                Object.Destroy(pole.GetComponent<Collider>());
+
+                // Torso & Outfit
+                var body = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                body.name = "MannequinBody";
+                body.transform.SetParent(mannequin.transform, false);
+                body.transform.localPosition = new Vector3(0, 0.72f, 0);
+                body.transform.localScale = new Vector3(0.28f, 0.32f, 0.18f);
+                body.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(outfitColors[i]);
+                Object.Destroy(body.GetComponent<Collider>());
+
+                // Head Sphere
+                var head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                head.name = "MannequinHead";
+                head.transform.SetParent(mannequin.transform, false);
+                head.transform.localPosition = new Vector3(0, 1.15f, 0);
+                head.transform.localScale = Vector3.one * 0.28f;
+                head.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.92f, 0.92f, 0.95f));
+                Object.Destroy(head.GetComponent<Collider>());
+            }
+        }
+
+        private static void CreateVehicleDisplayProps(GameObject parent)
+        {
+            // Trưng bày Xe Scooter / Go-Kart Thể Thao 3D phía trước cửa hàng phương tiện
+            var vehicle = new GameObject("DisplayScooter3D");
+            vehicle.transform.SetParent(parent.transform, false);
+            vehicle.transform.localPosition = new Vector3(0f, 0f, -1.85f);
+            vehicle.transform.localRotation = Quaternion.Euler(0, 25f, 0);
+
+            // Chassis Base
+            var chassis = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            chassis.name = "Chassis";
+            chassis.transform.SetParent(vehicle.transform, false);
+            chassis.transform.localPosition = new Vector3(0, 0.18f, 0);
+            chassis.transform.localScale = new Vector3(0.48f, 0.12f, 1.1f);
+            chassis.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.95f, 0.25f, 0.15f));
+            Object.Destroy(chassis.GetComponent<Collider>());
+
+            // Seat
+            var seat = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            seat.name = "ScooterSeat";
+            seat.transform.SetParent(vehicle.transform, false);
+            seat.transform.localPosition = new Vector3(0, 0.32f, -0.15f);
+            seat.transform.localScale = new Vector3(0.36f, 0.14f, 0.48f);
+            seat.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.15f, 0.15f, 0.18f));
+            Object.Destroy(seat.GetComponent<Collider>());
+
+            // Front Handlebar Post & Bar
+            var post = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            post.name = "HandlePost";
+            post.transform.SetParent(vehicle.transform, false);
+            post.transform.localPosition = new Vector3(0, 0.48f, 0.35f);
+            post.transform.localScale = new Vector3(0.04f, 0.3f, 0.04f);
+            post.transform.localRotation = Quaternion.Euler(-12f, 0, 0);
+            post.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(Color.white);
+            Object.Destroy(post.GetComponent<Collider>());
+
+            var bar = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            bar.name = "HandleBar";
+            bar.transform.SetParent(post.transform, false);
+            bar.transform.localPosition = new Vector3(0, 0.95f, 0);
+            bar.transform.localScale = new Vector3(0.03f, 0.42f, 0.03f);
+            bar.transform.localRotation = Quaternion.Euler(0, 0, 90f);
+            bar.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.2f, 0.2f, 0.2f));
+            Object.Destroy(bar.GetComponent<Collider>());
+
+            // Glowing Headlight
+            var light = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            light.name = "Headlight";
+            light.transform.SetParent(post.transform, false);
+            light.transform.localPosition = new Vector3(0, 0.72f, 0.1f);
+            light.transform.localScale = Vector3.one * 0.16f;
+            light.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(1f, 0.95f, 0.5f));
+            Object.Destroy(light.GetComponent<Collider>());
+
+            // 2 Wheels (Front & Back)
+            Vector3[] wheelPos = { new Vector3(0, 0.15f, 0.42f), new Vector3(0, 0.15f, -0.42f) };
+            for (int i = 0; i < 2; i++)
+            {
+                var wheel = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                wheel.name = $"Wheel_{i}";
+                wheel.transform.SetParent(vehicle.transform, false);
+                wheel.transform.localPosition = wheelPos[i];
+                wheel.transform.localScale = new Vector3(0.32f, 0.06f, 0.32f);
+                wheel.transform.localRotation = Quaternion.Euler(0, 0, 90f);
+                wheel.GetComponent<Renderer>().material = CharacterVisuals.CreateMat(new Color(0.12f, 0.12f, 0.14f));
+                Object.Destroy(wheel.GetComponent<Collider>());
+            }
+        }
+
+        public static GameObject CreateBuilding(string name, Vector3 pos, Color wallColor, Color roofColor, Vector3 size, string signText, Color stripeColor)
         {
             var building = new GameObject(name);
 
@@ -746,6 +871,7 @@ namespace RangerCity.Lobby
             signObj.AddComponent<BillboardText>();
 
             building.transform.position = pos;
+            return building;
         }
 
         public static void CreateStreetLamps()
