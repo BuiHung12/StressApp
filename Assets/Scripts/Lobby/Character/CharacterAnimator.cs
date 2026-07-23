@@ -43,8 +43,12 @@ namespace RangerCity.Lobby
 
         private void FindLimbs()
         {
-            _leftArm = transform.Find("LeftArm");
-            _rightArm = transform.Find("RightArm");
+            _leftArm = transform.Find("LeftShoulderPivot");
+            if (_leftArm == null) _leftArm = transform.Find("LeftArm");
+
+            _rightArm = transform.Find("RightShoulderPivot");
+            if (_rightArm == null) _rightArm = transform.Find("RightArm");
+
             _head = transform.Find("Head");
             _torsoContainer = transform.Find("TorsoContainer");
 
@@ -58,8 +62,6 @@ namespace RangerCity.Lobby
                 // Fallback to direct leg search (old structure)
                 if (_leftHip == null) _leftHip = legsContainer.Find("LeftLeg");
                 if (_rightHip == null) _rightHip = legsContainer.Find("RightLeg");
-
-
             }
             else
             {

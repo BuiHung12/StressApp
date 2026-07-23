@@ -258,13 +258,13 @@ namespace RangerCity.Lobby
             _portInput = CreateInputFieldV2(inputRow.transform, "30645", "",
                 new Vector2(162.5f, 0), new Vector2(95, 34));
 
-            CreateGradientButton(bottomBar.transform, "HostBtn", "CH OI OFFLINE",
+            CreateGradientButton(bottomBar.transform, "HostBtn", "OFFLINE",
                 new Color(0.14f, 0.15f, 0.22f), new Color(0.2f, 0.22f, 0.3f),
                 new Vector2(-140, -24), new Vector2(135, 48), OnHostServerClicked, 13f);
 
-            CreateGradientButton(bottomBar.transform, "JoinBtn", "VAO GAME ONLINE",
+            CreateGradientButton(bottomBar.transform, "JoinBtn", "VAO GAME",
                 new Color(0.02f, 0.52f, 0.95f), new Color(0.0f, 0.82f, 1f),
-                new Vector2(70, -24), new Vector2(275, 56), OnJoinServerClicked, 18f);
+                new Vector2(70, -24), new Vector2(275, 56), OnJoinServerClicked, 20f);
         }
 
         private void BuildHairTab(Transform parent)
@@ -353,17 +353,40 @@ namespace RangerCity.Lobby
                 int idx = i;
                 var swatch = CreatePanel(parent, $"{prefix}_{i}", new Vector2(startX + i * (swatchSize + spacing), yPos), new Vector2(swatchSize, swatchSize));
                 swatch.GetComponent<Image>().color = palette[i];
-                var btn = swatch.AddComponent<Button>();
-                btn.onClick.AddListener(() => onSelect(idx));
+                swatch.GetComponent<Image>().raycastTarget = true;
 
-                if (i == selected)
+                var btn = swatch.AddComponent<Button>();
+                btn.onClick.AddListener(() =>
                 {
-                    var ring = CreatePanel(swatch.transform, "Ring", Vector2.zero, new Vector2(swatchSize + 4, swatchSize + 4));
-                    ring.transform.SetAsFirstSibling();
-                    ring.GetComponent<Image>().color = Color.clear;
-                    var outline = ring.AddComponent<Outline>();
-                    outline.effectColor = Color.white;
-                    outline.effectDistance = new Vector2(2, -2);
+                    onSelect(idx);
+                    RefreshColorHighlights(parent, idx, palette.Length, prefix);
+                });
+
+                var ring = CreatePanel(swatch.transform, "Ring", Vector2.zero, new Vector2(swatchSize + 6, swatchSize + 6));
+                ring.transform.SetAsFirstSibling();
+                var ringImg = ring.GetComponent<Image>();
+                ringImg.color = Color.clear;
+                ringImg.raycastTarget = false; // CRITICAL: Never block button clicks!
+
+                var outline = ring.AddComponent<Outline>();
+                outline.effectColor = (i == selected) ? Color.white : Color.clear;
+                outline.effectDistance = new Vector2(2, -2);
+            }
+        }
+
+        private void RefreshColorHighlights(Transform parent, int selectedIdx, int count, string prefix)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                var swatch = parent.Find($"{prefix}_{i}");
+                if (swatch != null)
+                {
+                    var ring = swatch.Find("Ring");
+                    if (ring != null)
+                    {
+                        var outline = ring.GetComponent<Outline>();
+                        if (outline != null) outline.effectColor = (i == selectedIdx) ? Color.white : Color.clear;
+                    }
                 }
             }
         }
