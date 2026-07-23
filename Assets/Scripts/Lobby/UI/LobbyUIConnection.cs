@@ -112,41 +112,40 @@ namespace RangerCity.Lobby
             panelRt.anchorMin = Vector2.zero; panelRt.anchorMax = Vector2.one;
             panelRt.offsetMin = panelRt.offsetMax = Vector2.zero;
             var panelImg = _connectionPanel.AddComponent<Image>();
-            panelImg.color = new Color(0.04f, 0.04f, 0.08f, 0.96f);
+            panelImg.color = new Color(0.05f, 0.07f, 0.12f, 0.96f);
 
             // ── Main Card (glassmorphism) ──
-            var card = CreatePanel(_connectionPanel.transform, "MainCard", Vector2.zero, new Vector2(1000, 650));
+            var card = CreatePanel(_connectionPanel.transform, "MainCard", Vector2.zero, new Vector2(1020, 660));
             var cardImg = card.GetComponent<Image>();
-            cardImg.color = new Color(0.12f, 0.13f, 0.18f, 0.95f);
+            cardImg.color = new Color(0.09f, 0.11f, 0.16f, 0.96f);
 
-            var cardBorder = CreatePanel(card.transform, "CardBorder", Vector2.zero, new Vector2(1006, 656));
+            var cardBorder = CreatePanel(card.transform, "CardBorder", Vector2.zero, new Vector2(1026, 666));
             cardBorder.transform.SetAsFirstSibling();
-            cardBorder.GetComponent<Image>().color = new Color(0.3f, 0.5f, 0.85f, 0.25f);
+            cardBorder.GetComponent<Image>().color = new Color(0.04f, 0.7f, 0.95f, 0.45f);
 
-            var titleBar = CreatePanel(card.transform, "TitleBar", new Vector2(0, 295), new Vector2(960, 48));
-            titleBar.GetComponent<Image>().color = new Color(0.08f, 0.09f, 0.14f, 0.9f);
-            MakeText(titleBar.transform, "TitleText", "RANGER CITY — TÙY CHỈNH NHÂN VẬT", 22,
-                Vector2.zero, new Vector2(900, 40), TextAlignmentOptions.Center, new Color(0.5f, 0.85f, 1f));
+            var titleBar = CreatePanel(card.transform, "TitleBar", new Vector2(0, 298), new Vector2(980, 52));
+            titleBar.GetComponent<Image>().color = new Color(0.06f, 0.08f, 0.13f, 0.95f);
+            MakeText(titleBar.transform, "TitleText", "✨ RANGER CITY — TÙY CHỈNH NHÂN VẬT", 23,
+                Vector2.zero, new Vector2(920, 44), TextAlignmentOptions.Center, new Color(0.4f, 0.88f, 1f));
 
             // ═══════════════════════════════════
-            //  LEFT COLUMN — Character Preview
+            //  LEFT COLUMN — Character Preview Stage
             // ═══════════════════════════════════
-            var leftCol = CreatePanel(card.transform, "LeftCol", new Vector2(-250, -20), new Vector2(440, 510));
-            leftCol.GetComponent<Image>().color = new Color(0.08f, 0.08f, 0.12f, 0.8f);
+            var leftCol = CreatePanel(card.transform, "LeftCol", new Vector2(-255, -18), new Vector2(450, 520));
+            leftCol.GetComponent<Image>().color = new Color(0.06f, 0.07f, 0.11f, 0.9f);
 
-            MakeText(leftCol.transform, "PreviewLabel", "XEM TRƯỚC", 14,
-                new Vector2(0, 230), new Vector2(400, 24), TextAlignmentOptions.Center, new Color(0.5f, 0.55f, 0.7f));
+            MakeText(leftCol.transform, "PreviewLabel", "🎭 XEM TRƯỚC 3D", 14,
+                new Vector2(0, 235), new Vector2(410, 24), TextAlignmentOptions.Center, new Color(0.4f, 0.75f, 1f));
 
             CreatePreviewCharacter(leftCol.transform);
 
-            MakeText(leftCol.transform, "NameLabel", "TÊN NHÂN VẬT", 14,
-                new Vector2(0, -145), new Vector2(400, 20), TextAlignmentOptions.Center, new Color(0.5f, 0.55f, 0.7f));
+            MakeText(leftCol.transform, "NameLabel", "✍️ TÊN NHÂN VẬT", 14,
+                new Vector2(0, -140), new Vector2(410, 20), TextAlignmentOptions.Center, new Color(0.55f, 0.65f, 0.8f));
 
             var nameInputObj = CreateInputFieldV2(leftCol.transform, savedName, "Nhập tên...",
-                new Vector2(0, -180), new Vector2(320, 42));
+                new Vector2(0, -178), new Vector2(340, 44));
             _nameInput = nameInputObj;
             
-            // Cập nhật tên hiển thị trên đầu nhân vật thời gian thực khi đang gõ
             _nameInput.onValueChanged.AddListener((val) => {
                 var player = GameObject.FindWithTag("Player");
                 if (player != null)
@@ -162,61 +161,61 @@ namespace RangerCity.Lobby
 
             string deviceId = SystemInfo.deviceUniqueIdentifier;
             string shortId = deviceId.Length > 10 ? deviceId.Substring(0, 10) + "..." : deviceId;
-            MakeText(leftCol.transform, "DeviceId", $"ID: {shortId}", 11,
-                new Vector2(0, -225), new Vector2(400, 18), TextAlignmentOptions.Center, new Color(0.4f, 0.4f, 0.5f));
+            MakeText(leftCol.transform, "DeviceId", $"ID THIẾT BỊ: {shortId}", 11,
+                new Vector2(0, -225), new Vector2(410, 18), TextAlignmentOptions.Center, new Color(0.4f, 0.45f, 0.55f));
 
             // ═══════════════════════════════════
-            //  RIGHT COLUMN — Customization Tabs
+            //  RIGHT COLUMN — Customization Tabs & Grids
             // ═══════════════════════════════════
-            var rightCol = CreatePanel(card.transform, "RightCol", new Vector2(220, 25), new Vector2(440, 420));
-            rightCol.GetComponent<Image>().color = new Color(0.1f, 0.1f, 0.15f, 0.6f);
+            var rightCol = CreatePanel(card.transform, "RightCol", new Vector2(225, 28), new Vector2(450, 430));
+            rightCol.GetComponent<Image>().color = new Color(0.07f, 0.08f, 0.13f, 0.7f);
 
-            MakeText(rightCol.transform, "GenderLabel", "GIỚI TÍNH", 13,
-                new Vector2(0, 192), new Vector2(420, 18), TextAlignmentOptions.Left, new Color(0.55f, 0.6f, 0.75f));
+            MakeText(rightCol.transform, "GenderLabel", "👤 GIỚI TÍNH", 13,
+                new Vector2(0, 195), new Vector2(430, 18), TextAlignmentOptions.Left, new Color(0.4f, 0.75f, 1f));
 
-            var genderRow = CreatePanel(rightCol.transform, "GenderRow", new Vector2(0, 160), new Vector2(420, 36), false);
+            var genderRow = CreatePanel(rightCol.transform, "GenderRow", new Vector2(0, 162), new Vector2(430, 38), false);
             genderRow.GetComponent<Image>().color = Color.clear;
             _genderButtons = new Image[2];
-            string[] genderLabels = { "NAM", "NỮ" };
+            string[] genderLabels = { "👨 NAM", "👩 NỮ" };
             for (int i = 0; i < 2; i++)
             {
                 int genderIdx = i;
                 var gBtn = CreatePanel(genderRow.transform, $"GenderBtn_{i}",
-                    new Vector2(-100 + i * 200, 0), new Vector2(180, 32), true);
+                    new Vector2(-105 + i * 210, 0), new Vector2(190, 34), true);
                 _genderButtons[i] = gBtn.GetComponent<Image>();
                 var btn = gBtn.AddComponent<Button>();
                 btn.onClick.AddListener(() => { _selectedGender = genderIdx; RefreshGenderUI(); });
                 MakeText(gBtn.transform, "Label", genderLabels[i], 14,
-                    Vector2.zero, new Vector2(170, 28), TextAlignmentOptions.Center, Color.white);
+                    Vector2.zero, new Vector2(180, 28), TextAlignmentOptions.Center, Color.white);
             }
 
-            var tabRow = CreatePanel(rightCol.transform, "TabRow", new Vector2(0, 105), new Vector2(420, 36));
+            var tabRow = CreatePanel(rightCol.transform, "TabRow", new Vector2(0, 108), new Vector2(430, 38));
             tabRow.GetComponent<Image>().color = Color.clear;
             _tabButtons = new Image[3];
-            string[] tabLabels = { "TÓC", "ÁO", "QUẦN" };
+            string[] tabLabels = { "💇 TÓC", "👔 ÁO", "👖 QUẦN" };
             for (int i = 0; i < 3; i++)
             {
                 int tabIdx = i;
                 var tabBtn = CreatePanel(tabRow.transform, $"Tab_{i}",
-                    new Vector2(-135 + i * 135, 0), new Vector2(130, 32), true);
+                    new Vector2(-138 + i * 138, 0), new Vector2(132, 34), true);
                 _tabButtons[i] = tabBtn.GetComponent<Image>();
-                _tabButtons[i].color = i == 0 ? new Color(0.25f, 0.45f, 0.8f, 0.9f) : new Color(0.18f, 0.18f, 0.24f, 0.8f);
+                _tabButtons[i].color = i == 0 ? new Color(0.04f, 0.55f, 0.9f, 0.95f) : new Color(0.12f, 0.14f, 0.2f, 0.8f);
                 var btn = tabBtn.AddComponent<Button>();
                 btn.onClick.AddListener(() => SwitchTab(tabIdx));
-                MakeText(tabBtn.transform, "Label", tabLabels[i], 15,
-                    Vector2.zero, new Vector2(120, 28), TextAlignmentOptions.Center, Color.white);
+                MakeText(tabBtn.transform, "Label", tabLabels[i], 14,
+                    Vector2.zero, new Vector2(125, 28), TextAlignmentOptions.Center, Color.white);
             }
 
-            _tabHairContent = CreatePanel(rightCol.transform, "HairContent", new Vector2(0, -50), new Vector2(420, 270), false);
+            _tabHairContent = CreatePanel(rightCol.transform, "HairContent", new Vector2(0, -48), new Vector2(430, 275), false);
             _tabHairContent.GetComponent<Image>().color = Color.clear;
             BuildHairTab(_tabHairContent.transform);
 
-            _tabOutfitContent = CreatePanel(rightCol.transform, "OutfitContent", new Vector2(0, -50), new Vector2(420, 270), false);
+            _tabOutfitContent = CreatePanel(rightCol.transform, "OutfitContent", new Vector2(0, -48), new Vector2(430, 275), false);
             _tabOutfitContent.GetComponent<Image>().color = Color.clear;
             BuildOutfitTab(_tabOutfitContent.transform);
             _tabOutfitContent.SetActive(false);
 
-            _tabPantsContent = CreatePanel(rightCol.transform, "PantsContent", new Vector2(0, -50), new Vector2(420, 270), false);
+            _tabPantsContent = CreatePanel(rightCol.transform, "PantsContent", new Vector2(0, -48), new Vector2(430, 275), false);
             _tabPantsContent.GetComponent<Image>().color = Color.clear;
             BuildPantsTab(_tabPantsContent.transform);
             _tabPantsContent.SetActive(false);
@@ -224,29 +223,27 @@ namespace RangerCity.Lobby
             RefreshGenderUI();
 
             // ═══════════════════════════════════
-            //  BOTTOM — Connection Buttons
+            //  BOTTOM — Connection Action Bar
             // ═══════════════════════════════════
-            var bottomBar = CreatePanel(card.transform, "BottomBar", new Vector2(220, -235), new Vector2(440, 120), false);
+            var bottomBar = CreatePanel(card.transform, "BottomBar", new Vector2(225, -235), new Vector2(450, 120), false);
             bottomBar.GetComponent<Image>().color = Color.clear;
 
-            // Row 1: Inputs (at y = 35)
-            var inputRow = CreatePanel(bottomBar.transform, "InputRow", new Vector2(0, 35), new Vector2(400, 42), false);
+            var inputRow = CreatePanel(bottomBar.transform, "InputRow", new Vector2(0, 36), new Vector2(420, 42), false);
             inputRow.GetComponent<Image>().color = Color.clear;
 
             _addressInput = CreateInputFieldV2(inputRow.transform, "wool-delivery.gl.at.ply.gg", "",
-                new Vector2(-50, 0), new Vector2(295, 36));
+                new Vector2(-55, 0), new Vector2(300, 36));
 
             _portInput = CreateInputFieldV2(inputRow.transform, "30645", "",
-                new Vector2(152.5f, 0), new Vector2(95, 36));
+                new Vector2(157.5f, 0), new Vector2(100, 36));
 
-            // Row 2: Buttons (at y = -25) - JOIN button is made massive and prominent, HOST is secondary
-            CreateGradientButton(bottomBar.transform, "HostBtn", "HOST SERVER",
-                new Color(0.18f, 0.19f, 0.24f), new Color(0.25f, 0.26f, 0.32f),
-                new Vector2(-135, -25), new Vector2(130, 48), OnHostServerClicked, 13f);
+            CreateGradientButton(bottomBar.transform, "HostBtn", "🏠 OFFLINE",
+                new Color(0.15f, 0.16f, 0.22f), new Color(0.22f, 0.24f, 0.32f),
+                new Vector2(-140, -25), new Vector2(130, 52), OnHostServerClicked, 13f);
 
-            CreateGradientButton(bottomBar.transform, "JoinBtn", "JOIN",
-                new Color(0.05f, 0.45f, 0.9f), new Color(0.0f, 0.75f, 1f),
-                new Vector2(70, -25), new Vector2(260, 58), OnJoinServerClicked, 22f);
+            CreateGradientButton(bottomBar.transform, "JoinBtn", "🚀 VÀO GAME (JOIN ONLINE)",
+                new Color(0.02f, 0.52f, 0.95f), new Color(0.0f, 0.82f, 1f),
+                new Vector2(75, -25), new Vector2(285, 62), OnJoinServerClicked, 18f);
         }
 
         private void BuildHairTab(Transform parent)

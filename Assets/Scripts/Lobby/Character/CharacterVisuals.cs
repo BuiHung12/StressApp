@@ -14,6 +14,10 @@ namespace RangerCity.Lobby
             {
                 return new GameObject(charName);
             }
+            if (NetworkSetup.IsHeadlessServer())
+            {
+                return new GameObject(charName);
+            }
             var character = new GameObject(charName);
 
             // === NECK ===
@@ -21,16 +25,16 @@ namespace RangerCity.Lobby
             neck.name = "Neck";
             neck.transform.SetParent(character.transform);
             neck.transform.localPosition = new Vector3(0, 1.1f, 0);
-            neck.transform.localScale = new Vector3(0.13f, 0.08f, 0.13f);
+            neck.transform.localScale = new Vector3(0.14f, 0.08f, 0.14f);
             neck.GetComponent<Renderer>().material = CreateMat(skinColor);
             Destroy(neck.GetComponent<Collider>());
 
-            // === HEAD (sphere) ===
+            // === HEAD (Cute Chibi Sphere) ===
             var head = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             head.name = "Head";
             head.transform.SetParent(character.transform);
-            head.transform.localPosition = new Vector3(0, 1.38f, 0);
-            head.transform.localScale = new Vector3(0.45f, 0.45f, 0.45f);
+            head.transform.localPosition = new Vector3(0, 1.4f, 0);
+            head.transform.localScale = new Vector3(0.48f, 0.48f, 0.48f);
             head.GetComponent<Renderer>().material = CreateMat(skinColor);
             Destroy(head.GetComponent<Collider>());
 
@@ -38,33 +42,33 @@ namespace RangerCity.Lobby
             var nose = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             nose.name = "Nose";
             nose.transform.SetParent(head.transform, false);
-            nose.transform.localPosition = new Vector3(0f, -0.05f, 0.52f);
-            nose.transform.localScale = new Vector3(0.12f, 0.12f, 0.12f);
-            nose.GetComponent<Renderer>().material = CreateMat(skinColor);
+            nose.transform.localPosition = new Vector3(0f, -0.05f, 0.51f);
+            nose.transform.localScale = new Vector3(0.11f, 0.11f, 0.11f);
+            nose.GetComponent<Renderer>().material = CreateMat(skinColor * 0.95f);
             Destroy(nose.GetComponent<Collider>());
 
-            // === MOUTH ===
+            // === MOUTH (Cute Smile Arc) ===
             var mouth = GameObject.CreatePrimitive(PrimitiveType.Cube);
             mouth.name = "Mouth";
             mouth.transform.SetParent(head.transform, false);
-            mouth.transform.localPosition = new Vector3(0f, -0.2f, 0.47f);
-            mouth.transform.localScale = new Vector3(0.12f, 0.04f, 0.08f);
-            mouth.GetComponent<Renderer>().material = CreateMat(new Color(0.15f, 0.1f, 0.1f));
+            mouth.transform.localPosition = new Vector3(0f, -0.18f, 0.48f);
+            mouth.transform.localScale = new Vector3(0.14f, 0.04f, 0.06f);
+            mouth.GetComponent<Renderer>().material = CreateMat(new Color(0.2f, 0.12f, 0.12f));
             Destroy(mouth.GetComponent<Collider>());
 
             var tongue = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             tongue.name = "Tongue";
             tongue.transform.SetParent(mouth.transform, false);
-            tongue.transform.localPosition = new Vector3(0f, -0.3f, 0.2f);
-            tongue.transform.localScale = new Vector3(0.8f, 0.6f, 0.5f);
-            tongue.GetComponent<Renderer>().material = CreateMat(new Color(1f, 0.45f, 0.5f));
+            tongue.transform.localPosition = new Vector3(0f, -0.25f, 0.2f);
+            tongue.transform.localScale = new Vector3(0.75f, 0.55f, 0.5f);
+            tongue.GetComponent<Renderer>().material = CreateMat(new Color(1f, 0.45f, 0.55f));
             Destroy(tongue.GetComponent<Collider>());
 
             // === EARS ===
             var earL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             earL.name = "EarL";
             earL.transform.SetParent(head.transform, false);
-            earL.transform.localPosition = new Vector3(-0.52f, 0f, 0f);
+            earL.transform.localPosition = new Vector3(-0.51f, 0f, 0f);
             earL.transform.localScale = new Vector3(0.12f, 0.16f, 0.1f);
             earL.GetComponent<Renderer>().material = CreateMat(skinColor);
             Destroy(earL.GetComponent<Collider>());
@@ -72,101 +76,73 @@ namespace RangerCity.Lobby
             var earR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
             earR.name = "EarR";
             earR.transform.SetParent(head.transform, false);
-            earR.transform.localPosition = new Vector3(0.52f, 0f, 0f);
+            earR.transform.localPosition = new Vector3(0.51f, 0f, 0f);
             earR.transform.localScale = new Vector3(0.12f, 0.16f, 0.1f);
             earR.GetComponent<Renderer>().material = CreateMat(skinColor);
             Destroy(earR.GetComponent<Collider>());
 
-            // === EYES ===
-            var eyeL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            eyeL.name = "EyeL";
-            eyeL.transform.SetParent(head.transform, false);
-            eyeL.transform.localPosition = new Vector3(-0.2f, 0.06f, 0.44f);
-            eyeL.transform.localScale = new Vector3(0.12f, 0.16f, 0.08f);
-            eyeL.GetComponent<Renderer>().material = CreateMat(Color.white);
-            Destroy(eyeL.GetComponent<Collider>());
+            // === EXPRESSIVE CATCHLIGHT EYES ===
+            for (int side = 0; side < 2; side++)
+            {
+                float x = side == 0 ? -0.19f : 0.19f;
+                string sName = side == 0 ? "L" : "R";
 
-            var pupilL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            pupilL.name = "PupilL";
-            pupilL.transform.SetParent(eyeL.transform, false);
-            pupilL.transform.localPosition = new Vector3(0f, 0f, 0.45f);
-            pupilL.transform.localScale = new Vector3(0.55f, 0.55f, 0.3f);
-            pupilL.GetComponent<Renderer>().material = CreateMat(new Color(0.1f, 0.1f, 0.12f));
-            Destroy(pupilL.GetComponent<Collider>());
+                var eye = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                eye.name = $"Eye{sName}";
+                eye.transform.SetParent(head.transform, false);
+                eye.transform.localPosition = new Vector3(x, 0.06f, 0.44f);
+                eye.transform.localScale = new Vector3(0.13f, 0.17f, 0.08f);
+                eye.GetComponent<Renderer>().material = CreateMat(Color.white);
+                Destroy(eye.GetComponent<Collider>());
 
-            var shinyL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            shinyL.name = "ShinyL";
-            shinyL.transform.SetParent(pupilL.transform, false);
-            shinyL.transform.localPosition = new Vector3(-0.25f, 0.25f, 0.45f);
-            shinyL.transform.localScale = new Vector3(0.35f, 0.35f, 0.2f);
-            shinyL.GetComponent<Renderer>().material = CreateMat(Color.white);
-            Destroy(shinyL.GetComponent<Collider>());
+                var pupil = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                pupil.name = $"Pupil{sName}";
+                pupil.transform.SetParent(eye.transform, false);
+                pupil.transform.localPosition = new Vector3(0f, 0f, 0.45f);
+                pupil.transform.localScale = new Vector3(0.6f, 0.6f, 0.3f);
+                pupil.GetComponent<Renderer>().material = CreateMat(new Color(0.1f, 0.12f, 0.18f));
+                Destroy(pupil.GetComponent<Collider>());
 
-            var eyeR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            eyeR.name = "EyeR";
-            eyeR.transform.SetParent(head.transform, false);
-            eyeR.transform.localPosition = new Vector3(0.2f, 0.06f, 0.44f);
-            eyeR.transform.localScale = new Vector3(0.12f, 0.16f, 0.08f);
-            eyeR.GetComponent<Renderer>().material = CreateMat(Color.white);
-            Destroy(eyeR.GetComponent<Collider>());
+                var shiny1 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                shiny1.name = $"Shiny1{sName}";
+                shiny1.transform.SetParent(pupil.transform, false);
+                shiny1.transform.localPosition = new Vector3(-0.25f, 0.25f, 0.45f);
+                shiny1.transform.localScale = new Vector3(0.38f, 0.38f, 0.2f);
+                shiny1.GetComponent<Renderer>().material = CreateMat(Color.white);
+                Destroy(shiny1.GetComponent<Collider>());
 
-            var pupilR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            pupilR.name = "PupilR";
-            pupilR.transform.SetParent(eyeR.transform, false);
-            pupilR.transform.localPosition = new Vector3(0f, 0f, 0.45f);
-            pupilR.transform.localScale = new Vector3(0.55f, 0.55f, 0.3f);
-            pupilR.GetComponent<Renderer>().material = CreateMat(new Color(0.1f, 0.1f, 0.12f));
-            Destroy(pupilR.GetComponent<Collider>());
+                var shiny2 = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                shiny2.name = $"Shiny2{sName}";
+                shiny2.transform.SetParent(pupil.transform, false);
+                shiny2.transform.localPosition = new Vector3(0.2f, -0.2f, 0.45f);
+                shiny2.transform.localScale = new Vector3(0.22f, 0.22f, 0.2f);
+                shiny2.GetComponent<Renderer>().material = CreateMat(Color.white);
+                Destroy(shiny2.GetComponent<Collider>());
 
-            var shinyR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            shinyR.name = "ShinyR";
-            shinyR.transform.SetParent(pupilR.transform, false);
-            shinyR.transform.localPosition = new Vector3(-0.25f, 0.25f, 0.45f);
-            shinyR.transform.localScale = new Vector3(0.35f, 0.35f, 0.2f);
-            shinyR.GetComponent<Renderer>().material = CreateMat(Color.white);
-            Destroy(shinyR.GetComponent<Collider>());
+                // Eyebrow
+                var brow = GameObject.CreatePrimitive(PrimitiveType.Cube);
+                brow.name = $"Brow{sName}";
+                brow.transform.SetParent(head.transform, false);
+                brow.transform.localPosition = new Vector3(x, 0.21f, 0.46f);
+                brow.transform.localScale = new Vector3(0.14f, 0.025f, 0.04f);
+                brow.transform.localRotation = Quaternion.Euler(0, 0, side == 0 ? 5f : -5f);
+                brow.GetComponent<Renderer>().material = CreateMat(new Color(0.15f, 0.12f, 0.1f));
+                Destroy(brow.GetComponent<Collider>());
 
-            // === EYEBROWS ===
-            var browL = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            browL.name = "BrowL";
-            browL.transform.SetParent(head.transform, false);
-            browL.transform.localPosition = new Vector3(-0.2f, 0.2f, 0.46f);
-            browL.transform.localScale = new Vector3(0.14f, 0.025f, 0.04f);
-            browL.transform.localRotation = Quaternion.Euler(0, 0, 5f);
-            browL.GetComponent<Renderer>().material = CreateMat(new Color(0.12f, 0.08f, 0.06f));
-            Destroy(browL.GetComponent<Collider>());
+                // Rosy Cheek
+                var cheek = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                cheek.name = $"Cheek{sName}";
+                cheek.transform.SetParent(head.transform, false);
+                cheek.transform.localPosition = new Vector3(side == 0 ? -0.26f : 0.26f, -0.06f, 0.42f);
+                cheek.transform.localScale = new Vector3(0.09f, 0.045f, 0.04f);
+                cheek.GetComponent<Renderer>().material = CreateMat(new Color(1f, 0.45f, 0.55f, 0.65f));
+                Destroy(cheek.GetComponent<Collider>());
+            }
 
-            var browR = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            browR.name = "BrowR";
-            browR.transform.SetParent(head.transform, false);
-            browR.transform.localPosition = new Vector3(0.2f, 0.2f, 0.46f);
-            browR.transform.localScale = new Vector3(0.14f, 0.025f, 0.04f);
-            browR.transform.localRotation = Quaternion.Euler(0, 0, -5f);
-            browR.GetComponent<Renderer>().material = CreateMat(new Color(0.12f, 0.08f, 0.06f));
-            Destroy(browR.GetComponent<Collider>());
-
-            // === CHEEKS ===
-            var cheekL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            cheekL.name = "CheekL";
-            cheekL.transform.SetParent(head.transform, false);
-            cheekL.transform.localPosition = new Vector3(-0.25f, -0.06f, 0.4f);
-            cheekL.transform.localScale = new Vector3(0.08f, 0.04f, 0.04f);
-            cheekL.GetComponent<Renderer>().material = CreateMat(new Color(1f, 0.5f, 0.5f, 0.6f));
-            Destroy(cheekL.GetComponent<Collider>());
-
-            var cheekR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            cheekR.name = "CheekR";
-            cheekR.transform.SetParent(head.transform, false);
-            cheekR.transform.localPosition = new Vector3(0.25f, -0.06f, 0.4f);
-            cheekR.transform.localScale = new Vector3(0.08f, 0.04f, 0.04f);
-            cheekR.GetComponent<Renderer>().material = CreateMat(new Color(1f, 0.5f, 0.5f, 0.6f));
-            Destroy(cheekR.GetComponent<Collider>());
-
-            // === HAIR CONTAINER ===
+            // === CONTAINERS ===
             var hairContainer = new GameObject("HairContainer");
             hairContainer.transform.SetParent(character.transform, false);
 
-            // === TORSO CONTAINER ===
             var torsoContainer = new GameObject("TorsoContainer");
             torsoContainer.transform.SetParent(character.transform, false);
 
@@ -176,70 +152,49 @@ namespace RangerCity.Lobby
             belt.transform.SetParent(character.transform, false);
             belt.transform.localPosition = new Vector3(0f, 0.52f, 0f);
             belt.transform.localScale = new Vector3(0.38f, 0.02f, 0.24f);
-            belt.GetComponent<Renderer>().material = CreateMat(new Color(0.15f, 0.15f, 0.15f));
+            belt.GetComponent<Renderer>().material = CreateMat(new Color(0.15f, 0.15f, 0.18f));
             Destroy(belt.GetComponent<Collider>());
 
             var buckle = GameObject.CreatePrimitive(PrimitiveType.Cube);
             buckle.name = "Buckle";
             buckle.transform.SetParent(belt.transform, false);
             buckle.transform.localPosition = new Vector3(0f, 0f, 0.52f);
-            buckle.transform.localScale = new Vector3(0.2f, 1.2f, 0.1f);
-            buckle.GetComponent<Renderer>().material = CreateMat(new Color(0.9f, 0.75f, 0.2f));
+            buckle.transform.localScale = new Vector3(0.22f, 1.2f, 0.12f);
+            buckle.GetComponent<Renderer>().material = CreateMat(new Color(0.92f, 0.78f, 0.28f));
             Destroy(buckle.GetComponent<Collider>());
 
-            // === LEFT ARM ===
-            var leftArm = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            leftArm.name = "LeftArm";
-            leftArm.transform.SetParent(character.transform);
-            leftArm.transform.localPosition = new Vector3(-0.28f, 0.72f, 0);
-            leftArm.transform.localScale = new Vector3(0.12f, 0.3f, 0.12f);
-            leftArm.GetComponent<Renderer>().material = CreateMat(skinColor);
-            Destroy(leftArm.GetComponent<Collider>());
+            // === ARMS & HANDS ===
+            for (int side = 0; side < 2; side++)
+            {
+                float x = side == 0 ? -0.28f : 0.28f;
+                string sName = side == 0 ? "Left" : "Right";
 
-            var sleeveL = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            sleeveL.name = "Sleeve";
-            sleeveL.transform.SetParent(leftArm.transform, false);
-            sleeveL.transform.localPosition = new Vector3(0f, 0.3f, 0f);
-            sleeveL.transform.localScale = new Vector3(1.15f, 0.45f, 1.15f);
-            sleeveL.GetComponent<Renderer>().material = CreateMat(bodyColor);
-            Destroy(sleeveL.GetComponent<Collider>());
+                var arm = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                arm.name = $"{sName}Arm";
+                arm.transform.SetParent(character.transform);
+                arm.transform.localPosition = new Vector3(x, 0.72f, 0);
+                arm.transform.localScale = new Vector3(0.12f, 0.3f, 0.12f);
+                arm.GetComponent<Renderer>().material = CreateMat(skinColor);
+                Destroy(arm.GetComponent<Collider>());
 
-            // === LEFT HAND ===
-            var handL = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            handL.name = "HandL";
-            handL.transform.SetParent(leftArm.transform, false);
-            handL.transform.localPosition = new Vector3(0f, -1.05f, 0f);
-            handL.transform.localScale = new Vector3(0.9f, 0.36f, 0.9f);
-            handL.GetComponent<Renderer>().material = CreateMat(skinColor);
-            Destroy(handL.GetComponent<Collider>());
+                var sleeve = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+                sleeve.name = "Sleeve";
+                sleeve.transform.SetParent(arm.transform, false);
+                sleeve.transform.localPosition = new Vector3(0f, 0.3f, 0f);
+                sleeve.transform.localScale = new Vector3(1.15f, 0.45f, 1.15f);
+                sleeve.GetComponent<Renderer>().material = CreateMat(bodyColor);
+                Destroy(sleeve.GetComponent<Collider>());
 
-            // === RIGHT ARM ===
-            var rightArm = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            rightArm.name = "RightArm";
-            rightArm.transform.SetParent(character.transform);
-            rightArm.transform.localPosition = new Vector3(0.28f, 0.72f, 0);
-            rightArm.transform.localScale = new Vector3(0.12f, 0.3f, 0.12f);
-            rightArm.GetComponent<Renderer>().material = CreateMat(skinColor);
-            Destroy(rightArm.GetComponent<Collider>());
+                var hand = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+                hand.name = $"Hand{sName[0]}";
+                hand.transform.SetParent(arm.transform, false);
+                hand.transform.localPosition = new Vector3(0f, -1.05f, 0f);
+                hand.transform.localScale = new Vector3(0.92f, 0.38f, 0.92f);
+                hand.GetComponent<Renderer>().material = CreateMat(skinColor);
+                Destroy(hand.GetComponent<Collider>());
+            }
 
-            var sleeveR = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            sleeveR.name = "Sleeve";
-            sleeveR.transform.SetParent(rightArm.transform, false);
-            sleeveR.transform.localPosition = new Vector3(0f, 0.3f, 0f);
-            sleeveR.transform.localScale = new Vector3(1.15f, 0.45f, 1.15f);
-            sleeveR.GetComponent<Renderer>().material = CreateMat(bodyColor);
-            Destroy(sleeveR.GetComponent<Collider>());
-
-            // === RIGHT HAND ===
-            var handR = GameObject.CreatePrimitive(PrimitiveType.Sphere);
-            handR.name = "HandR";
-            handR.transform.SetParent(rightArm.transform, false);
-            handR.transform.localPosition = new Vector3(0f, -1.05f, 0f);
-            handR.transform.localScale = new Vector3(0.9f, 0.36f, 0.9f);
-            handR.GetComponent<Renderer>().material = CreateMat(skinColor);
-            Destroy(handR.GetComponent<Collider>());
-
-            // === LEGS CONTAINER (populated by ApplyPants) ===
+            // === LEGS CONTAINER ===
             var legsContainer = new GameObject("LegsContainer");
             legsContainer.transform.SetParent(character.transform, false);
 
@@ -248,14 +203,13 @@ namespace RangerCity.Lobby
             shadow.name = "Shadow";
             shadow.transform.SetParent(character.transform);
             shadow.transform.localPosition = new Vector3(0.05f, 0.005f, -0.05f);
-            shadow.transform.localScale = new Vector3(0.5f, 0.005f, 0.5f);
-            shadow.GetComponent<Renderer>().material = CreateMat(new Color(0, 0, 0, 0.2f));
+            shadow.transform.localScale = new Vector3(0.52f, 0.005f, 0.52f);
+            shadow.GetComponent<Renderer>().material = CreateMat(new Color(0, 0, 0, 0.22f));
             Destroy(shadow.GetComponent<Collider>());
 
             character.transform.localScale = Vector3.one * 0.45f;
             character.AddComponent<CharacterAnimator>();
 
-            // Default customization
             ApplyCustomization(character, 0, 0, new Color(0.18f, 0.12f, 0.08f), 0, bodyColor, 0, new Color(0.25f, 0.35f, 0.55f));
 
             return character;
