@@ -52,11 +52,15 @@ namespace RangerCity.Lobby
         private bool _hasSyncData;
         private Vector3 _smoothVelocity;
 
+        [Header("Interaction Settings")]
+        [SerializeField] private bool _canTalk = true;
+        [SerializeField] private bool _canBePunched = true;
+
         // IInteractable
         public string DisplayName => _displayName;
         public string AvatarEmoji => _avatarEmoji;
-        public bool CanTalk => true;
-        public bool CanBePunched => true;
+        public bool CanTalk => _canTalk;
+        public bool CanBePunched => _canBePunched;
         public InteractableType Type => _type;
 
         public bool IsHurt => _isHurt;
