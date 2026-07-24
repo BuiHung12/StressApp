@@ -83,7 +83,7 @@ namespace RangerCity.Lobby
             title.transform.SetParent(zone.transform, false);
             title.transform.localPosition = new Vector3(0, 3.5f, -14f);
             var tmp = title.AddComponent<TextMeshPro>();
-            tmp.text = "Vườn Bách Thảo";
+            tmp.text = "Khu Nông Trại";
             tmp.fontSize = 6.4f;
             tmp.fontStyle = FontStyles.Bold;
             tmp.alignment = TextAlignmentOptions.Center;

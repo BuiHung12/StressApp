@@ -29,11 +29,10 @@ namespace RangerCity.Lobby
                 "Hãy chọn những bộ trang phục đẹp nhất nhé!",
             });
 
-            CreateNPC("Zhang Guang Yu", "", new Vector3(-6, 0.03f, -2), new Color(0.12f, 0.12f, 0.12f), new[] {
-                "Chào bồ! Tôi là Zhang Guang Yu đây!",
-                "Đừng đứng gần tôi quá, tôi chưa tắm 3 tuần rồi...",
-                "Người ta bảo tôi đen hôi, nhưng tôi thấy mình men lỳ!"
-            }, new Color(0.25f, 0.18f, 0.12f));
+            CreateNPC("Zhang Guang Yu", "", new Vector3(-2f, 0.03f, -61.2f), new Color(0.12f, 0.12f, 0.12f), new[] {
+                "Xin lỗi Xiao Ling, bây giờ tôi đã biết Xiao Ling có người yêu rồi! Tôi không được phép tăm tia nữa!",
+                "Tôi là người có tội!"
+            }, new Color(0.25f, 0.18f, 0.12f), wanderRadius: 0.5f);
 
             CreateNPC("Yan Min Sheng", "", new Vector3(6f, 0.03f, -61.2f), new Color(0.15f, 0.1f, 0.08f), new[] {
                 "Xin lỗi Xiao Ling từ nay tui không dám giao việc linh tinh cho Xiao Ling nữa huhuhu"

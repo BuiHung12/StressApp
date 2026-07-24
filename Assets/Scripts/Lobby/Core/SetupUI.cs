@@ -69,8 +69,16 @@ namespace RangerCity.Lobby
             fistImg.sprite = CreateFistSprite();
             fistImg.color = Color.white;
 
-            var talkBtnObj = CreateUIButton("TalkButton", panel.transform, new Vector2(9999f, 9999f), "DummyTalk", Color.clear, Vector2.one);
+            var talkBtnObj = CreateUIButton("TalkButton", panel.transform, Vector2.zero, "", Color.clear, new Vector2(54, 54));
             talkBtnObj.SetActive(false);
+
+            var talkIcon = new GameObject("TalkIcon");
+            talkIcon.transform.SetParent(talkBtnObj.transform, false);
+            var talkRT = talkIcon.AddComponent<RectTransform>();
+            talkRT.sizeDelta = new Vector2(50, 50);
+            var talkImg = talkIcon.AddComponent<Image>();
+            talkImg.sprite = CreateSpeechBubbleSprite();
+            talkImg.color = Color.white;
 
             var nameObj = new GameObject("TargetName");
             nameObj.transform.SetParent(panel.transform, false);
@@ -318,6 +326,29 @@ namespace RangerCity.Lobby
             }
         }
 
+        private Sprite CreateSpeechBubbleSprite()
+        {
+            int sz = 64;
+            var tex = new Texture2D(sz, sz, TextureFormat.RGBA32, false);
+            Color bubbleCol = new Color(0.18f, 0.65f, 0.95f, 0.95f);
+
+            for (int y = 0; y < sz; y++)
+                for (int x = 0; x < sz; x++)
+                    tex.SetPixel(x, y, Color.clear);
+
+            for (int y = 20; y <= 54; y++)
+                for (int x = 8; x <= 56; x++)
+                    tex.SetPixel(x, y, bubbleCol);
+
+            // Tail
+            for (int y = 8; y < 20; y++)
+                for (int x = 16; x <= 16 + (y - 8); x++)
+                    tex.SetPixel(x, y, bubbleCol);
+
+            tex.Apply();
+            return Sprite.Create(tex, new Rect(0, 0, sz, sz), new Vector2(0.5f, 0.5f), 100f);
+        }
+
         private GameObject CreateUIButton(string name, Transform parent, Vector2 pos, string label, Color bgColor, Vector2 size)
         {
             var btnObj = new GameObject(name);
@@ -329,17 +360,20 @@ namespace RangerCity.Lobby
             btnObj.AddComponent<Image>().color = bgColor;
             btnObj.AddComponent<Button>();
 
-            var labelObj = new GameObject("Label");
-            labelObj.transform.SetParent(btnObj.transform, false);
-            var tmp = labelObj.AddComponent<TextMeshProUGUI>();
-            tmp.text = label;
-            tmp.fontSize = 15;
-            tmp.alignment = TextAlignmentOptions.Center;
-            tmp.color = Color.white;
-            tmp.fontStyle = FontStyles.Bold;
-            var lrt = tmp.GetComponent<RectTransform>();
-            lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
-            lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+            if (!string.IsNullOrEmpty(label))
+            {
+                var labelObj = new GameObject("Label");
+                labelObj.transform.SetParent(btnObj.transform, false);
+                var tmp = labelObj.AddComponent<TextMeshProUGUI>();
+                tmp.text = label;
+                tmp.fontSize = 15;
+                tmp.alignment = TextAlignmentOptions.Center;
+                tmp.color = Color.white;
+                tmp.fontStyle = FontStyles.Bold;
+                var lrt = tmp.GetComponent<RectTransform>();
+                lrt.anchorMin = Vector2.zero; lrt.anchorMax = Vector2.one;
+                lrt.offsetMin = lrt.offsetMax = Vector2.zero;
+            }
             return btnObj;
         }
 

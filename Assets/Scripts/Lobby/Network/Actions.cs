@@ -164,7 +164,7 @@ namespace RangerCity.Lobby
                 else if (targetType == 2 && !string.IsNullOrEmpty(targetName))
                 {
                     var npc = EntityRegistry.GetNPC(targetName);
-                    if (npc != null)
+                    if (npc != null && npc.CanBePunched)
                     {
                         Vector3 knockDir = (npc.transform.position - position).normalized;
                         knockDir.y = 0;

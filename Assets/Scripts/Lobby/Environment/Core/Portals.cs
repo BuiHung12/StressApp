@@ -111,7 +111,7 @@ namespace RangerCity.Lobby
             CreatePortal("GardenPortal", new Vector3(0, 0, pathEnd), 0f,
                 new Color(0.3f, 0.35f, 0.4f),
                 new Color(0.15f, 0.85f, 0.3f, 0.7f),
-                "Vườn Trên Cao");
+                "Khu Nông Trại");
 
             CreatePortal("PrisonPortal", new Vector3(0, 0, -pathEnd), 0f,
                 new Color(0.25f, 0.25f, 0.3f),

@@ -35,6 +35,7 @@ namespace RangerCity.Lobby
                 var npcs = EntityRegistry.AllNPCs;
                 foreach (var npc in npcs)
                 {
+                    if (npc == null || !npc.CanBePunched) continue;
                     float dist = Vector3.Distance(transform.position, npc.transform.position);
                     if (dist < closestDist) { closestDist = dist; closestTarget = npc; }
                 }

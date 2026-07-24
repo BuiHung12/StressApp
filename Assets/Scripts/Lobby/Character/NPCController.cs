@@ -95,8 +95,15 @@ namespace RangerCity.Lobby
             _wanderTimer = Random.Range(_wanderPauseMin, _wanderPauseMax);
             _isJailedNPC = _wanderRadius <= 1f;
 
-            // Load saved NPC position if exists
-            if (PlayerPrefs.HasKey($"NPC_{_displayName}_X"))
+            if (_isJailedNPC)
+            {
+                // Jailed NPCs stay strictly in their designated cell
+                transform.position = _homePosition;
+                PlayerPrefs.DeleteKey($"NPC_{_displayName}_X");
+                PlayerPrefs.DeleteKey($"NPC_{_displayName}_Y");
+                PlayerPrefs.DeleteKey($"NPC_{_displayName}_Z");
+            }
+            else if (PlayerPrefs.HasKey($"NPC_{_displayName}_X"))
             {
                 float x = PlayerPrefs.GetFloat($"NPC_{_displayName}_X");
                 float y = PlayerPrefs.GetFloat($"NPC_{_displayName}_Y");
@@ -105,10 +112,7 @@ namespace RangerCity.Lobby
                 if (IsValidPosition(loadedPos))
                 {
                     transform.position = loadedPos;
-                    if (!_isJailedNPC)
-                    {
-                        _homePosition = transform.position;
-                    }
+                    _homePosition = transform.position;
                 }
                 else
                 {
